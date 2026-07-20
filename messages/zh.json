@@ -1,0 +1,52 @@
+{
+  "splash": {
+    "languageSelect": "选择语言",
+    "start": "开始"
+  },
+  "login": {
+    "email": "电子邮件（ID）",
+    "password": "密码",
+    "show": "显示",
+    "hide": "隐藏",
+    "loginButton": "登录",
+    "forgotPassword": "忘记密码",
+    "signUp": "注册",
+    "orContinueWith": "或者",
+    "google": "Continue with Google",
+    "errorEmailRequired": "请输入电子邮件",
+    "errorPasswordRequired": "请输入密码"
+  },
+  "signUp": {
+    "title": "注册",
+    "subtitle": "请通过邮件验证进行注册。",
+    "email": "电子邮件地址",
+    "requestVerification": "请求验证",
+    "password": "密码",
+    "show": "显示",
+    "hide": "隐藏",
+    "confirmPassword": "确认密码",
+    "agreeTerms": "同意服务条款和隐私政策（必填）",
+    "agreeMarketing": "同意接收营销信息（可选）",
+    "sendVerificationEmail": "发送验证邮件",
+    "errorEmailInvalid": "请输入有效的电子邮件",
+    "errorPasswordInvalid": "需要8位以上，包含字母和数字",
+    "errorPasswordMismatch": "密码不一致",
+    "errorAgreeTerms": "请同意服务条款"
+  },
+  "emailVerification": {
+    "title": "邮件验证",
+    "subtitle": "已向 {email} 发送6位验证码，请查看邮箱。",
+    "noCode": "没有收到验证码？",
+    "resend": "重新发送 ({time})",
+    "confirm": "确认",
+    "successTitle": "验证完成",
+    "successMessage": "邮箱验证已完成，请登录。",
+    "goToLogin": "去登录"
+  },
+  "languages": {
+    "en": "English",
+    "ja": "日本語",
+    "zh": "中文",
+    "ko": "한국어"
+  }
+}

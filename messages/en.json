@@ -1,0 +1,88 @@
+{
+  "splash": {
+    "languageSelect": "Language",
+    "start": "Start"
+  },
+  "login": {
+    "email": "Email (ID)",
+    "password": "Password",
+    "show": "Show",
+    "hide": "Hide",
+    "loginButton": "Login",
+    "forgotPassword": "Forgot password",
+    "signUp": "Sign Up",
+    "orContinueWith": "Or",
+    "google": "Continue with Google",
+    "errorEmailRequired": "Please enter your email",
+    "errorPasswordRequired": "Please enter your password"
+  },
+  "signUp": {
+    "title": "Sign Up",
+    "subtitle": "Please verify your email to register.",
+    "email": "Email address",
+    "requestVerification": "Request",
+    "password": "Password",
+    "show": "Show",
+    "hide": "Hide",
+    "confirmPassword": "Confirm password",
+    "agreeTerms": "Agree to Terms of Service and Privacy Policy (Required)",
+    "agreeMarketing": "Agree to receive marketing information (Optional)",
+    "sendVerificationEmail": "Send Verification Email",
+    "errorEmailInvalid": "Please enter a valid email",
+    "errorPasswordInvalid": "8+ characters, letters and numbers required",
+    "errorPasswordMismatch": "Passwords do not match",
+    "errorAgreeTerms": "You must agree to the terms"
+  },
+  "emailVerification": {
+    "title": "Email Verification",
+    "subtitle": "We sent a 6-digit verification code to {email}. Please check your email.",
+    "noCode": "Didn't receive a code?",
+    "resend": "Resend ({time})",
+    "confirm": "Confirm",
+    "successTitle": "Verification Complete",
+    "successMessage": "Your email has been verified. Please log in.",
+    "goToLogin": "Go to Login"
+  },
+  "languages": {
+    "en": "English",
+    "ja": "日本語",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "onboarding": {
+    "step1Title": "Travel Schedule & Transportation",
+    "step1Subtitle": "",
+    "dateRange": "Select date range",
+    "activityTime": "Daily activity hours",
+    "transport": "Transportation (single)",
+    "walking": "Walking",
+    "publicTransit": "Public transit",
+    "car": "Car",
+    "region": "Destination region",
+    "regionUndecided": "Not decided yet",
+    "next": "Next",
+    "step2Title": "What interests you?",
+    "step2Subtitle": "Select 2-4",
+    "step3Title": "Tell us more",
+    "step3Subtitle": "Select by category · at least 1 per category",
+    "step4Title": "How deep do you want to go?",
+    "step4Subtitle": "Mission L1~L3 mix changes by level",
+    "light": "LIGHT",
+    "lightDesc": "New to Korea · Light missions like convenience store snacks",
+    "normal": "NORMAL",
+    "normalDesc": "A bit deeper · Local restaurants, traditional markets mixed in",
+    "deep": "DEEP",
+    "deepDesc": "Like a local · Hidden alleys, neighborhood spots and more",
+    "start": "Get Started",
+    "categories": {
+      "food": "Food",
+      "experience": "Experiential tourism",
+      "nature": "Nature tourism",
+      "history": "Historical tourism",
+      "culture": "Cultural tourism",
+      "shopping": "Shopping",
+      "festival": "Festival·Performance",
+      "leisure": "Leisure sports"
+    }
+  }
+}

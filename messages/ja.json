@@ -1,0 +1,52 @@
+{
+  "splash": {
+    "languageSelect": "言語選択",
+    "start": "スタート"
+  },
+  "login": {
+    "email": "メールアドレス（ID）",
+    "password": "パスワード",
+    "show": "表示",
+    "hide": "非表示",
+    "loginButton": "ログイン",
+    "forgotPassword": "パスワードを忘れた方",
+    "signUp": "新規登録",
+    "orContinueWith": "または",
+    "google": "Continue with Google",
+    "errorEmailRequired": "メールアドレスを入力してください",
+    "errorPasswordRequired": "パスワードを入力してください"
+  },
+  "signUp": {
+    "title": "新規登録",
+    "subtitle": "メール認証で登録してください。",
+    "email": "メールアドレス",
+    "requestVerification": "認証依頼",
+    "password": "パスワード",
+    "show": "表示",
+    "hide": "非表示",
+    "confirmPassword": "パスワード確認",
+    "agreeTerms": "利用規約・個人情報保護方針に同意する（必須）",
+    "agreeMarketing": "マーケティング情報の受信に同意する（任意）",
+    "sendVerificationEmail": "認証メールを送る",
+    "errorEmailInvalid": "有効なメールアドレスを入力してください",
+    "errorPasswordInvalid": "8文字以上、英字と数字を含める必要があります",
+    "errorPasswordMismatch": "パスワードが一致しません",
+    "errorAgreeTerms": "利用規約に同意してください"
+  },
+  "emailVerification": {
+    "title": "メール認証",
+    "subtitle": "{email} に6桁の認証コードを送りました。メールボックスをご確認ください。",
+    "noCode": "コードが届いていませんか？",
+    "resend": "再送信 ({time})",
+    "confirm": "確認",
+    "successTitle": "認証完了",
+    "successMessage": "メール認証が完了しました。ログインしてください。",
+    "goToLogin": "ログインへ"
+  },
+  "languages": {
+    "en": "English",
+    "ja": "日本語",
+    "zh": "中文",
+    "ko": "한국어"
+  }
+}
