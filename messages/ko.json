@@ -1,47 +1,35 @@
 {
-  "splash": {
-    "languageSelect": "언어 선택",
-    "start": "시작"
-  },
   "login": {
-    "email": "이메일 (아이디)",
+    "email": "이메일",
     "password": "비밀번호",
-    "show": "표시",
-    "hide": "숨김",
     "loginButton": "로그인",
     "forgotPassword": "비밀번호 찾기",
     "signUp": "회원가입",
     "orContinueWith": "또는",
-    "google": "Continue with Google",
     "errorEmailRequired": "이메일을 입력해주세요",
     "errorPasswordRequired": "비밀번호를 입력해주세요"
   },
   "signUp": {
     "title": "회원가입",
-    "subtitle": "이메일 인증으로 가입하요.",
-    "email": "이메일 주소",
+    "subtitle": "이메일 인증으로 가입해요",
+    "email": "이메일",
     "requestVerification": "인증 요청",
-    "password": "비밀번호",
-    "show": "표시",
-    "hide": "숨김",
+    "resend": "재요청",
+    "password": "비밀번호 (8자 이상, 영문+숫자)",
     "confirmPassword": "비밀번호 확인",
     "agreeTerms": "이용약관 및 개인정보 처리방침 동의 (필수)",
     "agreeMarketing": "마케팅 정보 수신 동의 (선택)",
-    "sendVerificationEmail": "인증 메일 보내기",
+    "sendVerificationEmail": "가입하기",
     "errorEmailInvalid": "올바른 이메일을 입력해주세요",
     "errorPasswordInvalid": "8자 이상, 영문+숫자를 포함해야 합니다",
-    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다",
-    "errorAgreeTerms": "이용약관에 동의해주세요"
+    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다"
   },
   "emailVerification": {
     "title": "이메일 인증",
     "subtitle": "{email} 으로 6자리 인증 코드를 보냈어요. 메일함을 확인해 주세요.",
     "noCode": "코드가 안 왔나요?",
-    "resend": "재전송 ({time})",
-    "confirm": "확인",
-    "successTitle": "인증 완료",
-    "successMessage": "이메일 인증이 완료되었습니다. 로그인해주세요.",
-    "goToLogin": "로그인 하러 가기"
+    "resendBtn": "재전송",
+    "confirm": "확인"
   },
   "languages": {
     "en": "English",
@@ -66,7 +54,7 @@
     "step3Title": "조금 더 자세히 알려주세요",
     "step3Subtitle": "선택한 분야별로 골라주세요 · 분야당 최소 1개",
     "step4Title": "얼마나 깊이 체험하고 싶나요?",
-    "step4Subtitle": "선택 레벨에 따라 미션 L1~L3 배합이 달라져요",
+    "step4Subtitle": "선택 레벨에 따라 미션 L1~L4 배합이 달라져요",
     "light": "LIGHT",
     "lightDesc": "한국이 처음이에요 · 편의점 삼각김밥 같은 가벼운 미션 위주",
     "normal": "NORMAL",

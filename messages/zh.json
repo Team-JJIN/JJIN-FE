@@ -1,18 +1,11 @@
 {
-  "splash": {
-    "languageSelect": "选择语言",
-    "start": "开始"
-  },
   "login": {
-    "email": "电子邮件（ID）",
+    "email": "电子邮件",
     "password": "密码",
-    "show": "显示",
-    "hide": "隐藏",
     "loginButton": "登录",
     "forgotPassword": "忘记密码",
     "signUp": "注册",
     "orContinueWith": "或者",
-    "google": "Continue with Google",
     "errorEmailRequired": "请输入电子邮件",
     "errorPasswordRequired": "请输入密码"
   },

@@ -1,113 +1,143 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, KeyboardEvent, ClipboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
-import OtpInput from "@/app/_components/ui/OtpInput";
 import Button from "@/app/_components/ui/Button";
-import BackButton from "@/app/_components/ui/BackButton";
-import Modal from "@/app/_components/ui/Modal";
 
-const RESEND_SECONDS = 180;
+const OTP_LENGTH = 6;
+const RESEND_COOLDOWN = 30;
 
 export default function EmailVerifyPage() {
   const t = useTranslations("emailVerification");
   const router = useRouter();
   const locale = useLocale();
   const searchParams = useSearchParams();
-  const email = searchParams?.get("email") ?? "your email";
+  const email = searchParams?.get("email") ?? "your@email.com";
 
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
-  const [seconds, setSeconds] = useState(RESEND_SECONDS);
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
+  const [cooldown, setCooldown] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const isComplete = otp.every((v) => v !== "");
+
+  // 쿨타임 타이머
   useEffect(() => {
-    if (seconds <= 0) return;
-    const timer = setTimeout(() => setSeconds((s) => s - 1), 1000);
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(timer);
-  }, [seconds]);
+  }, [cooldown]);
+
+  // OTP 입력 핸들러
+  const handleChange = (index: number, char: string) => {
+    if (!/^\d?$/.test(char)) return;
+    setError(false);
+    const next = [...otp];
+    next[index] = char;
+    setOtp(next);
+    if (char && index < OTP_LENGTH - 1) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    const next = Array(OTP_LENGTH).fill("");
+    pasted.split("").forEach((char, i) => { next[i] = char; });
+    setOtp(next);
+    inputRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+  };
 
   const handleResend = () => {
-    if (seconds > 0) return;
-    setSeconds(RESEND_SECONDS);
-    setOtp(Array(6).fill(""));
+    if (cooldown > 0) return;
+    setCooldown(RESEND_COOLDOWN);
+    setOtp(Array(OTP_LENGTH).fill(""));
+    setError(false);
+    // TODO: API 재발송
   };
 
   const handleConfirm = async () => {
-    const code = otp.join("");
-    if (code.length < 6) return;
+    if (!isComplete) return;
     setIsSubmitting(true);
+    // TODO: API 검증
     await new Promise((r) => setTimeout(r, 800));
-    setIsSubmitting(false);
-    setShowSuccess(true);
-  };
 
-  const handleSuccessClose = () => {
-    setShowSuccess(false);
-    router.push(`/${locale}/auth/login`);
+    // 성공 시 → 회원가입 페이지로 인증완료 상태 복귀
+    const success = true; // TODO: 실제 검증 결과
+    if (success) {
+      router.push(`/${locale}/auth/signup?verified=true&email=${encodeURIComponent(email)}`);
+    } else {
+      setError(true);
+      setOtp(Array(OTP_LENGTH).fill(""));
+      inputRefs.current[0]?.focus();
+      setIsSubmitting(false);
+    }
   };
-
-  const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <div className="flex h-dvh flex-col bg-white px-5">
-      {/* 뒤로가기 */}
-      <div className="pt-[5vh]">
-        <BackButton onClick={() => router.push(`/${locale}/auth/signup`)} />
-      </div>
-
+    <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 제목 */}
-      <div className="pt-[2vh]">
-        <h1 className="text-xl font-bold text-neutral-900">{t("title")}</h1>
-        <p className="mt-2 text-sm text-neutral-500 leading-relaxed">
-          {t("subtitle", { email })}
-        </p>
+      <h1 className="pt-[7vh] text-[22px] font-semibold tracking-[-1%] text-dark">
+        {t("title")}
+      </h1>
+
+      {/* 설명 */}
+      <p className="mt-[7px] text-[12px] font-medium text-[#737373]">
+        {t("subtitle", { email })}
+      </p>
+
+      {/* OTP 입력 */}
+      <div className="mt-[12px] flex gap-2">
+        {Array.from({ length: OTP_LENGTH }).map((_, i) => (
+          <input
+            key={i}
+            ref={(el) => { inputRefs.current[i] = el; }}
+            type="text"
+            inputMode="numeric"
+            maxLength={1}
+            value={otp[i]}
+            onChange={(e) => handleChange(i, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={handlePaste}
+            className={`h-[48px] w-full rounded-[12px] text-center text-[18px] font-semibold transition-all duration-150 focus:outline-none ${
+              otp[i]
+                ? "bg-lime-light border-2 border-[#CCFF00]"
+                : "bg-surface border border-transparent"
+            } ${error ? "border-red-400 bg-red-50" : ""} focus:border-2 focus:border-[#CCFF00]`}
+          />
+        ))}
       </div>
 
-      {/* OTP */}
-      <div className="pt-[3vh]">
-        <OtpInput value={otp} onChange={setOtp} />
-        <p className="mt-4 text-sm text-neutral-500">
-          {t("noCode")}{" "}
-          <button
-            type="button"
-            onClick={handleResend}
-            disabled={seconds > 0}
-            className="font-semibold text-neutral-700 disabled:text-neutral-400"
-          >
-            {t("resend", { time: `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}` })}
-          </button>
-        </p>
+      {/* 코드가 안 왔나요? + 재전송 */}
+      <div className="mt-[12px] flex items-center justify-between">
+        <span className="text-[12px] text-[#737373]">{t("noCode")}</span>
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={cooldown > 0}
+          className="text-[12px] font-semibold text-dark disabled:text-muted"
+        >
+          {cooldown > 0 ? `${t("resendBtn")} (${cooldown}s)` : t("resendBtn")}
+        </button>
       </div>
 
       {/* 빈 공간 */}
       <div className="flex-1" />
 
-      {/* 하단 버튼 */}
-      <div className="pb-8">
-        <Button
-          fullWidth
-          isLoading={isSubmitting}
-          disabled={otp.join("").length < 6}
-          onClick={handleConfirm}
-        >
+      {/* 확인 버튼 */}
+      <div className="pb-[43px]">
+        <Button fullWidth disabled={!isComplete} isLoading={isSubmitting} onClick={handleConfirm}>
           {t("confirm")}
         </Button>
       </div>
-
-      {/* 인증 완료 팝업 */}
-      <Modal open={showSuccess} onClose={handleSuccessClose}>
-        <div className="flex flex-col items-center gap-4 py-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-            <span className="text-2xl">✓</span>
-          </div>
-          <p className="text-center font-semibold text-neutral-900">{t("successTitle")}</p>
-          <p className="text-center text-sm text-neutral-500">{t("successMessage")}</p>
-          <Button fullWidth onClick={handleSuccessClose}>{t("goToLogin")}</Button>
-        </div>
-      </Modal>
     </div>
   );
 }

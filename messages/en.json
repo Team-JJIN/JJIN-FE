@@ -1,47 +1,35 @@
 {
-  "splash": {
-    "languageSelect": "Language",
-    "start": "Start"
-  },
   "login": {
-    "email": "Email (ID)",
-    "password": "Password",
-    "show": "Show",
-    "hide": "Hide",
-    "loginButton": "Login",
-    "forgotPassword": "Forgot password",
-    "signUp": "Sign Up",
-    "orContinueWith": "Or",
-    "google": "Continue with Google",
-    "errorEmailRequired": "Please enter your email",
-    "errorPasswordRequired": "Please enter your password"
+    "email": "이메일",
+    "password": "비밀번호",
+    "loginButton": "로그인",
+    "forgotPassword": "비밀번호 찾기",
+    "signUp": "회원가입",
+    "orContinueWith": "또는",
+    "errorEmailRequired": "이메일을 입력해주세요",
+    "errorPasswordRequired": "비밀번호를 입력해주세요"
   },
   "signUp": {
     "title": "Sign Up",
-    "subtitle": "Please verify your email to register.",
-    "email": "Email address",
+    "subtitle": "Sign up with email verification",
+    "email": "Email",
     "requestVerification": "Request",
-    "password": "Password",
-    "show": "Show",
-    "hide": "Hide",
+    "resend": "Resend",
+    "password": "Password (8+ chars, letters+numbers)",
     "confirmPassword": "Confirm password",
-    "agreeTerms": "Agree to Terms of Service and Privacy Policy (Required)",
-    "agreeMarketing": "Agree to receive marketing information (Optional)",
-    "sendVerificationEmail": "Send Verification Email",
+    "agreeTerms": "Agree to Terms and Privacy Policy (Required)",
+    "agreeMarketing": "Agree to marketing info (Optional)",
+    "sendVerificationEmail": "Sign Up",
     "errorEmailInvalid": "Please enter a valid email",
     "errorPasswordInvalid": "8+ characters, letters and numbers required",
-    "errorPasswordMismatch": "Passwords do not match",
-    "errorAgreeTerms": "You must agree to the terms"
+    "errorPasswordMismatch": "Passwords do not match"
   },
   "emailVerification": {
     "title": "Email Verification",
-    "subtitle": "We sent a 6-digit verification code to {email}. Please check your email.",
+    "subtitle": "We sent a 6-digit code to {email}. Please check your inbox.",
     "noCode": "Didn't receive a code?",
-    "resend": "Resend ({time})",
-    "confirm": "Confirm",
-    "successTitle": "Verification Complete",
-    "successMessage": "Your email has been verified. Please log in.",
-    "goToLogin": "Go to Login"
+    "resendBtn": "Resend",
+    "confirm": "Confirm"
   },
   "languages": {
     "en": "English",

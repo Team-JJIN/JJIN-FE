@@ -3,47 +3,45 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
+import Image from "next/image";
 import Button from "@/app/_components/ui/Button";
 import LanguageOption from "@/app/_components/ui/LanguageOption";
 
 const LANGUAGES = [
+  { locale: "ko", label: "한국어" },
   { locale: "en", label: "English" },
   { locale: "ja", label: "日本語" },
-  { locale: "zh", label: "中文" },
-  { locale: "ko", label: "한국어" },
 ];
-
-const SPLASH_MESSAGES: Record<string, { languageSelect: string; start: string }> = {
-  en: { languageSelect: "Language", start: "Start" },
-  ja: { languageSelect: "言語選択", start: "スタート" },
-  zh: { languageSelect: "选择语言", start: "开始" },
-  ko: { languageSelect: "언어 선택", start: "시작" },
-};
 
 export default function SplashPage() {
   const router = useRouter();
   const currentLocale = useLocale();
   const [selectedLocale, setSelectedLocale] = useState(currentLocale);
 
-  const messages = SPLASH_MESSAGES[selectedLocale] ?? SPLASH_MESSAGES.en;
-
   return (
-    <div className="flex h-dvh flex-col bg-white px-5">
-      {/* 상단 여백 — 전체 높이의 비율로 */}
-      <div className="flex-[2]" />
-
-      {/* 로고 */}
-      <div className="flex h-[22vh] w-full items-center justify-center rounded-2xl bg-neutral-100">
-        <span className="text-lg font-bold tracking-widest text-neutral-400">JJIN</span>
+    <div className="flex h-dvh flex-col bg-white px-[20px]">
+      {/* 로고 — 화면 중앙 */}
+      <div className="flex flex-1 flex-col items-center justify-center">
+        <Image
+          src="/image/logo.png"
+          alt="JJIN"
+          width={130}
+          height={76}
+          priority
+          className="object-contain"
+        />
+        <p className="mt-[10px] text-[13px] font-normal text-[#C4C4C4]">
+          Living life for real
+        </p>
       </div>
 
-      {/* 로고~언어 사이 빈 공간 */}
-      <div className="flex-[3]" />
+      {/* 하단 영역 */}
+      <div className="flex flex-col">
+        {/* 언어 선택 라벨 */}
+        <p className="text-[13px] text-muted mb-[21px]">언어 선택</p>
 
-      {/* 언어 선택 */}
-      <div>
-        <p className="mb-3 text-xs text-neutral-500">{messages.languageSelect}</p>
-        <div className="flex flex-col gap-2.5">
+        {/* 언어 버튼들 — 각 13px 간격 */}
+        <div className="flex flex-col gap-[13px]">
           {LANGUAGES.map(({ locale, label }) => (
             <LanguageOption
               key={locale}
@@ -54,13 +52,13 @@ export default function SplashPage() {
             />
           ))}
         </div>
-      </div>
 
-      {/* Start 버튼 */}
-      <div className="pb-8 pt-4">
-        <Button fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
-          {messages.start}
-        </Button>
+        {/* 시작하기 버튼 — 언어 마지막에서 21px, 하단에서 43px */}
+        <div className="mt-[21px] mb-[43px]">
+          <Button fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
+            시작하기
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -1,18 +1,11 @@
 {
-  "splash": {
-    "languageSelect": "言語選択",
-    "start": "スタート"
-  },
   "login": {
-    "email": "メールアドレス（ID）",
+    "email": "メールアドレス",
     "password": "パスワード",
-    "show": "表示",
-    "hide": "非表示",
     "loginButton": "ログイン",
     "forgotPassword": "パスワードを忘れた方",
     "signUp": "新規登録",
     "orContinueWith": "または",
-    "google": "Continue with Google",
     "errorEmailRequired": "メールアドレスを入力してください",
     "errorPasswordRequired": "パスワードを入力してください"
   },

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -7,7 +7,21 @@ import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "JJIN",
-  description: "JJIN — Your travel companion",
+  description: "JJIN — Living life for real",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "JJIN",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#171717",
 };
 
 type Props = {
@@ -26,6 +40,9 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale}>
+      <head>
+        <link rel="apple-touch-icon" href="/image/logo.png" />
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           {children}
