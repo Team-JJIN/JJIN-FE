@@ -1,35 +1,37 @@
 /**
  * @component Checkbox
- * @prop label 체크박스 옆 텍스트
+ * 동그란 원 안에 체크마크. 비활성: 흰 배경 + 회색 체크. 활성: lime 배경 + 검정 체크.
  */
 "use client";
 
-import { InputHTMLAttributes, forwardRef } from "react";
-import { cn } from "@/lib/utils";
-
-interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
+interface CheckboxProps {
+  checked: boolean;
+  onChange: () => void;
   label: string;
 }
 
-const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, className, ...props }, ref) => {
-    return (
-      <label className="flex cursor-pointer items-start gap-2">
-        <input
-          ref={ref}
-          type="checkbox"
-          className={cn(
-            "mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-neutral-300 accent-black",
-            className
-          )}
-          {...props}
-        />
-        <span className="text-sm text-neutral-600">{label}</span>
-      </label>
-    );
-  }
-);
-
-Checkbox.displayName = "Checkbox";
-
-export default Checkbox;
+export default function Checkbox({ checked, onChange, label }: CheckboxProps) {
+  return (
+    <label className="flex items-center gap-2 cursor-pointer" onClick={onChange}>
+      <span
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors ${
+          checked ? "bg-lime" : "bg-[#F0F0F0]"
+        }`}
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          stroke={checked ? "#171717" : "#9B9B9B"}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M2.5 6l2.5 2.5L9.5 4" />
+        </svg>
+      </span>
+      <span className="text-[12px] font-normal text-[#737373]">{label}</span>
+    </label>
+  );
+}

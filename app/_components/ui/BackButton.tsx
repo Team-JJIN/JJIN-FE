@@ -1,32 +1,26 @@
 /**
  * @component BackButton
- * @prop onClick 커스텀 핸들러 — 미전달 시 router.back()
+ * 뒤로가기 버튼. arrow_back-icon.png 사용. 24x24.
  */
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface BackButtonProps {
-  className?: string;
   onClick?: () => void;
 }
 
-export default function BackButton({ className, onClick }: BackButtonProps) {
+export default function BackButton({ onClick }: BackButtonProps) {
   const router = useRouter();
 
   return (
     <button
       type="button"
       onClick={onClick ?? (() => router.back())}
-      className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full hover:bg-neutral-100 active:bg-neutral-200 transition-colors",
-        className
-      )}
+      className="flex h-10 w-10 items-center justify-center -ml-2"
       aria-label="Go back"
     >
-      <ChevronLeft className="h-6 w-6 text-neutral-800" />
+      <img src="/image/arrow_back-icon.png" alt="뒤로" width={24} height={24} />
     </button>
   );
 }

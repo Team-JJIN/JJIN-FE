@@ -1,7 +1,6 @@
 /**
  * @component Input
- * @prop error        에러 메시지 — 빨간 테두리 + 하단 텍스트 표시
- * @prop rightElement 오른쪽 삽입 요소 (표시/숨김 버튼, 인증 요청 버튼 등)
+ * surface(#F7F7F7) 배경, 44px 높이, 14px 라운드. 포커스 시 보더 활성.
  */
 import { InputHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
@@ -19,10 +18,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={cn(
-              "h-12 w-full rounded-xl border bg-white px-4 text-base placeholder:text-neutral-400 transition-colors duration-150",
-              "focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent",
-              error ? "border-red-400 focus:ring-red-400" : "border-neutral-200",
-              rightElement && "pr-24",
+              "h-[44px] w-full rounded-[14px] bg-surface px-3 text-[14px] font-medium leading-[160%] placeholder:text-muted transition-all duration-150",
+              "border border-transparent focus:outline-none focus:border-dark",
+              error && "border-red-400",
+              rightElement && "pr-12",
               className
             )}
             {...props}
