@@ -346,6 +346,11 @@ export default function OnboardingFlow() {
         open={regionSheet}
         title="방문 지역 선택"
         onClose={() => setRegionSheet(false)}
+        aboveFooter={
+          <span className="rounded-full bg-[#F4FFD6] px-4 py-[10px] text-[12px] font-medium text-dark">
+            최대 1개까지 선택할 수 있어요
+          </span>
+        }
         footer={
           <div className="flex items-center justify-between">
             <ResetButton onClick={() => setTempRegion("")} />
@@ -378,12 +383,6 @@ export default function OnboardingFlow() {
           ))}
         </div>
 
-        {/* 안내 칩 — 푸터 30px 위 고정 */}
-        <div className="flex justify-center pt-6 pb-[30px]">
-          <span className="rounded-full bg-[#F4FFD6] px-4 py-[10px] text-[12px] font-medium text-dark">
-            최대 1개까지 선택할 수 있어요
-          </span>
-        </div>
       </BottomSheet>
 
       {/* === 바텀시트: 날짜 선택 === */}
