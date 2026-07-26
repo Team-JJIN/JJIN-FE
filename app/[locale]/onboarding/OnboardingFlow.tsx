@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
-import BackButton from "@/app/_components/ui/BackButton";
+import TopBarBack from "@/app/_components/ui/TopBarBack";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import CheckBox from "@/app/_components/ui/CheckBox";
 import ResetButton from "@/app/_components/ui/ResetButton";
@@ -92,6 +92,7 @@ export default function OnboardingFlow() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
 
+  // 캘린더 로직 (바텀시트 내부에서 사용)
   const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
 
   const canProceed = () => {
@@ -133,24 +134,7 @@ export default function OnboardingFlow() {
 
   const formatDate = (d: string | null) => d ? d.replace(/-/g, ".") : "";
 
-  // 캘린더 로직
-  const daysInMonth = new Date(viewMonth.year, viewMonth.month + 1, 0).getDate();
-  const firstDay = new Date(viewMonth.year, viewMonth.month, 1).getDay();
-  const toDateStr = (day: number) => `${viewMonth.year}-${String(viewMonth.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  const isDisabled = (day: number) => new Date(viewMonth.year, viewMonth.month, day) < today;
-  const isInRange = (day: number) => {
-    if (!tempDateStart || !tempDateEnd) return false;
-    const d = toDateStr(day);
-    return d > tempDateStart && d < tempDateEnd;
-  };
-  const isSelected = (day: number) => {
-    const d = toDateStr(day);
-    return d === tempDateStart || d === tempDateEnd;
-  };
-
-  const handleDayClick = (day: number) => {
-    if (isDisabled(day)) return;
-    const d = toDateStr(day);
+  const handleDayClick2 = (d: string) => {
     if (dateSelecting === "start") {
       setTempDateStart(d);
       setTempDateEnd(null);
@@ -170,10 +154,7 @@ export default function OnboardingFlow() {
     <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 상단: 뒤로 + 건너뛰기 */}
-      <div className="flex items-center justify-between pt-[4vh]">
-        <BackButton onClick={handlePrev} />
-        <button type="button" className="text-[13px] text-[#737373]">건너뛰기</button>
-      </div>
+      <TopBarBack onBack={handlePrev} rightText="건너뛰기" />
 
       {/* 프로그레스 — 일직선 게이지 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
@@ -198,7 +179,7 @@ export default function OnboardingFlow() {
               disabled={data.regionUndecided}
               className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200 disabled:opacity-40"
             >
-              <img src="/image/location-icon.png" alt="" width={20} height={20} />
+              <img src="/image/location-icon.svg" alt="" width={20} height={20} />
               <span className="text-[16px] font-medium text-[#C4C4C4]">
                 {data.region || "어디로 방문하시나요?"}
               </span>
@@ -218,7 +199,7 @@ export default function OnboardingFlow() {
               onClick={() => { setTempDateStart(data.dateStart); setTempDateEnd(data.dateEnd); setDateSheet(true); }}
               className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200"
             >
-              <img src="/image/calendar-icon.png" alt="" width={20} height={20} />
+              <img src="/image/calendar-icon.svg" alt="" width={20} height={20} />
               <span className="text-[16px] font-medium text-[#C4C4C4]">
                 {data.dateStart ? `${formatDate(data.dateStart)} ~ ${formatDate(data.dateEnd)}` : "언제 방문하시나요?"}
               </span>
@@ -276,7 +257,7 @@ export default function OnboardingFlow() {
             <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step2Title")}</h1>
             <p className="mt-[7px] text-[14px] font-medium text-[#737373]">{t("step2Subtitle")}</p>
 
-            <div className="grid grid-cols-4 gap-2 mt-[26px]">
+            <div className="flex flex-wrap gap-[10px] mt-[26px]">
               {CATEGORIES.map((cat) => (
                 <SelectChip
                   key={cat}
@@ -371,7 +352,7 @@ export default function OnboardingFlow() {
             <BigButton
               disabled={!tempRegion}
               onClick={() => { setData((d) => ({ ...d, region: tempRegion })); setRegionSheet(false); }}
-              className="w-[140px]"
+              className="w-[164px] rounded-[16px]"
             >
               선택 완료
             </BigButton>
@@ -381,7 +362,7 @@ export default function OnboardingFlow() {
         {/* 검색 — 37px 아래 */}
         <div className="mt-[5px] flex items-center h-[44px] rounded-[14px] bg-surface px-3">
           <input placeholder="어디로 방문하시나요?" className="flex-1 bg-transparent text-[14px] font-medium outline-none placeholder:text-[#C4C4C4]" readOnly />
-          <img src="/image/search-icon.png" alt="검색" width={20} height={20} />
+          <img src="/image/search-icon.svg" alt="검색" width={20} height={20} />
         </div>
 
         {/* 인기 여행지 */}
@@ -397,8 +378,8 @@ export default function OnboardingFlow() {
           ))}
         </div>
 
-        {/* 안내 칩 */}
-        <div className="mt-auto pt-10 flex justify-center">
+        {/* 안내 칩 — 푸터 30px 위 고정 */}
+        <div className="flex justify-center pt-6 pb-[30px]">
           <span className="rounded-full bg-[#F4FFD6] px-4 py-[10px] text-[12px] font-medium text-dark">
             최대 1개까지 선택할 수 있어요
           </span>
@@ -416,54 +397,78 @@ export default function OnboardingFlow() {
             <BigButton
               disabled={!tempDateStart || !tempDateEnd}
               onClick={() => { setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd })); setDateSheet(false); }}
-              className="w-[140px]"
+              className="w-[164px] rounded-[16px]"
             >
               선택 완료
             </BigButton>
           </div>
         }
       >
-        {/* 캘린더 */}
-        <div className="flex items-center justify-between mb-4">
-          <button type="button" onClick={() => setViewMonth((v) => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 })} className="text-neutral-500">‹</button>
-          <span className="text-[15px] font-semibold">{viewMonth.year}년 {viewMonth.month + 1}월</span>
-          <button type="button" onClick={() => setViewMonth((v) => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 })} className="text-neutral-500">›</button>
-        </div>
+        {/* 두 달 연속 캘린더 — 헤더에서 20px 아래 */}
+        <div className="mt-[20px]">
+        {[0, 1].map((offset) => {
+          const m = (viewMonth.month + offset) % 12;
+          const y = viewMonth.year + Math.floor((viewMonth.month + offset) / 12);
+          const days = new Date(y, m + 1, 0).getDate();
+          const first = new Date(y, m, 1).getDay();
+          const toStr = (day: number) => `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const isDis = (day: number) => new Date(y, m, day) < today;
+          const isSel = (day: number) => { const d = toStr(day); return d === tempDateStart || d === tempDateEnd; };
+          const isIn = (day: number) => { if (!tempDateStart || !tempDateEnd) return false; const d = toStr(day); return d > tempDateStart && d < tempDateEnd; };
 
-        <div className="grid grid-cols-7 gap-y-1 mb-1">
-          {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-            <div key={d} className="flex justify-center">
-              <span className="h-[36px] w-[36px] flex items-center justify-center text-[12px] text-[#737373]">{d}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-y-1">
-          {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} className="flex justify-center"><div className="h-[36px] w-[36px]" /></div>)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const disabled = isDisabled(day);
-            const selected = isSelected(day);
-            const inRange = isInRange(day);
-
-            return (
-              <div key={day} className="flex justify-center">
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => handleDayClick(day)}
-                  className={`h-[36px] w-[36px] rounded-full text-[13px] font-medium transition-colors ${
-                    disabled ? "text-neutral-300" :
-                    selected ? "bg-lime text-dark font-bold" :
-                    inRange ? "bg-[#F7F7F7] text-dark" :
-                    "text-neutral-800"
-                  }`}
-                >
-                  {day}
-                </button>
+          return (
+            <div key={`${y}-${m}`} className={offset === 1 ? "mt-6" : ""}>
+              {/* 월 헤더 — "일"과 동일 왼쪽 위치 */}
+              <div className="flex items-center gap-2 mb-3 ml-[4px]">
+                {offset === 0 && (
+                  <button type="button" onClick={() => setViewMonth((v) => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 })} className="text-[20px] text-neutral-400 leading-none -mt-[1px]">‹</button>
+                )}
+                <span className="text-[15px] font-semibold text-dark">{y}년 {m + 1}월</span>
+                {offset === 0 && (
+                  <button type="button" onClick={() => setViewMonth((v) => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 })} className="text-[20px] text-neutral-400 leading-none -mt-[1px]">›</button>
+                )}
               </div>
-            );
-          })}
+
+              {/* 요일 */}
+              <div className="grid grid-cols-7 mb-1">
+                {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
+                  <div key={d} className="flex justify-center">
+                    <span className="h-[32px] w-[32px] flex items-center justify-center text-[12px] text-[#737373]">{d}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* 날짜 */}
+              <div className="grid grid-cols-7 gap-y-[5px]">
+                {Array.from({ length: first }).map((_, i) => <div key={`e-${i}`} />)}
+                {Array.from({ length: days }).map((_, i) => {
+                  const day = i + 1;
+                  const disabled = isDis(day);
+                  const selected = isSel(day);
+                  const inRange = isIn(day);
+
+                  return (
+                    <div key={day} className="flex justify-center">
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => handleDayClick2(toStr(day))}
+                        className={`h-[32px] w-[32px] rounded-full text-[14px] font-medium transition-colors ${
+                          disabled ? "text-[#C4C4C4]" :
+                          selected ? "bg-lime text-[#2A2A2A] font-bold" :
+                          inRange ? "bg-[#F7F7F7] text-[#2A2A2A]" :
+                          "text-[#737373]"
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
         </div>
       </BottomSheet>
 
@@ -564,7 +569,7 @@ function Step3Content({
               <span className={`text-[12px] text-[#C4C4C4] transition-transform ${collapsed[cat] ? "rotate-180" : ""}`}>▼</span>
             </button>
             {!collapsed[cat] && (
-              <div className="flex flex-wrap gap-[6px] mt-[8px]">
+              <div className="flex flex-wrap gap-[8px] mt-[8px]">
                 {(SUB_CATEGORIES[cat] ?? []).map((sub) => (
                   <SelectChip
                     key={sub}
