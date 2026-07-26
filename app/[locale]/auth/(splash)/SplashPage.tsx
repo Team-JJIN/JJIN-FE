@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import Image from "next/image";
-import Button from "@/app/_components/ui/Button";
-import LanguageOption from "@/app/_components/ui/LanguageOption";
+import BigButton from "@/app/_components/ui/BigButton";
+import MediumButton from "@/app/_components/ui/MediumButton";
+import PageTransition from "@/app/_components/PageTransition";
 
 const LANGUAGES = [
   { locale: "ko", label: "한국어" },
@@ -19,6 +20,7 @@ export default function SplashPage() {
   const [selectedLocale, setSelectedLocale] = useState(currentLocale);
 
   return (
+    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 로고 — 화면 중앙 */}
       <div className="flex flex-1 flex-col items-center justify-center">
@@ -43,7 +45,7 @@ export default function SplashPage() {
         {/* 언어 버튼들 — 각 13px 간격 */}
         <div className="flex flex-col gap-[13px]">
           {LANGUAGES.map(({ locale, label }) => (
-            <LanguageOption
+            <MediumButton
               key={locale}
               locale={locale}
               label={label}
@@ -55,11 +57,12 @@ export default function SplashPage() {
 
         {/* 시작하기 버튼 — 언어 마지막에서 21px, 하단에서 43px */}
         <div className="mt-[21px] mb-[43px]">
-          <Button fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
+          <BigButton fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
             시작하기
-          </Button>
+          </BigButton>
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

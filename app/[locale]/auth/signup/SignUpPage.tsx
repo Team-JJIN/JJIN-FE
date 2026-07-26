@@ -5,9 +5,10 @@ import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useLocale } from "@/app/_components/hooks/useLocale";
-import Button from "@/app/_components/ui/Button";
-import Input from "@/app/_components/ui/Input";
-import Checkbox from "@/app/_components/ui/Checkbox";
+import BigButton from "@/app/_components/ui/BigButton";
+import InputText from "@/app/_components/ui/InputText";
+import CheckBox from "@/app/_components/ui/CheckBox";
+import PageTransition from "@/app/_components/PageTransition";
 
 type SignUpForm = {
   email: string;
@@ -83,6 +84,7 @@ export default function SignUpPage() {
   };
 
   return (
+    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 제목 */}
       <div className="pt-[7vh]">
@@ -95,7 +97,7 @@ export default function SignUpPage() {
         {/* 이메일 + 인증 요청/완료 */}
         <div className="flex gap-2">
           <div className="flex-1">
-            <Input
+            <InputText
               type="email"
               placeholder={t("email")}
               error={emailError}
@@ -120,7 +122,7 @@ export default function SignUpPage() {
         </div>
 
         {/* 비밀번호 */}
-        <Input
+        <InputText
           type={showPassword ? "text" : "password"}
           placeholder={t("password")}
           error={passwordError}
@@ -146,7 +148,7 @@ export default function SignUpPage() {
         />
 
         {/* 비밀번호 확인 */}
-        <Input
+        <InputText
           type="password"
           placeholder={t("confirmPassword")}
           error={confirmError}
@@ -156,12 +158,12 @@ export default function SignUpPage() {
 
         {/* 약관 동의 */}
         <div className="flex flex-col gap-[10px] mt-[4px]">
-          <Checkbox
+          <CheckBox
             checked={agreeTerms}
             onChange={() => setValue("agreeTerms", !agreeTerms)}
             label={t("agreeTerms")}
           />
-          <Checkbox
+          <CheckBox
             checked={agreeMarketing}
             onChange={() => setValue("agreeMarketing", !agreeMarketing)}
             label={t("agreeMarketing")}
@@ -174,10 +176,11 @@ export default function SignUpPage() {
 
       {/* 하단 버튼 */}
       <div className="pb-[43px]">
-        <Button fullWidth disabled={!isFormValid} onClick={handleSubmit}>
+        <BigButton fullWidth disabled={!isFormValid} onClick={handleSubmit}>
           {t("sendVerificationEmail")}
-        </Button>
+        </BigButton>
       </div>
     </div>
+    </PageTransition>
   );
 }

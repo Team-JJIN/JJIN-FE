@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
 import { useLocale } from "@/app/_components/hooks/useLocale";
-import Button from "@/app/_components/ui/Button";
-import Input from "@/app/_components/ui/Input";
+import BigButton from "@/app/_components/ui/BigButton";
+import InputText from "@/app/_components/ui/InputText";
+import PageTransition from "@/app/_components/PageTransition";
 
 type LoginForm = { email: string; password: string };
 
@@ -30,6 +31,7 @@ export default function LoginPage() {
   };
 
   return (
+    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 로고 — 상단 중앙 */}
       <div className="flex flex-[2] flex-col items-center justify-center">
@@ -50,13 +52,13 @@ export default function LoginPage() {
       <div className="flex flex-[3] flex-col">
         {/* 이메일 + 비밀번호 */}
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[16px]">
-          <Input
+          <InputText
             type="text"
             placeholder={t("email")}
             error={errors.email && t("errorEmailRequired")}
             {...register("email", { required: true })}
           />
-          <Input
+          <InputText
             type={showPassword ? "text" : "password"}
             placeholder={t("password")}
             error={errors.password && t("errorPasswordRequired")}
@@ -72,7 +74,7 @@ export default function LoginPage() {
           />
 
           {/* 로그인 버튼 — 16px gap */}
-          <Button
+          <BigButton
             type="submit"
             variant="lime"
             fullWidth
@@ -80,7 +82,7 @@ export default function LoginPage() {
             disabled={!isFormFilled}
           >
             {t("loginButton")}
-          </Button>
+          </BigButton>
         </form>
 
         {/* 비밀번호 찾기 / 회원가입 — 로그인 버튼에서 16px 아래 */}
@@ -122,5 +124,6 @@ export default function LoginPage() {
         <div className="h-[60px]" />
       </div>
     </div>
+    </PageTransition>
   );
 }

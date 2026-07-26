@@ -4,13 +4,14 @@ import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
-import Button from "@/app/_components/ui/Button";
+import BigButton from "@/app/_components/ui/BigButton";
 import BackButton from "@/app/_components/ui/BackButton";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
-import Checkbox from "@/app/_components/ui/Checkbox";
+import CheckBox from "@/app/_components/ui/CheckBox";
 import ResetButton from "@/app/_components/ui/ResetButton";
 import SelectChip from "@/app/_components/ui/SelectChip";
 import WheelPicker from "@/app/_components/ui/WheelPicker";
+import PageTransition from "@/app/_components/PageTransition";
 
 // 지역 칩 (고정 순서)
 const REGIONS = [
@@ -166,6 +167,7 @@ export default function OnboardingFlow() {
   };
 
   return (
+    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 상단: 뒤로 + 건너뛰기 */}
       <div className="flex items-center justify-between pt-[4vh]">
@@ -202,7 +204,7 @@ export default function OnboardingFlow() {
               </span>
             </button>
             <div className="flex justify-end mt-2">
-              <Checkbox
+              <CheckBox
                 checked={data.regionUndecided}
                 onChange={() => setData((d) => ({ ...d, regionUndecided: !d.regionUndecided, region: "" }))}
                 label="아직 못 정했어요"
@@ -352,9 +354,9 @@ export default function OnboardingFlow() {
           </button>
         )}
         <div className="flex-1">
-          <Button fullWidth disabled={!canProceed()} onClick={handleNext}>
+          <BigButton fullWidth disabled={!canProceed()} onClick={handleNext}>
             {step === 4 ? t("start") : t("next")}
-          </Button>
+          </BigButton>
         </div>
       </div>
 
@@ -366,13 +368,13 @@ export default function OnboardingFlow() {
         footer={
           <div className="flex items-center justify-between">
             <ResetButton onClick={() => setTempRegion("")} />
-            <Button
+            <BigButton
               disabled={!tempRegion}
               onClick={() => { setData((d) => ({ ...d, region: tempRegion })); setRegionSheet(false); }}
               className="w-[140px]"
             >
               선택 완료
-            </Button>
+            </BigButton>
           </div>
         }
       >
@@ -411,13 +413,13 @@ export default function OnboardingFlow() {
         footer={
           <div className="flex items-center justify-between">
             <ResetButton onClick={() => { setTempDateStart(null); setTempDateEnd(null); setDateSelecting("start"); }} />
-            <Button
+            <BigButton
               disabled={!tempDateStart || !tempDateEnd}
               onClick={() => { setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd })); setDateSheet(false); }}
               className="w-[140px]"
             >
               선택 완료
-            </Button>
+            </BigButton>
           </div>
         }
       >
@@ -520,6 +522,7 @@ export default function OnboardingFlow() {
         </div>
       </BottomSheet>
     </div>
+    </PageTransition>
   );
 }
 
