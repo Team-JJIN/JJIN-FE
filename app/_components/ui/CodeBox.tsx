@@ -52,11 +52,13 @@ export default function CodeBox({ length = 6, value, onChange, error = false }: 
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className={`h-[48px] w-full rounded-[12px] text-center text-[18px] font-semibold transition-all duration-150 focus:outline-none ${
-            value[i]
-              ? "bg-[#EEFFAA] border-2 border-[#CCFF00]"
-              : "bg-[#F7F7F7] border border-transparent"
-          } ${error ? "border-red-400 bg-red-50" : ""} focus:border-2 focus:border-[#CCFF00]`}
+          className={`h-[48px] w-full rounded-[12px] text-center text-[18px] font-semibold border-2 transition-colors duration-150 focus:outline-none ${
+            error
+              ? "border-red-400 bg-red-50"
+              : value[i]
+                ? "bg-[#EEFFAA] border-[#CCFF00]"
+                : "bg-[#F7F7F7] border-transparent focus:border-[#CCFF00] focus:bg-[#EEFFAA]"
+          }`}
         />
       ))}
     </div>
