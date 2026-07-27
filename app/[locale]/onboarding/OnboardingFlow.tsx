@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
@@ -568,16 +569,24 @@ function Step3Content({
               <span className={`text-[12px] text-[#C4C4C4] transition-transform ${collapsed[cat] ? "rotate-180" : ""}`}>▼</span>
             </button>
             {!collapsed[cat] && (
-              <div className="flex flex-wrap gap-[8px] mt-[8px]">
-                {(SUB_CATEGORIES[cat] ?? []).map((sub) => (
-                  <SelectChip
-                    key={sub}
-                    label={sub}
-                    selected={subCategories.includes(sub)}
-                    onToggle={() => toggleSubCategory(sub)}
-                  />
-                ))}
-              </div>
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-wrap gap-[8px] mt-[8px]">
+                  {(SUB_CATEGORIES[cat] ?? []).map((sub) => (
+                    <SelectChip
+                      key={sub}
+                      label={sub}
+                      selected={subCategories.includes(sub)}
+                      onToggle={() => toggleSubCategory(sub)}
+                    />
+                  ))}
+                </div>
+              </motion.div>
             )}
           </div>
         ))}

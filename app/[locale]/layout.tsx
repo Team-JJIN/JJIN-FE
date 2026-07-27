@@ -44,7 +44,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <link rel="apple-touch-icon" href="/image/JJIN.svg" />
       </head>
       <body className="bg-neutral-100">
-        <div className="mx-auto w-full max-w-[430px] min-h-dvh max-h-dvh bg-white relative shadow-xl overflow-y-auto">
+        <div className="mx-auto w-full max-w-[430px] min-h-dvh max-h-dvh bg-white relative shadow-xl overflow-x-hidden overflow-y-auto scrollbar-hide">
           <NextIntlClientProvider messages={messages}>
             {children}
           </NextIntlClientProvider>

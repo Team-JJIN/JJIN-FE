@@ -41,7 +41,7 @@ export default function WheelPicker({ items, value, onChange }: WheelPickerProps
     <div
       ref={ref}
       onScroll={handleScroll}
-      className="relative overflow-y-scroll scrollbar-hide"
+      className="relative overflow-y-scroll scrollbar-hide select-none"
       style={{
         height: ITEM_H * VISIBLE,
       }}
