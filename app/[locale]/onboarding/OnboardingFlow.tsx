@@ -98,7 +98,7 @@ export default function OnboardingFlow() {
 
   const formatDate = (d: string | null) => d ? d.replace(/-/g, ".") : "";
 
-  const handleDayClick2 = (d: string) => {
+  const handleDayClick = (d: string) => {
     if (dateSelecting === "start") {
       setTempDateStart(d);
       setTempDateEnd(null);
@@ -116,7 +116,7 @@ export default function OnboardingFlow() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      {/* 상단: 뒤로 + 건너뛰기 */}
+      {/* TODO: 건너뛰기 — 미구현. 백엔드 연결 및 홈 UI 개발 후 구현 예정 */}
       <TopBarBack onBack={handlePrev} rightText="건너뛰기" />
 
       {/* 프로그레스 — 일직선 게이지 */}
@@ -212,7 +212,7 @@ export default function OnboardingFlow() {
         open={dateSheet}
         tempDateStart={tempDateStart}
         tempDateEnd={tempDateEnd}
-        onDayClick={handleDayClick2}
+        onDayClick={handleDayClick}
         onReset={() => { setTempDateStart(null); setTempDateEnd(null); setDateSelecting("start"); }}
         onClose={() => setDateSheet(false)}
         onConfirm={() => { setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd })); setDateSheet(false); }}
