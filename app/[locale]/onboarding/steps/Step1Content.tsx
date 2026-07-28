@@ -80,7 +80,7 @@ export default function Step1Content({
           className={`flex-1 rounded-[10px] border p-[10px] text-left ${timeSheet === "start" ? "border-[#CCFF00] bg-lime-light" : "border-[#E1E2E4]"}`}
         >
           <span className="text-[11px] text-[#737373]">시작</span>
-          <p className="mt-1 font-[Noto_Sans_KR] text-[20px] font-normal text-[#2A2A2A]">
+          <p className="mt-1 text-[20px] font-normal text-[#2A2A2A]">
             {String(data.timeStart % 12 || 12).padStart(2, "0")}:{minuteStart} <span className="text-[14px]">{data.timeStart < 12 ? "AM" : "PM"}</span>
           </p>
         </button>
@@ -91,7 +91,7 @@ export default function Step1Content({
           className={`flex-1 rounded-[10px] border p-[10px] text-left ${timeSheet === "end" ? "border-[#CCFF00] bg-lime-light" : "border-[#E1E2E4]"}`}
         >
           <span className="text-[11px] text-[#737373]">종료</span>
-          <p className="mt-1 font-[Noto_Sans_KR] text-[20px] font-normal text-[#2A2A2A]">
+          <p className="mt-1 text-[20px] font-normal text-[#2A2A2A]">
             {String(data.timeEnd % 12 || 12).padStart(2, "0")}:{minuteEnd} <span className="text-[14px]">{data.timeEnd < 12 ? "AM" : "PM"}</span>
           </p>
         </button>

@@ -15,7 +15,7 @@ export default function ResetButton({ onClick }: ResetButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-1.5 font-[Noto_Sans_KR] text-[14px] font-normal text-[#2A2A2A]"
+      className="flex items-center gap-1.5 text-[14px] font-normal text-[#2A2A2A]"
     >
       <ResetIcon size={24} className="text-[#9B9B9B]" />
       초기화
