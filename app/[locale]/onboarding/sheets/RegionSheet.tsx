@@ -3,6 +3,7 @@
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import BigButton from "@/app/_components/ui/BigButton";
 import ResetButton from "@/app/_components/ui/ResetButton";
+import { SearchIcon } from "@/app/_components/icons";
 import SelectChip from "@/app/_components/ui/SelectChip";
 import { REGIONS } from "../_constants";
 
@@ -47,7 +48,7 @@ export default function RegionSheet({
       {/* 검색 — 37px 아래 */}
       <div className="mt-[5px] flex items-center h-[44px] rounded-[14px] bg-surface px-3">
         <input placeholder="어디로 방문하시나요?" className="flex-1 bg-transparent text-[14px] font-medium outline-none placeholder:text-[#C4C4C4]" readOnly />
-        <img src="/image/search-icon.svg" alt="검색" width={20} height={20} />
+        <SearchIcon className="text-[#C4C4C4]" />
       </div>
 
       {/* 인기 여행지 */}

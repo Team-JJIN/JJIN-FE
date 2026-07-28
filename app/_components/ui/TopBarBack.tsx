@@ -1,8 +1,10 @@
 /**
  * @component TopBarBack
- * 뒤로가기(왼쪽) + 선택적 오른쪽 텍스트 버튼 (건너뛰기 등)
+ * 뒤로가기(왼쪽) + 선택적 오른쪽 텍스트 버튼
  */
 "use client";
+
+import { ArrowBackIcon } from "@/app/_components/icons";
 
 interface TopBarBackProps {
   onBack: () => void;
@@ -16,10 +18,10 @@ export default function TopBarBack({ onBack, rightText, onRightClick }: TopBarBa
       <button
         type="button"
         onClick={onBack}
-        className="flex h-10 w-10 items-center justify-center -ml-2"
+        className="flex h-10 w-10 items-center justify-center -ml-2 text-dark"
         aria-label="Go back"
       >
-        <img src="/image/arrow_back.svg" alt="뒤로" width={24} height={24} />
+        <ArrowBackIcon size={24} />
       </button>
       {rightText && (
         <button type="button" onClick={onRightClick} className="text-[13px] text-[#737373]">

@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import CodeBox from "@/app/_components/ui/CodeBox";
-import PageTransition from "@/app/_components/PageTransition";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
@@ -63,7 +62,6 @@ export default function EmailVerifyPage() {
   };
 
   return (
-    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 제목 */}
       <h1 className="pt-[7vh] text-[22px] font-semibold tracking-[-1%] text-dark">
@@ -108,6 +106,5 @@ export default function EmailVerifyPage() {
         </BigButton>
       </div>
     </div>
-    </PageTransition>
   );
 }

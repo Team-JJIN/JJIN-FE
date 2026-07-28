@@ -2,6 +2,7 @@
 
 import CheckBox from "@/app/_components/ui/CheckBox";
 import SelectChip from "@/app/_components/ui/SelectChip";
+import { LocationIcon, CalendarIcon } from "@/app/_components/icons";
 import { TRANSPORTS } from "../_constants";
 import type { OnboardingData } from "../_types";
 
@@ -44,7 +45,7 @@ export default function Step1Content({
         disabled={data.regionUndecided}
         className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200 disabled:opacity-40"
       >
-        <img src="/image/location-icon.svg" alt="" width={20} height={20} />
+        <LocationIcon className="text-[#C4C4C4]" />
         <span className="text-[16px] font-medium text-[#C4C4C4]">
           {data.region || "어디로 방문하시나요?"}
         </span>
@@ -64,7 +65,7 @@ export default function Step1Content({
         onClick={openDateSheet}
         className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200"
       >
-        <img src="/image/calendar-icon.svg" alt="" width={20} height={20} />
+        <CalendarIcon className="text-[#C4C4C4]" />
         <span className="text-[16px] font-medium text-[#C4C4C4]">
           {data.dateStart ? `${formatDate(data.dateStart)} ~ ${formatDate(data.dateEnd)}` : "언제 방문하시나요?"}
         </span>

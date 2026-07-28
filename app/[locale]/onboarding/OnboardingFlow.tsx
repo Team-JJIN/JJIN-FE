@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
-import PageTransition from "@/app/_components/PageTransition";
 
 import { SUB_CATEGORIES } from "./_constants";
 import type { OnboardingData } from "./_types";
@@ -116,7 +115,6 @@ export default function OnboardingFlow() {
   };
 
   return (
-    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 상단: 뒤로 + 건너뛰기 */}
       <TopBarBack onBack={handlePrev} rightText="건너뛰기" />
@@ -238,6 +236,5 @@ export default function OnboardingFlow() {
         }}
       />
     </div>
-    </PageTransition>
   );
 }

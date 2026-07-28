@@ -6,7 +6,6 @@ import { useLocale } from "@/app/_components/hooks/useLocale";
 import Image from "next/image";
 import BigButton from "@/app/_components/ui/BigButton";
 import MediumButton from "@/app/_components/ui/MediumButton";
-import PageTransition from "@/app/_components/PageTransition";
 
 const LANGUAGES = [
   { locale: "ko", label: "한국어" },
@@ -20,7 +19,6 @@ export default function SplashPage() {
   const [selectedLocale, setSelectedLocale] = useState(currentLocale);
 
   return (
-    <PageTransition>
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 로고 — 화면 중앙 */}
       <div className="flex flex-1 flex-col items-center justify-center">
@@ -64,6 +62,5 @@ export default function SplashPage() {
         </div>
       </div>
     </div>
-    </PageTransition>
   );
 }
