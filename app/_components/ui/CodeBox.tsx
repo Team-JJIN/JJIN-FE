@@ -1,10 +1,15 @@
 /**
  * @component CodeBox
  * 6자리 인증코드 입력. 값 있을 때 lime 배경+네온 보더. 자동 포커스 이동.
+ * ref로 focusFirst() 호출 가능.
  */
 "use client";
 
-import { useRef, KeyboardEvent, ClipboardEvent } from "react";
+import { useRef, useImperativeHandle, forwardRef, useEffect, KeyboardEvent, ClipboardEvent } from "react";
+
+export interface CodeBoxHandle {
+  focusFirst: () => void;
+}
 
 interface CodeBoxProps {
   length?: number;
@@ -13,8 +18,19 @@ interface CodeBoxProps {
   error?: boolean;
 }
 
-export default function CodeBox({ length = 6, value, onChange, error = false }: CodeBoxProps) {
+const CodeBox = forwardRef<CodeBoxHandle, CodeBoxProps>(({ length = 6, value, onChange, error = false }, ref) => {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useImperativeHandle(ref, () => ({
+    focusFirst: () => inputRefs.current[0]?.focus(),
+  }));
+
+  // value가 전부 비면 첫 칸 자동 포커스
+  useEffect(() => {
+    if (value.every((v) => v === "")) {
+      inputRefs.current[0]?.focus();
+    }
+  }, [value]);
 
   const handleChange = (index: number, char: string) => {
     if (!/^\d?$/.test(char)) return;
@@ -63,4 +79,8 @@ export default function CodeBox({ length = 6, value, onChange, error = false }: 
       ))}
     </div>
   );
-}
+});
+
+CodeBox.displayName = "CodeBox";
+
+export default CodeBox;

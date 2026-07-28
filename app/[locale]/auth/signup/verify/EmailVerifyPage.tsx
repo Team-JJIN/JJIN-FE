@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
-import CodeBox from "@/app/_components/ui/CodeBox";
+import CodeBox, { type CodeBoxHandle } from "@/app/_components/ui/CodeBox";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 30;
@@ -16,6 +16,7 @@ export default function EmailVerifyPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
   const email = searchParams?.get("email") ?? "your@email.com";
+  const codeBoxRef = useRef<CodeBoxHandle>(null);
 
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(""));
   const [cooldown, setCooldown] = useState(0);
@@ -76,6 +77,7 @@ export default function EmailVerifyPage() {
       {/* OTP 입력 */}
       <div className="mt-[12px]">
         <CodeBox
+          ref={codeBoxRef}
           length={OTP_LENGTH}
           value={otp}
           onChange={handleOtpChange}

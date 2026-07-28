@@ -4,7 +4,6 @@
  */
 "use client";
 
-import { useEffect } from "react";
 import TopBarClose from "./TopBarClose";
 
 interface BottomSheetProps {
@@ -17,12 +16,6 @@ interface BottomSheetProps {
 }
 
 export default function BottomSheet({ open, title, onClose, children, aboveFooter, footer }: BottomSheetProps) {
-  useEffect(() => {
-    if (open) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
-
   if (!open) return null;
 
   return (
@@ -34,11 +27,10 @@ export default function BottomSheet({ open, title, onClose, children, aboveFoote
           <TopBarClose title={title} onClose={onClose} />
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide px-[20px] pb-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide px-[20px] pb-4">
           {children}
         </div>
 
-        {/* 푸터 위 요소 — 푸터 영역 밖, 30px 간격 */}
         {aboveFooter && (
           <div className="flex justify-center pb-[30px]">
             {aboveFooter}
