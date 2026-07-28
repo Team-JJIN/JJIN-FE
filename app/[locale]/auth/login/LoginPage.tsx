@@ -35,13 +35,12 @@ export default function LoginPage() {
       {/* 로고 — 상단 중앙 */}
       <div className="flex flex-[2] flex-col items-center justify-center">
         <Image
-          src="/image/JJIN.svg"
+          src="/image/JJIN.png"
           alt="JJIN"
-          width={82}
-          height={48}
+          width={141}
+          height={63}
           priority
-          className="object-contain"
-          style={{ width: "auto", height: "auto" }}
+          className="w-[141px] h-auto object-contain"
         />
         <p className="mt-[6px] text-[11px] font-normal text-[#C4C4C4]">
           Living life for real

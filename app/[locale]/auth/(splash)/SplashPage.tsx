@@ -23,13 +23,12 @@ export default function SplashPage() {
       {/* 로고 — 화면 중앙 */}
       <div className="flex flex-1 flex-col items-center justify-center">
         <Image
-          src="/image/JJIN.svg"
+          src="/image/JJ.png"
           alt="JJIN"
-          width={130}
-          height={76}
+          width={120}
+          height={120}
           priority
-          className="object-contain"
-          style={{ width: "auto", height: "auto" }}
+          className="w-[120px] h-[120px] object-contain"
         />
         <p className="mt-[10px] text-[13px] font-normal text-[#C4C4C4]">
           Living life for real
