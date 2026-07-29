@@ -1,9 +1,14 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import WheelPicker from "@/app/_components/ui/WheelPicker";
 import type { OnboardingData } from "../_types";
+
+const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
+const AMPM = ["AM", "PM"];
 
 type TimeSheetProps = {
   open: boolean;
@@ -26,6 +31,25 @@ export default function TimeSheet({
 }: TimeSheetProps) {
   const t = useTranslations("onboarding");
 
+  const currentHour = timeSheet === "start" ? data.timeStart : data.timeEnd;
+  const hourValue = useMemo(() => String((currentHour % 12) || 12), [currentHour]);
+  const ampmValue = currentHour < 12 ? "AM" : "PM";
+
+  const handleHourChange = (val: string) => {
+    const h = Number(val);
+    const isPM = currentHour >= 12;
+    const newH = isPM ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h);
+    if (timeSheet === "start") setData((d) => ({ ...d, timeStart: newH }));
+    else setData((d) => ({ ...d, timeEnd: newH }));
+  };
+
+  const handleAmpmChange = (val: string) => {
+    const hour12 = currentHour % 12;
+    const newH = val === "PM" ? hour12 + 12 : hour12;
+    if (timeSheet === "start") setData((d) => ({ ...d, timeStart: newH }));
+    else setData((d) => ({ ...d, timeEnd: newH }));
+  };
+
   return (
     <BottomSheet
       open={open}
@@ -36,43 +60,16 @@ export default function TimeSheet({
         {/* 선택 하이라이트 밴드 */}
         <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[40px] bg-[#F4FFD6] rounded-lg pointer-events-none" />
 
-        {/* 시 */}
         <div className="relative w-[60px]">
-          <WheelPicker
-            items={Array.from({ length: 12 }, (_, i) => String(i + 1))}
-            value={String(((timeSheet === "start" ? data.timeStart : data.timeEnd) % 12) || 12)}
-            onChange={(val) => {
-              const h = Number(val);
-              const isPM = (timeSheet === "start" ? data.timeStart : data.timeEnd) >= 12;
-              const newH = isPM ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h);
-              if (timeSheet === "start") setData((d) => ({ ...d, timeStart: newH }));
-              else setData((d) => ({ ...d, timeEnd: newH }));
-            }}
-          />
+          <WheelPicker items={HOURS} value={hourValue} onChange={handleHourChange} />
         </div>
 
-        {/* 분 */}
         <div className="relative w-[60px]">
-          <WheelPicker
-            items={Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))}
-            value={tempMinute}
-            onChange={(val) => setTempMinute(val)}
-          />
+          <WheelPicker items={MINUTES} value={tempMinute} onChange={setTempMinute} />
         </div>
 
-        {/* AM/PM */}
         <div className="relative w-[60px]">
-          <WheelPicker
-            items={["AM", "PM"]}
-            value={(timeSheet === "start" ? data.timeStart : data.timeEnd) < 12 ? "AM" : "PM"}
-            onChange={(val) => {
-              const current = timeSheet === "start" ? data.timeStart : data.timeEnd;
-              const hour12 = current % 12;
-              const newH = val === "PM" ? hour12 + 12 : hour12;
-              if (timeSheet === "start") setData((d) => ({ ...d, timeStart: newH }));
-              else setData((d) => ({ ...d, timeEnd: newH }));
-            }}
-          />
+          <WheelPicker items={AMPM} value={ampmValue} onChange={handleAmpmChange} />
         </div>
       </div>
     </BottomSheet>

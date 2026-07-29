@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
@@ -8,7 +8,7 @@ import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
 
 import { SUB_CATEGORIES } from "./_constants";
-import type { OnboardingData } from "./_types";
+import type { OnboardingData, Category } from "./_types";
 
 import Step1Content from "./steps/Step1Content";
 import Step2Content from "./steps/Step2Content";
@@ -56,33 +56,42 @@ export default function OnboardingFlow() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
 
-  // 캘린더 로직 (바텀시트 내부에서 사용)
-  const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-  const canProceed = () => {
+  const canProceed = useMemo(() => {
     switch (step) {
-      case 1: return (data.dateStart && data.dateEnd) && (data.region || data.regionUndecided) && data.transport.length > 0;
-      case 2: return data.categories.length >= 2 && data.categories.length <= 4;
-      case 3: return data.categories.every((cat) => (SUB_CATEGORIES[cat] ?? []).some((sub) => data.subCategories.includes(sub)));
-      case 4: return data.level !== "";
-      default: return false;
+      case 1:
+        return !!(data.dateStart && data.dateEnd) && !!(data.region || data.regionUndecided) && data.transport.length > 0;
+      case 2:
+        return data.categories.length >= 2 && data.categories.length <= 4;
+      case 3:
+        return data.categories.every((cat) =>
+          (SUB_CATEGORIES[cat] ?? []).some((sub) => data.subCategories.includes(sub))
+        );
+      case 4:
+        return data.level !== "";
+      default:
+        return false;
     }
-  };
+  }, [step, data]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (step < 4) setStep((s) => s + 1);
     else alert("온보딩 완료!"); // TODO: API 제출 후 메인 이동
-  };
+  }, [step]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
     else router.push(`/${locale}/auth/login`);
-  };
+  }, [step, router, locale]);
 
-  const toggleCategory = (cat: string) => {
+  const toggleCategory = useCallback((cat: Category) => {
     setData((d) => {
       if (d.categories.includes(cat)) {
-        // 해제 시 해당 카테고리의 중분류도 함께 제거
         const subsToRemove = SUB_CATEGORIES[cat] ?? [];
         return {
           ...d,
@@ -93,20 +102,22 @@ export default function OnboardingFlow() {
       if (d.categories.length >= 4) return d;
       return { ...d, categories: [...d.categories, cat] };
     });
-  };
+  }, []);
 
-  const toggleSubCategory = (sub: string) => {
+  const toggleSubCategory = useCallback((sub: string) => {
     setData((d) => ({
       ...d,
       subCategories: d.subCategories.includes(sub)
         ? d.subCategories.filter((c) => c !== sub)
         : [...d.subCategories, sub],
     }));
-  };
+  }, []);
 
-  const formatDate = (d: string | null) => d ? d.replace(/-/g, ".") : "";
+  const formatDate = useCallback((d: string | null) => {
+    return d ? d.replace(/-/g, ".") : "";
+  }, []);
 
-  const handleDayClick = (d: string) => {
+  const handleDayClick = useCallback((d: string) => {
     if (dateSelecting === "start") {
       setTempDateStart(d);
       setTempDateEnd(null);
@@ -120,14 +131,58 @@ export default function OnboardingFlow() {
         setDateSelecting("start");
       }
     }
-  };
+  }, [dateSelecting, tempDateStart]);
+
+  const openRegionSheet = useCallback(() => {
+    if (!data.regionUndecided) {
+      setTempRegion(data.region);
+      setRegionSheet(true);
+    }
+  }, [data.regionUndecided, data.region]);
+
+  const openDateSheet = useCallback(() => {
+    setTempDateStart(data.dateStart);
+    setTempDateEnd(data.dateEnd);
+    setDateSheet(true);
+  }, [data.dateStart, data.dateEnd]);
+
+  const openTimeSheetStart = useCallback(() => {
+    setTempMinute(minuteStart);
+    setTimeSheet("start");
+  }, [minuteStart]);
+
+  const openTimeSheetEnd = useCallback(() => {
+    setTempMinute(minuteEnd);
+    setTimeSheet("end");
+  }, [minuteEnd]);
+
+  const handleRegionConfirm = useCallback(() => {
+    setData((d) => ({ ...d, region: tempRegion }));
+    setRegionSheet(false);
+  }, [tempRegion]);
+
+  const handleDateReset = useCallback(() => {
+    setTempDateStart(null);
+    setTempDateEnd(null);
+    setDateSelecting("start");
+  }, []);
+
+  const handleDateConfirm = useCallback(() => {
+    setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd }));
+    setDateSheet(false);
+  }, [tempDateStart, tempDateEnd]);
+
+  const handleTimeClose = useCallback(() => {
+    if (timeSheet === "start") setMinuteStart(tempMinute);
+    else setMinuteEnd(tempMinute);
+    setTimeSheet(null);
+  }, [timeSheet, tempMinute]);
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      {/* TODO: 건너뛰기 — 미구현. 백엔드 연결 및 홈 UI 개발 후 구현 예정 */}
-      <TopBarBack onBack={handlePrev} rightText="건너뛰기" />
+      <TopBarBack onBack={handlePrev} rightText={t("skip")} />
 
-      {/* 프로그레스 — 일직선 게이지 */}
+      {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
         <div
           className="absolute left-0 top-0 h-full rounded-full bg-lime transition-all duration-300"
@@ -142,10 +197,10 @@ export default function OnboardingFlow() {
             data={data}
             setData={setData}
             formatDate={formatDate}
-            openRegionSheet={() => { if (!data.regionUndecided) { setTempRegion(data.region); setRegionSheet(true); } }}
-            openDateSheet={() => { setTempDateStart(data.dateStart); setTempDateEnd(data.dateEnd); setDateSheet(true); }}
-            openTimeSheetStart={() => { setTempMinute(minuteStart); setTimeSheet("start"); }}
-            openTimeSheetEnd={() => { setTempMinute(minuteEnd); setTimeSheet("end"); }}
+            openRegionSheet={openRegionSheet}
+            openDateSheet={openDateSheet}
+            openTimeSheetStart={openTimeSheetStart}
+            openTimeSheetEnd={openTimeSheetEnd}
             minuteStart={minuteStart}
             minuteEnd={minuteEnd}
             timeSheet={timeSheet}
@@ -154,11 +209,7 @@ export default function OnboardingFlow() {
         )}
 
         {step === 2 && (
-          <Step2Content
-            data={data}
-            toggleCategory={toggleCategory}
-            t={t}
-          />
+          <Step2Content data={data} toggleCategory={toggleCategory} t={t} />
         )}
 
         {step === 3 && (
@@ -171,11 +222,7 @@ export default function OnboardingFlow() {
         )}
 
         {step === 4 && (
-          <Step4Content
-            data={data}
-            setData={setData}
-            t={t}
-          />
+          <Step4Content data={data} setData={setData} t={t} />
         )}
       </div>
 
@@ -200,36 +247,36 @@ export default function OnboardingFlow() {
           </button>
         )}
         <div className="flex-1">
-          <BigButton fullWidth disabled={!canProceed()} onClick={handleNext}>
+          <BigButton fullWidth disabled={!canProceed} onClick={handleNext}>
             {step === 4 ? t("start") : t("next")}
           </BigButton>
         </div>
       </div>
 
-      {/* === 바텀시트: 지역 선택 === */}
+      {/* 바텀시트: 지역 선택 */}
       <RegionSheet
         open={regionSheet}
         tempRegion={tempRegion}
         setTempRegion={setTempRegion}
         onClose={() => setRegionSheet(false)}
-        onConfirm={() => { setData((d) => ({ ...d, region: tempRegion })); setRegionSheet(false); }}
+        onConfirm={handleRegionConfirm}
       />
 
-      {/* === 바텀시트: 날짜 선택 === */}
+      {/* 바텀시트: 날짜 선택 */}
       <DateSheet
         open={dateSheet}
         tempDateStart={tempDateStart}
         tempDateEnd={tempDateEnd}
         onDayClick={handleDayClick}
-        onReset={() => { setTempDateStart(null); setTempDateEnd(null); setDateSelecting("start"); }}
+        onReset={handleDateReset}
         onClose={() => setDateSheet(false)}
-        onConfirm={() => { setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd })); setDateSheet(false); }}
+        onConfirm={handleDateConfirm}
         viewMonth={viewMonth}
         setViewMonth={setViewMonth}
         today={today}
       />
 
-      {/* === 바텀시트: 시간 선택 (휠 다이얼) === */}
+      {/* 바텀시트: 시간 선택 */}
       <TimeSheet
         open={!!timeSheet}
         timeSheet={timeSheet}
@@ -237,11 +284,7 @@ export default function OnboardingFlow() {
         setData={setData}
         tempMinute={tempMinute}
         setTempMinute={setTempMinute}
-        onClose={() => {
-          if (timeSheet === "start") setMinuteStart(tempMinute);
-          else setMinuteEnd(tempMinute);
-          setTimeSheet(null);
-        }}
+        onClose={handleTimeClose}
       />
     </div>
   );
