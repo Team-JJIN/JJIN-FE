@@ -18,17 +18,26 @@ const VISIBLE = 7;
 export default function WheelPicker({ items, value, onChange }: WheelPickerProps) {
   const ref = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isScrollingRef = useRef(false);
   const idx = items.indexOf(value);
 
   useEffect(() => {
-    if (ref.current && idx >= 0) {
+    if (ref.current && idx >= 0 && !isScrollingRef.current) {
       ref.current.scrollTop = idx * ITEM_H;
     }
+  }, [idx]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
   const handleScroll = useCallback(() => {
+    isScrollingRef.current = true;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
       if (!ref.current) return;
       const i = Math.round(ref.current.scrollTop / ITEM_H);
       const clamped = Math.max(0, Math.min(i, items.length - 1));
@@ -41,6 +50,8 @@ export default function WheelPicker({ items, value, onChange }: WheelPickerProps
     <div
       ref={ref}
       onScroll={handleScroll}
+      role="listbox"
+      aria-label="Picker"
       className="relative overflow-y-scroll scrollbar-hide select-none"
       style={{
         height: ITEM_H * VISIBLE,
@@ -57,6 +68,8 @@ export default function WheelPicker({ items, value, onChange }: WheelPickerProps
         return (
           <div
             key={`${item}-${i}`}
+            role="option"
+            aria-selected={i === idx}
             className="flex items-center justify-center"
             style={{ height: ITEM_H, opacity, transform: `scale(${scale})` }}
           >

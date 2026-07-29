@@ -1,3 +1,11 @@
+export type Transport = "walking" | "publicTransit" | "car";
+
+export type Category =
+  | "food" | "experience" | "nature" | "history"
+  | "culture" | "shopping" | "festival" | "leisure";
+
+export type Level = "light" | "normal" | "deep";
+
 export type OnboardingData = {
   region: string;
   regionUndecided: boolean;
@@ -5,8 +13,8 @@ export type OnboardingData = {
   dateEnd: string | null;
   timeStart: number;
   timeEnd: number;
-  transport: string[];
-  categories: string[];
+  transport: Transport[];
+  categories: Category[];
   subCategories: string[];
-  level: string;
+  level: Level | "";
 };

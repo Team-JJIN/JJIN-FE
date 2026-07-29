@@ -1,6 +1,6 @@
 /**
  * @component ResetButton
- * 초기화 버튼. 인라인 아이콘 + "초기화" 텍스트.
+ * 초기화 버튼. 인라인 아이콘 + 텍스트 (i18n 대응).
  */
 "use client";
 
@@ -8,9 +8,10 @@ import { ResetIcon } from "@/app/_components/icons";
 
 interface ResetButtonProps {
   onClick: () => void;
+  label?: string;
 }
 
-export default function ResetButton({ onClick }: ResetButtonProps) {
+export default function ResetButton({ onClick, label = "초기화" }: ResetButtonProps) {
   return (
     <button
       type="button"
@@ -18,7 +19,7 @@ export default function ResetButton({ onClick }: ResetButtonProps) {
       className="flex items-center gap-1.5 text-[14px] font-normal text-[#2A2A2A]"
     >
       <ResetIcon size={24} className="text-[#9B9B9B]" />
-      초기화
+      {label}
     </button>
   );
 }
