@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import BigButton from "@/app/_components/ui/BigButton";
 import ResetButton from "@/app/_components/ui/ResetButton";
@@ -30,10 +31,12 @@ export default function DateSheet({
   setViewMonth,
   today,
 }: DateSheetProps) {
+  const t = useTranslations("onboarding");
+
   return (
     <BottomSheet
       open={open}
-      title="방문 날짜"
+      title={t("dateSheetTitle")}
       onClose={onClose}
       footer={
         <div className="flex items-center justify-between">
@@ -43,7 +46,7 @@ export default function DateSheet({
             onClick={onConfirm}
             className="w-[164px] rounded-[16px]"
           >
-            선택 완료
+            {t("selectComplete")}
           </BigButton>
         </div>
       }

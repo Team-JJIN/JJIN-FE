@@ -13,10 +13,19 @@ const LANGUAGES = [
   { locale: "ja", label: "日本語" },
 ];
 
+// 선택 즉시 반영을 위한 스플래시 텍스트
+const SPLASH_TEXT: Record<string, { languageSelect: string; start: string }> = {
+  ko: { languageSelect: "언어 선택", start: "시작하기" },
+  en: { languageSelect: "Language", start: "Get Started" },
+  ja: { languageSelect: "言語選択", start: "スタート" },
+};
+
 export default function SplashPage() {
   const router = useRouter();
   const currentLocale = useLocale();
   const [selectedLocale, setSelectedLocale] = useState(currentLocale);
+
+  const text = SPLASH_TEXT[selectedLocale] ?? SPLASH_TEXT.en;
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
@@ -38,7 +47,7 @@ export default function SplashPage() {
       {/* 하단 영역 */}
       <div className="flex flex-col">
         {/* 언어 선택 라벨 */}
-        <p className="text-[13px] text-muted mb-[21px]">언어 선택</p>
+        <p className="text-[15px] font-semibold text-muted mb-[21px]">{text.languageSelect}</p>
 
         {/* 언어 버튼들 — 각 13px 간격 */}
         <div className="flex flex-col gap-[13px]">
@@ -56,7 +65,7 @@ export default function SplashPage() {
         {/* 시작하기 버튼 — 언어 마지막에서 21px, 하단에서 43px */}
         <div className="mt-[21px] mb-[43px]">
           <BigButton fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
-            시작하기
+            {text.start}
           </BigButton>
         </div>
       </div>

@@ -81,7 +81,15 @@ export default function OnboardingFlow() {
 
   const toggleCategory = (cat: string) => {
     setData((d) => {
-      if (d.categories.includes(cat)) return { ...d, categories: d.categories.filter((c) => c !== cat) };
+      if (d.categories.includes(cat)) {
+        // 해제 시 해당 카테고리의 중분류도 함께 제거
+        const subsToRemove = SUB_CATEGORIES[cat] ?? [];
+        return {
+          ...d,
+          categories: d.categories.filter((c) => c !== cat),
+          subCategories: d.subCategories.filter((s) => !subsToRemove.includes(s)),
+        };
+      }
       if (d.categories.length >= 4) return d;
       return { ...d, categories: [...d.categories, cat] };
     });
@@ -175,7 +183,7 @@ export default function OnboardingFlow() {
       {step === 2 && (
         <div className="flex justify-center mb-[30px]">
           <span className="rounded-full bg-[#F4FFD6] px-4 py-[10px] text-[12px] font-medium text-dark">
-            최대 4개까지 선택할 수 있어요
+            {t("maxFourCategories")}
           </span>
         </div>
       )}
@@ -188,7 +196,7 @@ export default function OnboardingFlow() {
             onClick={handlePrev}
             className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark"
           >
-            이전
+            {t("prev")}
           </button>
         )}
         <div className="flex-1">

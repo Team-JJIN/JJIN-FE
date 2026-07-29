@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import WheelPicker from "@/app/_components/ui/WheelPicker";
 import type { OnboardingData } from "../_types";
@@ -23,10 +24,12 @@ export default function TimeSheet({
   setTempMinute,
   onClose,
 }: TimeSheetProps) {
+  const t = useTranslations("onboarding");
+
   return (
     <BottomSheet
       open={open}
-      title={timeSheet === "start" ? "시작 시간" : "종료 시간"}
+      title={timeSheet === "start" ? t("timeSheetStart") : t("timeSheetEnd")}
       onClose={onClose}
     >
       <div className="relative flex justify-center gap-6 py-4">

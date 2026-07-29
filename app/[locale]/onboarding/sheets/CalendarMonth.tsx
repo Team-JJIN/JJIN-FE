@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 type CalendarMonthProps = {
   year: number;
   month: number;
@@ -23,6 +25,9 @@ export default function CalendarMonth({
   setViewMonth,
   isFirstMonth,
 }: CalendarMonthProps) {
+  const t = useTranslations("onboarding");
+  const weekdays = t("weekdays").split(",");
+
   const m = month;
   const y = year;
   const days = new Date(y, m + 1, 0).getDate();
@@ -47,7 +52,7 @@ export default function CalendarMonth({
 
       {/* 요일 */}
       <div className="grid grid-cols-7 mb-1">
-        {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
+        {weekdays.map((d) => (
           <div key={d} className="flex justify-center">
             <span className="h-[32px] w-[32px] flex items-center justify-center text-[12px] text-[#737373]">{d}</span>
           </div>
