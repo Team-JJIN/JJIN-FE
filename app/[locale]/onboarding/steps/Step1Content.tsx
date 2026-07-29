@@ -4,7 +4,7 @@ import CheckBox from "@/app/_components/ui/CheckBox";
 import SelectChip from "@/app/_components/ui/SelectChip";
 import { LocationIcon, CalendarIcon } from "@/app/_components/icons";
 import { TRANSPORTS } from "../_constants";
-import type { OnboardingData } from "../_types";
+import type { OnboardingData, Transport } from "../_types";
 
 type Step1ContentProps = {
   data: OnboardingData;
@@ -43,11 +43,12 @@ export default function Step1Content({
         type="button"
         onClick={openRegionSheet}
         disabled={data.regionUndecided}
+        aria-label={t("region")}
         className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200 disabled:opacity-40"
       >
         <LocationIcon className="text-[#C4C4C4]" />
-        <span className="text-[16px] font-medium text-[#C4C4C4]">
-          {data.region || t("regionPlaceholder")}
+        <span className={`text-[16px] font-medium ${data.region ? "text-dark" : "text-[#C4C4C4]"}`}>
+          {data.region ? t(`regions.${data.region}`) : t("regionPlaceholder")}
         </span>
       </button>
       <div className="flex justify-end mt-2">
@@ -63,10 +64,11 @@ export default function Step1Content({
       <button
         type="button"
         onClick={openDateSheet}
+        aria-label={t("dateRange")}
         className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200"
       >
         <CalendarIcon className="text-[#C4C4C4]" />
-        <span className="text-[16px] font-medium text-[#C4C4C4]">
+        <span className={`text-[16px] font-medium ${data.dateStart ? "text-dark" : "text-[#C4C4C4]"}`}>
           {data.dateStart ? `${formatDate(data.dateStart)} ~ ${formatDate(data.dateEnd)}` : t("datePlaceholder")}
         </span>
       </button>
@@ -77,6 +79,7 @@ export default function Step1Content({
         <button
           type="button"
           onClick={openTimeSheetStart}
+          aria-label={t("timeSheetStart")}
           className={`flex-1 rounded-[10px] border p-[10px] text-left ${timeSheet === "start" ? "border-[#CCFF00] bg-lime-light" : "border-[#E1E2E4]"}`}
         >
           <span className="text-[11px] text-[#737373]">{t("timeStart")}</span>
@@ -84,10 +87,11 @@ export default function Step1Content({
             {String(data.timeStart % 12 || 12).padStart(2, "0")}:{minuteStart} <span className="text-[14px]">{data.timeStart < 12 ? "AM" : "PM"}</span>
           </p>
         </button>
-        <span className="text-neutral-300 text-[16px]">›</span>
+        <span className="text-neutral-300 text-[16px]" aria-hidden="true">›</span>
         <button
           type="button"
           onClick={openTimeSheetEnd}
+          aria-label={t("timeSheetEnd")}
           className={`flex-1 rounded-[10px] border p-[10px] text-left ${timeSheet === "end" ? "border-[#CCFF00] bg-lime-light" : "border-[#E1E2E4]"}`}
         >
           <span className="text-[11px] text-[#737373]">{t("timeEnd")}</span>
@@ -99,7 +103,7 @@ export default function Step1Content({
 
       {/* 이동 수단 — 복수 선택 */}
       <p className="mt-[24px] text-[14px] font-medium text-[#737373]">{t("transport")}</p>
-      <div className="mt-[10px] flex gap-2">
+      <div className="mt-[10px] flex gap-2" role="group" aria-label={t("transport")}>
         {TRANSPORTS.map((tr) => (
           <SelectChip
             key={tr}
@@ -108,8 +112,8 @@ export default function Step1Content({
             onToggle={() => setData((d) => ({
               ...d,
               transport: d.transport.includes(tr)
-                ? d.transport.filter((t) => t !== tr)
-                : [...d.transport, tr],
+                ? d.transport.filter((item) => item !== tr)
+                : [...d.transport, tr as Transport],
             }))}
           />
         ))}

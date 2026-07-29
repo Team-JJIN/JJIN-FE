@@ -38,6 +38,7 @@ export default function Step3Content({
             <button
               type="button"
               onClick={() => toggle(cat)}
+              aria-expanded={!collapsed[cat]}
               className="flex w-full items-center justify-between"
             >
               <span className="text-[13px] font-semibold text-dark">{t(`categories.${cat}`)}</span>
@@ -51,11 +52,11 @@ export default function Step3Content({
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="flex flex-wrap gap-[8px] mt-[8px]">
+                <div className="flex flex-wrap gap-[8px] mt-[8px]" role="group" aria-label={t(`categories.${cat}`)}>
                   {(SUB_CATEGORIES[cat] ?? []).map((sub) => (
                     <SelectChip
                       key={sub}
-                      label={sub}
+                      label={t(`subCategories.${sub}`)}
                       selected={subCategories.includes(sub)}
                       onToggle={() => toggleSubCategory(sub)}
                     />

@@ -37,7 +37,7 @@ export default function RegionSheet({
       }
       footer={
         <div className="flex items-center justify-between">
-          <ResetButton onClick={() => setTempRegion("")} />
+          <ResetButton onClick={() => setTempRegion("")} label={t("reset")} />
           <BigButton
             disabled={!tempRegion}
             onClick={onConfirm}
@@ -49,16 +49,21 @@ export default function RegionSheet({
       }
     >
       <div className="mt-[5px] flex items-center h-[44px] rounded-[14px] bg-surface px-3">
-        <input placeholder={t("searchPlaceholder")} className="flex-1 bg-transparent text-[14px] font-medium outline-none placeholder:text-[#C4C4C4]" readOnly />
+        <input
+          placeholder={t("searchPlaceholder")}
+          className="flex-1 bg-transparent text-[14px] font-medium outline-none placeholder:text-[#C4C4C4]"
+          readOnly
+          aria-label={t("searchPlaceholder")}
+        />
         <SearchIcon className="text-[#C4C4C4]" />
       </div>
 
       <p className="mt-6 text-[13px] font-medium text-dark mb-3">{t("popularDestinations")}</p>
-      <div className="grid grid-cols-6 gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t("popularDestinations")}>
         {REGIONS.map((r) => (
           <SelectChip
             key={r}
-            label={r}
+            label={t(`regions.${r}`)}
             selected={tempRegion === r}
             onToggle={() => setTempRegion(r === tempRegion ? "" : r)}
           />

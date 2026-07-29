@@ -1,7 +1,7 @@
 "use client";
 
 import { LEVELS } from "../_constants";
-import type { OnboardingData } from "../_types";
+import type { OnboardingData, Level } from "../_types";
 
 type Step4ContentProps = {
   data: OnboardingData;
@@ -15,12 +15,14 @@ export default function Step4Content({ data, setData, t }: Step4ContentProps) {
       <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step4Title")}</h1>
       <p className="mt-[7px] text-[14px] font-medium text-[#737373]">{t("step4Subtitle")}</p>
 
-      <div className="flex flex-col gap-[16px] mt-[30px]">
+      <div className="flex flex-col gap-[16px] mt-[30px]" role="radiogroup" aria-label={t("step4Title")}>
         {LEVELS.map((lvl) => (
           <button
             key={lvl}
             type="button"
-            onClick={() => setData((d) => ({ ...d, level: lvl }))}
+            role="radio"
+            aria-checked={data.level === lvl}
+            onClick={() => setData((d) => ({ ...d, level: lvl as Level }))}
             className={`w-full rounded-[16px] p-[12px] text-left transition-colors ${
               data.level === lvl
                 ? "bg-[#F4FFD6] border-[1.5px] border-[#CCFF00]"

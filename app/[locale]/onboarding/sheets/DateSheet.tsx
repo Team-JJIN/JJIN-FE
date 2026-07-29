@@ -40,7 +40,7 @@ export default function DateSheet({
       onClose={onClose}
       footer={
         <div className="flex items-center justify-between">
-          <ResetButton onClick={onReset} />
+          <ResetButton onClick={onReset} label={t("reset")} />
           <BigButton
             disabled={!tempDateStart || !tempDateEnd}
             onClick={onConfirm}
