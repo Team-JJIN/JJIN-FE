@@ -10,7 +10,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   rightElement?: React.ReactNode;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+const InputText = forwardRef<HTMLInputElement, InputProps>(
   ({ error, rightElement, className, ...props }, ref) => {
     return (
       <div className="w-full">
@@ -18,8 +18,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={cn(
-              "h-[44px] w-full rounded-[14px] bg-surface px-3 text-[14px] font-medium leading-[160%] placeholder:text-muted transition-all duration-150",
-              "border border-transparent focus:outline-none focus:border-dark",
+              "h-[44px] w-full rounded-[14px] bg-surface px-3 text-[14px] font-medium leading-[160%] placeholder:text-muted transition-colors duration-150",
+              "border-2 border-transparent focus:outline-none focus:border-dark",
               error && "border-red-400",
               rightElement && "pr-12",
               className
@@ -36,6 +36,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = "Input";
+InputText.displayName = "InputText";
 
-export default Input;
+export default InputText;

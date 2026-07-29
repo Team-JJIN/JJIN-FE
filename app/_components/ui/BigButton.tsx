@@ -19,7 +19,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   outline: "bg-white text-dark border border-neutral-200",
 };
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+const BigButton = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "primary", fullWidth = false, isLoading = false, className, children, disabled, ...props }, ref) => {
     return (
       <button
@@ -46,6 +46,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.displayName = "Button";
+BigButton.displayName = "BigButton";
 
-export default Button;
+export default BigButton;

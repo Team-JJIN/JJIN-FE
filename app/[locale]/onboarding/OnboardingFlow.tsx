@@ -1,58 +1,23 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
-import Button from "@/app/_components/ui/Button";
-import BackButton from "@/app/_components/ui/BackButton";
-import BottomSheet from "@/app/_components/ui/BottomSheet";
-import Checkbox from "@/app/_components/ui/Checkbox";
-import ResetButton from "@/app/_components/ui/ResetButton";
-import SelectChip from "@/app/_components/ui/SelectChip";
-import WheelPicker from "@/app/_components/ui/WheelPicker";
+import BigButton from "@/app/_components/ui/BigButton";
+import TopBarBack from "@/app/_components/ui/TopBarBack";
 
-// 지역 칩 (고정 순서)
-const REGIONS = [
-  "서울", "부산", "인천", "제주", "전주", "경주",
-  "강릉", "속초", "대구", "광주", "여수", "춘천",
-];
+import { SUB_CATEGORIES } from "./_constants";
+import type { OnboardingData, Category } from "./_types";
 
-// 이동 수단
-const TRANSPORTS = ["walking", "publicTransit", "car"] as const;
+import Step1Content from "./steps/Step1Content";
+import Step2Content from "./steps/Step2Content";
+import Step3Content from "./steps/Step3Content";
+import Step4Content from "./steps/Step4Content";
 
-// 대분류
-const CATEGORIES = [
-  "food", "experience", "nature", "history",
-  "culture", "shopping", "festival", "leisure",
-] as const;
-
-// 중분류
-const SUB_CATEGORIES: Record<string, string[]> = {
-  food: ["한식", "카페·찻집", "주점", "다 좋아요"],
-  experience: ["전통체험", "산사체험", "이색체험"],
-  nature: ["산·숲", "바다·해변", "호수·강", "섬", "공원"],
-  history: ["궁궐", "유적지", "박물관", "전통 마을"],
-  culture: ["갤러리", "공연·뮤지컬", "거리 예술", "사찰"],
-  shopping: ["전통시장", "로컬 숍", "면세점", "빈티지"],
-  festival: ["축제", "공연·행사", "불꽃놀이", "야시장"],
-  leisure: ["서핑", "스키", "등산", "자전거", "수상스포츠"],
-};
-
-const LEVELS = ["light", "normal", "deep"] as const;
-
-type OnboardingData = {
-  region: string;
-  regionUndecided: boolean;
-  dateStart: string | null;
-  dateEnd: string | null;
-  timeStart: number;
-  timeEnd: number;
-  transport: string[];
-  categories: string[];
-  subCategories: string[];
-  level: string;
-};
+import RegionSheet from "./sheets/RegionSheet";
+import DateSheet from "./sheets/DateSheet";
+import TimeSheet from "./sheets/TimeSheet";
 
 export default function OnboardingFlow() {
   const t = useTranslations("onboarding");
@@ -91,65 +56,68 @@ export default function OnboardingFlow() {
     return { year: now.getFullYear(), month: now.getMonth() };
   });
 
-  const today = useMemo(() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }, []);
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
 
-  const canProceed = () => {
+  const canProceed = useMemo(() => {
     switch (step) {
-      case 1: return (data.dateStart && data.dateEnd) && (data.region || data.regionUndecided) && data.transport.length > 0;
-      case 2: return data.categories.length >= 2 && data.categories.length <= 4;
-      case 3: return data.categories.every((cat) => (SUB_CATEGORIES[cat] ?? []).some((sub) => data.subCategories.includes(sub)));
-      case 4: return data.level !== "";
-      default: return false;
+      case 1:
+        return !!(data.dateStart && data.dateEnd) && !!(data.region || data.regionUndecided) && data.transport.length > 0;
+      case 2:
+        return data.categories.length >= 2 && data.categories.length <= 4;
+      case 3:
+        return data.categories.every((cat) =>
+          (SUB_CATEGORIES[cat] ?? []).some((sub) => data.subCategories.includes(sub))
+        );
+      case 4:
+        return data.level !== "";
+      default:
+        return false;
     }
-  };
+  }, [step, data]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (step < 4) setStep((s) => s + 1);
     else alert("온보딩 완료!"); // TODO: API 제출 후 메인 이동
-  };
+  }, [step]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
     else router.push(`/${locale}/auth/login`);
-  };
+  }, [step, router, locale]);
 
-  const toggleCategory = (cat: string) => {
+  const toggleCategory = useCallback((cat: Category) => {
     setData((d) => {
-      if (d.categories.includes(cat)) return { ...d, categories: d.categories.filter((c) => c !== cat) };
+      if (d.categories.includes(cat)) {
+        const subsToRemove = SUB_CATEGORIES[cat] ?? [];
+        return {
+          ...d,
+          categories: d.categories.filter((c) => c !== cat),
+          subCategories: d.subCategories.filter((s) => !subsToRemove.includes(s)),
+        };
+      }
       if (d.categories.length >= 4) return d;
       return { ...d, categories: [...d.categories, cat] };
     });
-  };
+  }, []);
 
-  const toggleSubCategory = (sub: string) => {
+  const toggleSubCategory = useCallback((sub: string) => {
     setData((d) => ({
       ...d,
       subCategories: d.subCategories.includes(sub)
         ? d.subCategories.filter((c) => c !== sub)
         : [...d.subCategories, sub],
     }));
-  };
+  }, []);
 
-  const formatDate = (d: string | null) => d ? d.replace(/-/g, ".") : "";
+  const formatDate = useCallback((d: string | null) => {
+    return d ? d.replace(/-/g, ".") : "";
+  }, []);
 
-  // 캘린더 로직
-  const daysInMonth = new Date(viewMonth.year, viewMonth.month + 1, 0).getDate();
-  const firstDay = new Date(viewMonth.year, viewMonth.month, 1).getDay();
-  const toDateStr = (day: number) => `${viewMonth.year}-${String(viewMonth.month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  const isDisabled = (day: number) => new Date(viewMonth.year, viewMonth.month, day) < today;
-  const isInRange = (day: number) => {
-    if (!tempDateStart || !tempDateEnd) return false;
-    const d = toDateStr(day);
-    return d > tempDateStart && d < tempDateEnd;
-  };
-  const isSelected = (day: number) => {
-    const d = toDateStr(day);
-    return d === tempDateStart || d === tempDateEnd;
-  };
-
-  const handleDayClick = (day: number) => {
-    if (isDisabled(day)) return;
-    const d = toDateStr(day);
+  const handleDayClick = useCallback((d: string) => {
     if (dateSelecting === "start") {
       setTempDateStart(d);
       setTempDateEnd(null);
@@ -163,17 +131,58 @@ export default function OnboardingFlow() {
         setDateSelecting("start");
       }
     }
-  };
+  }, [dateSelecting, tempDateStart]);
+
+  const openRegionSheet = useCallback(() => {
+    if (!data.regionUndecided) {
+      setTempRegion(data.region);
+      setRegionSheet(true);
+    }
+  }, [data.regionUndecided, data.region]);
+
+  const openDateSheet = useCallback(() => {
+    setTempDateStart(data.dateStart);
+    setTempDateEnd(data.dateEnd);
+    setDateSheet(true);
+  }, [data.dateStart, data.dateEnd]);
+
+  const openTimeSheetStart = useCallback(() => {
+    setTempMinute(minuteStart);
+    setTimeSheet("start");
+  }, [minuteStart]);
+
+  const openTimeSheetEnd = useCallback(() => {
+    setTempMinute(minuteEnd);
+    setTimeSheet("end");
+  }, [minuteEnd]);
+
+  const handleRegionConfirm = useCallback(() => {
+    setData((d) => ({ ...d, region: tempRegion }));
+    setRegionSheet(false);
+  }, [tempRegion]);
+
+  const handleDateReset = useCallback(() => {
+    setTempDateStart(null);
+    setTempDateEnd(null);
+    setDateSelecting("start");
+  }, []);
+
+  const handleDateConfirm = useCallback(() => {
+    setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd }));
+    setDateSheet(false);
+  }, [tempDateStart, tempDateEnd]);
+
+  const handleTimeClose = useCallback(() => {
+    if (timeSheet === "start") setMinuteStart(tempMinute);
+    else setMinuteEnd(tempMinute);
+    setTimeSheet(null);
+  }, [timeSheet, tempMinute]);
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      {/* 상단: 뒤로 + 건너뛰기 */}
-      <div className="flex items-center justify-between pt-[4vh]">
-        <BackButton onClick={handlePrev} />
-        <button type="button" className="text-[13px] text-[#737373]">건너뛰기</button>
-      </div>
+      <TopBarBack onBack={handlePrev} rightText={t("skip")} />
 
-      {/* 프로그레스 — 일직선 게이지 */}
+      {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
         <div
           className="absolute left-0 top-0 h-full rounded-full bg-lime transition-all duration-300"
@@ -183,114 +192,26 @@ export default function OnboardingFlow() {
 
       {/* 콘텐츠 */}
       <div className="flex-1 overflow-y-auto pb-4">
-        {/* Step 1 */}
         {step === 1 && (
-          <>
-            <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">여행 일정과 이동 방식</h1>
-
-            {/* 방문 지역 */}
-            <p className="mt-[14px] text-[14px] font-medium text-[#737373]">방문 지역</p>
-            <button
-              type="button"
-              onClick={() => { if (!data.regionUndecided) { setTempRegion(data.region); setRegionSheet(true); } }}
-              disabled={data.regionUndecided}
-              className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200 disabled:opacity-40"
-            >
-              <img src="/image/location-icon.png" alt="" width={20} height={20} />
-              <span className="text-[16px] font-medium text-[#C4C4C4]">
-                {data.region || "어디로 방문하시나요?"}
-              </span>
-            </button>
-            <div className="flex justify-end mt-2">
-              <Checkbox
-                checked={data.regionUndecided}
-                onChange={() => setData((d) => ({ ...d, regionUndecided: !d.regionUndecided, region: "" }))}
-                label="아직 못 정했어요"
-              />
-            </div>
-
-            {/* 방문 날짜 */}
-            <p className="mt-[12px] text-[14px] font-medium text-[#737373]">방문 날짜</p>
-            <button
-              type="button"
-              onClick={() => { setTempDateStart(data.dateStart); setTempDateEnd(data.dateEnd); setDateSheet(true); }}
-              className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200"
-            >
-              <img src="/image/calendar-icon.png" alt="" width={20} height={20} />
-              <span className="text-[16px] font-medium text-[#C4C4C4]">
-                {data.dateStart ? `${formatDate(data.dateStart)} ~ ${formatDate(data.dateEnd)}` : "언제 방문하시나요?"}
-              </span>
-            </button>
-
-            {/* 하루 활동 시간대 */}
-            <p className="mt-[24px] text-[14px] font-medium text-[#737373]">하루 활동 시간대</p>
-            <div className="mt-[10px] flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => { setTempMinute(minuteStart); setTimeSheet("start"); }}
-                className={`flex-1 rounded-[10px] border p-[10px] text-left ${timeSheet === "start" ? "border-[#CCFF00] bg-lime-light" : "border-[#E1E2E4]"}`}
-              >
-                <span className="text-[11px] text-[#737373]">시작</span>
-                <p className="mt-1 font-[Noto_Sans_KR] text-[20px] font-normal text-[#2A2A2A]">
-                  {String(data.timeStart % 12 || 12).padStart(2, "0")}:{minuteStart} <span className="text-[14px]">{data.timeStart < 12 ? "AM" : "PM"}</span>
-                </p>
-              </button>
-              <span className="text-neutral-300 text-[16px]">›</span>
-              <button
-                type="button"
-                onClick={() => { setTempMinute(minuteEnd); setTimeSheet("end"); }}
-                className={`flex-1 rounded-[10px] border p-[10px] text-left ${timeSheet === "end" ? "border-[#CCFF00] bg-lime-light" : "border-[#E1E2E4]"}`}
-              >
-                <span className="text-[11px] text-[#737373]">종료</span>
-                <p className="mt-1 font-[Noto_Sans_KR] text-[20px] font-normal text-[#2A2A2A]">
-                  {String(data.timeEnd % 12 || 12).padStart(2, "0")}:{minuteEnd} <span className="text-[14px]">{data.timeEnd < 12 ? "AM" : "PM"}</span>
-                </p>
-              </button>
-            </div>
-
-            {/* 이동 수단 — 복수 선택 */}
-            <p className="mt-[24px] text-[14px] font-medium text-[#737373]">이동 수단</p>
-            <div className="mt-[10px] flex gap-2">
-              {TRANSPORTS.map((tr) => (
-                <SelectChip
-                  key={tr}
-                  label={t(tr)}
-                  selected={data.transport.includes(tr)}
-                  onToggle={() => setData((d) => ({
-                    ...d,
-                    transport: d.transport.includes(tr)
-                      ? d.transport.filter((t) => t !== tr)
-                      : [...d.transport, tr],
-                  }))}
-                />
-              ))}
-            </div>
-          </>
+          <Step1Content
+            data={data}
+            setData={setData}
+            formatDate={formatDate}
+            openRegionSheet={openRegionSheet}
+            openDateSheet={openDateSheet}
+            openTimeSheetStart={openTimeSheetStart}
+            openTimeSheetEnd={openTimeSheetEnd}
+            minuteStart={minuteStart}
+            minuteEnd={minuteEnd}
+            timeSheet={timeSheet}
+            t={t}
+          />
         )}
 
-        {/* Step 2: 대분류 */}
         {step === 2 && (
-          <>
-            <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step2Title")}</h1>
-            <p className="mt-[7px] text-[14px] font-medium text-[#737373]">{t("step2Subtitle")}</p>
-
-            <div className="grid grid-cols-4 gap-2 mt-[26px]">
-              {CATEGORIES.map((cat) => (
-                <SelectChip
-                  key={cat}
-                  label={t(`categories.${cat}`)}
-                  selected={data.categories.includes(cat)}
-                  onToggle={() => toggleCategory(cat)}
-                />
-              ))}
-            </div>
-
-            {/* 안내 칩 */}
-            <div className="flex-1" />
-          </>
+          <Step2Content data={data} toggleCategory={toggleCategory} t={t} />
         )}
 
-        {/* Step 3: 중분류 */}
         {step === 3 && (
           <Step3Content
             categories={data.categories}
@@ -300,34 +221,8 @@ export default function OnboardingFlow() {
           />
         )}
 
-        {/* Step 4: 레벨 */}
         {step === 4 && (
-          <>
-            <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step4Title")}</h1>
-            <p className="mt-[7px] text-[14px] font-medium text-[#737373]">{t("step4Subtitle")}</p>
-
-            <div className="flex flex-col gap-[16px] mt-[30px]">
-              {LEVELS.map((lvl) => (
-                <button
-                  key={lvl}
-                  type="button"
-                  onClick={() => setData((d) => ({ ...d, level: lvl }))}
-                  className={`w-full rounded-[16px] p-[12px] text-left transition-colors ${
-                    data.level === lvl
-                      ? "bg-[#F4FFD6] border-[1.5px] border-[#CCFF00]"
-                      : "bg-white border-[1.5px] border-transparent shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
-                  }`}
-                >
-                  <span className="text-[15px] font-semibold tracking-[-0.3%] text-[#111111]">
-                    {t(lvl)}
-                  </span>
-                  <span className="block mt-[6px] text-[12px] font-medium text-[#C4C4C4]">
-                    {t(`${lvl}Desc`)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </>
+          <Step4Content data={data} setData={setData} t={t} />
         )}
       </div>
 
@@ -335,7 +230,7 @@ export default function OnboardingFlow() {
       {step === 2 && (
         <div className="flex justify-center mb-[30px]">
           <span className="rounded-full bg-[#F4FFD6] px-4 py-[10px] text-[12px] font-medium text-dark">
-            최대 4개까지 선택할 수 있어요
+            {t("maxFourCategories")}
           </span>
         </div>
       )}
@@ -348,233 +243,49 @@ export default function OnboardingFlow() {
             onClick={handlePrev}
             className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark"
           >
-            이전
+            {t("prev")}
           </button>
         )}
         <div className="flex-1">
-          <Button fullWidth disabled={!canProceed()} onClick={handleNext}>
+          <BigButton fullWidth disabled={!canProceed} onClick={handleNext}>
             {step === 4 ? t("start") : t("next")}
-          </Button>
+          </BigButton>
         </div>
       </div>
 
-      {/* === 바텀시트: 지역 선택 === */}
-      <BottomSheet
+      {/* 바텀시트: 지역 선택 */}
+      <RegionSheet
         open={regionSheet}
-        title="방문 지역 선택"
+        tempRegion={tempRegion}
+        setTempRegion={setTempRegion}
         onClose={() => setRegionSheet(false)}
-        footer={
-          <div className="flex items-center justify-between">
-            <ResetButton onClick={() => setTempRegion("")} />
-            <Button
-              disabled={!tempRegion}
-              onClick={() => { setData((d) => ({ ...d, region: tempRegion })); setRegionSheet(false); }}
-              className="w-[140px]"
-            >
-              선택 완료
-            </Button>
-          </div>
-        }
-      >
-        {/* 검색 — 37px 아래 */}
-        <div className="mt-[5px] flex items-center h-[44px] rounded-[14px] bg-surface px-3">
-          <input placeholder="어디로 방문하시나요?" className="flex-1 bg-transparent text-[14px] font-medium outline-none placeholder:text-[#C4C4C4]" readOnly />
-          <img src="/image/search-icon.png" alt="검색" width={20} height={20} />
-        </div>
+        onConfirm={handleRegionConfirm}
+      />
 
-        {/* 인기 여행지 */}
-        <p className="mt-6 text-[13px] font-medium text-dark mb-3">인기 여행지</p>
-        <div className="grid grid-cols-6 gap-2">
-          {REGIONS.map((r) => (
-            <SelectChip
-              key={r}
-              label={r}
-              selected={tempRegion === r}
-              onToggle={() => setTempRegion(r === tempRegion ? "" : r)}
-            />
-          ))}
-        </div>
-
-        {/* 안내 칩 */}
-        <div className="mt-auto pt-10 flex justify-center">
-          <span className="rounded-full bg-[#F4FFD6] px-4 py-[10px] text-[12px] font-medium text-dark">
-            최대 1개까지 선택할 수 있어요
-          </span>
-        </div>
-      </BottomSheet>
-
-      {/* === 바텀시트: 날짜 선택 === */}
-      <BottomSheet
+      {/* 바텀시트: 날짜 선택 */}
+      <DateSheet
         open={dateSheet}
-        title="방문 날짜"
+        tempDateStart={tempDateStart}
+        tempDateEnd={tempDateEnd}
+        onDayClick={handleDayClick}
+        onReset={handleDateReset}
         onClose={() => setDateSheet(false)}
-        footer={
-          <div className="flex items-center justify-between">
-            <ResetButton onClick={() => { setTempDateStart(null); setTempDateEnd(null); setDateSelecting("start"); }} />
-            <Button
-              disabled={!tempDateStart || !tempDateEnd}
-              onClick={() => { setData((d) => ({ ...d, dateStart: tempDateStart, dateEnd: tempDateEnd })); setDateSheet(false); }}
-              className="w-[140px]"
-            >
-              선택 완료
-            </Button>
-          </div>
-        }
-      >
-        {/* 캘린더 */}
-        <div className="flex items-center justify-between mb-4">
-          <button type="button" onClick={() => setViewMonth((v) => v.month === 0 ? { year: v.year - 1, month: 11 } : { ...v, month: v.month - 1 })} className="text-neutral-500">‹</button>
-          <span className="text-[15px] font-semibold">{viewMonth.year}년 {viewMonth.month + 1}월</span>
-          <button type="button" onClick={() => setViewMonth((v) => v.month === 11 ? { year: v.year + 1, month: 0 } : { ...v, month: v.month + 1 })} className="text-neutral-500">›</button>
-        </div>
+        onConfirm={handleDateConfirm}
+        viewMonth={viewMonth}
+        setViewMonth={setViewMonth}
+        today={today}
+      />
 
-        <div className="grid grid-cols-7 gap-y-1 mb-1">
-          {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-            <div key={d} className="flex justify-center">
-              <span className="h-[36px] w-[36px] flex items-center justify-center text-[12px] text-[#737373]">{d}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-y-1">
-          {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} className="flex justify-center"><div className="h-[36px] w-[36px]" /></div>)}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const disabled = isDisabled(day);
-            const selected = isSelected(day);
-            const inRange = isInRange(day);
-
-            return (
-              <div key={day} className="flex justify-center">
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => handleDayClick(day)}
-                  className={`h-[36px] w-[36px] rounded-full text-[13px] font-medium transition-colors ${
-                    disabled ? "text-neutral-300" :
-                    selected ? "bg-lime text-dark font-bold" :
-                    inRange ? "bg-[#F7F7F7] text-dark" :
-                    "text-neutral-800"
-                  }`}
-                >
-                  {day}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </BottomSheet>
-
-      {/* === 바텀시트: 시간 선택 (휠 다이얼) === */}
-      <BottomSheet
+      {/* 바텀시트: 시간 선택 */}
+      <TimeSheet
         open={!!timeSheet}
-        title={timeSheet === "start" ? "시작 시간" : "종료 시간"}
-        onClose={() => {
-          if (timeSheet === "start") setMinuteStart(tempMinute);
-          else setMinuteEnd(tempMinute);
-          setTimeSheet(null);
-        }}
-      >
-        <div className="relative flex justify-center gap-6 py-4">
-          {/* 선택 하이라이트 밴드 */}
-          <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[40px] bg-[#F4FFD6] rounded-lg pointer-events-none" />
-
-          {/* 시 */}
-          <div className="relative w-[60px]">
-            <WheelPicker
-              items={Array.from({ length: 12 }, (_, i) => String(i + 1))}
-              value={String(((timeSheet === "start" ? data.timeStart : data.timeEnd) % 12) || 12)}
-              onChange={(val) => {
-                const h = Number(val);
-                const isPM = (timeSheet === "start" ? data.timeStart : data.timeEnd) >= 12;
-                const newH = isPM ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h);
-                if (timeSheet === "start") setData((d) => ({ ...d, timeStart: newH }));
-                else setData((d) => ({ ...d, timeEnd: newH }));
-              }}
-            />
-          </div>
-
-          {/* 분 */}
-          <div className="relative w-[60px]">
-            <WheelPicker
-              items={Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"))}
-              value={tempMinute}
-              onChange={(val) => setTempMinute(val)}
-            />
-          </div>
-
-          {/* AM/PM */}
-          <div className="relative w-[60px]">
-            <WheelPicker
-              items={["AM", "PM"]}
-              value={(timeSheet === "start" ? data.timeStart : data.timeEnd) < 12 ? "AM" : "PM"}
-              onChange={(val) => {
-                const current = timeSheet === "start" ? data.timeStart : data.timeEnd;
-                const hour12 = current % 12;
-                const newH = val === "PM" ? hour12 + 12 : hour12;
-                if (timeSheet === "start") setData((d) => ({ ...d, timeStart: newH }));
-                else setData((d) => ({ ...d, timeEnd: newH }));
-              }}
-            />
-          </div>
-        </div>
-      </BottomSheet>
+        timeSheet={timeSheet}
+        data={data}
+        setData={setData}
+        tempMinute={tempMinute}
+        setTempMinute={setTempMinute}
+        onClose={handleTimeClose}
+      />
     </div>
-  );
-}
-
-// Step 3 — 접기/펼치기 카드
-function Step3Content({
-  categories,
-  subCategories,
-  toggleSubCategory,
-  t,
-}: {
-  categories: string[];
-  subCategories: string[];
-  toggleSubCategory: (sub: string) => void;
-  t: (key: string) => string;
-}) {
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-
-  const toggle = (cat: string) => {
-    setCollapsed((c) => ({ ...c, [cat]: !c[cat] }));
-  };
-
-  return (
-    <>
-      <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step3Title")}</h1>
-      <p className="mt-[7px] text-[14px] font-medium text-[#737373]">{t("step3Subtitle")}</p>
-
-      <div className="flex flex-col gap-[12px] mt-[30px]">
-        {categories.map((cat) => (
-          <div
-            key={cat}
-            className="rounded-[12px] bg-white px-[12px] py-[10px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
-          >
-            <button
-              type="button"
-              onClick={() => toggle(cat)}
-              className="flex w-full items-center justify-between"
-            >
-              <span className="text-[13px] font-semibold text-dark">{t(`categories.${cat}`)}</span>
-              <span className={`text-[12px] text-[#C4C4C4] transition-transform ${collapsed[cat] ? "rotate-180" : ""}`}>▼</span>
-            </button>
-            {!collapsed[cat] && (
-              <div className="flex flex-wrap gap-[6px] mt-[8px]">
-                {(SUB_CATEGORIES[cat] ?? []).map((sub) => (
-                  <SelectChip
-                    key={sub}
-                    label={sub}
-                    selected={subCategories.includes(sub)}
-                    onToggle={() => toggleSubCategory(sub)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </>
   );
 }

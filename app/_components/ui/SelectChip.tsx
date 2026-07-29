@@ -15,7 +15,8 @@ export default function SelectChip({ label, selected, onToggle }: SelectChipProp
     <button
       type="button"
       onClick={onToggle}
-      className={`rounded-full px-3 py-1 text-[12px] font-medium text-[#737373] transition-colors ${
+      aria-pressed={selected}
+      className={`rounded-full px-3 py-1 text-[12px] font-medium text-[#737373] transition-colors whitespace-nowrap overflow-hidden text-ellipsis max-w-full ${
         selected
           ? "bg-[#F4FFD6] border-[1.5px] border-[#CCFF00]"
           : "bg-[#F7F7F7] border-[1.5px] border-transparent"

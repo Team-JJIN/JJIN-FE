@@ -13,7 +13,7 @@ interface LanguageOptionProps {
   onSelect: (locale: string) => void;
 }
 
-export default function LanguageOption({ label, locale, selected, onSelect }: LanguageOptionProps) {
+export default function MediumButton({ label, locale, selected, onSelect }: LanguageOptionProps) {
   return (
     <button
       type="button"

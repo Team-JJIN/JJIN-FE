@@ -41,12 +41,14 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <html lang={locale}>
       <head>
-        <link rel="apple-touch-icon" href="/image/logo.png" />
+        <link rel="apple-touch-icon" href="/image/icon-192.png" />
       </head>
-      <body>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+      <body className="bg-neutral-100">
+        <div className="mx-auto w-full max-w-[430px] min-h-dvh max-h-dvh bg-white relative shadow-xl overflow-x-hidden overflow-y-auto scrollbar-hide">
+          <NextIntlClientProvider messages={messages}>
+            {children}
+          </NextIntlClientProvider>
+        </div>
       </body>
     </html>
   );
