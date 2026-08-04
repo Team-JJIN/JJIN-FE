@@ -139,5 +139,87 @@
       "yeosu": "여수",
       "chuncheon": "춘천"
     }
+  },
+  "mission": {
+    "title": "미션",
+    "feedTitle": "미션 피드",
+    "searchPlaceholder": "미션, 매장, 태그 검색",
+    "filters": {
+      "all": "전체",
+      "mustDo": "꼭 해봐야 할",
+      "hot": "요즘 핫한",
+      "mine": "내가 만든"
+    },
+    "categories": {
+      "food": "음식",
+      "experience": "체험관광",
+      "nature": "자연관광",
+      "history": "역사관광",
+      "culture": "문화관광",
+      "shopping": "쇼핑",
+      "festival": "축제·공연·행사",
+      "leisure": "레저스포츠"
+    },
+    "sort": {
+      "popular": "인기순",
+      "latest": "최신순"
+    },
+    "hashtags": {
+      "cafeTour": "카페투어",
+      "foodTour": "맛집탐방",
+      "photoSpot": "포토스팟",
+      "local": "로컬체험",
+      "challenge": "챌린지"
+    },
+    "totalCount": "총 {count}개 미션",
+    "viewCount": "{count}개의 미션 보기",
+    "difficultyLabel": "난이도",
+    "difficultyValue": "난이도 {level}단계",
+    "addLabel": "추가",
+    "close": "닫기",
+    "errorLoad": "목록을 불러오지 못했어요",
+    "retry": "다시 시도",
+    "emptyList": "표시할 미션이 없어요",
+    "filterGroupLabel": "미션 필터",
+    "categoryLabel": "카테고리",
+    "categoryMore": "{name} 외 {count}개",
+    "create": {
+      "title": "새 미션 만들기",
+      "photoLabel": "예시 사진",
+      "photoAdd": "사진 추가하기 (선택)",
+      "titleLabel": "미션 제목",
+      "titlePlaceholder": "예) 스타벅스에서 슈크림라떼 사먹기",
+      "descLabel": "미션 설명",
+      "descPlaceholder": "어떤 미션인지 설명을 적어주세요.\n달성 팁이나 인증 방법을 함께 남기면 좋아요!",
+      "difficultyLabel": "난이도",
+      "hashtagLabel": "해시태그",
+      "hashtagOptional": "(선택)",
+      "addTag": "+ 태그 추가",
+      "tagInputPlaceholder": "태그 입력 후 Enter",
+      "submit": "미션 만들기"
+    },
+    "add": {
+      "title": "미션 추가",
+      "myPlans": "내 일정",
+      "planCount": "{count}개",
+      "newPlan": "+ 새 일정 추가하기",
+      "cancel": "취소",
+      "confirm": "추가하기"
+    },
+    "remove": {
+      "confirmTitle": "''{title}''",
+      "confirmDesc": "추가를 취소하시겠습니까?",
+      "cancel": "취소",
+      "confirm": "확인"
+    },
+    "feed": {
+      "tabs": {
+        "latest": "최신",
+        "popular": "인기",
+        "weeklyHot": "이번 주 핫"
+      },
+      "weeklyClear": "이번주 {count}명이 클리어",
+      "likeCount": "좋아요 {count}개"
+    }
   }
 }

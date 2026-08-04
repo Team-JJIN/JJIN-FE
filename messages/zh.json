@@ -139,5 +139,87 @@
       "yeosu": "丽水",
       "chuncheon": "春川"
     }
+  },
+  "mission": {
+    "title": "任务",
+    "feedTitle": "任务动态",
+    "searchPlaceholder": "搜索任务、商店、标签",
+    "filters": {
+      "all": "全部",
+      "mustDo": "必做",
+      "hot": "热门",
+      "mine": "我创建的"
+    },
+    "categories": {
+      "food": "美食",
+      "experience": "体验观光",
+      "nature": "自然观光",
+      "history": "历史观光",
+      "culture": "文化观光",
+      "shopping": "购物",
+      "festival": "节日·演出·活动",
+      "leisure": "休闲运动"
+    },
+    "sort": {
+      "popular": "人气排序",
+      "latest": "最新排序"
+    },
+    "hashtags": {
+      "cafeTour": "咖啡之旅",
+      "foodTour": "美食探店",
+      "photoSpot": "拍照打卡地",
+      "local": "本地体验",
+      "challenge": "挑战"
+    },
+    "totalCount": "共{count}个任务",
+    "viewCount": "查看{count}个任务",
+    "difficultyLabel": "难度",
+    "difficultyValue": "难度{level}级",
+    "addLabel": "添加",
+    "close": "关闭",
+    "errorLoad": "无法加载列表",
+    "retry": "重试",
+    "emptyList": "没有可显示的任务",
+    "filterGroupLabel": "任务筛选",
+    "categoryLabel": "分类",
+    "categoryMore": "{name}等{count}个",
+    "create": {
+      "title": "创建新任务",
+      "photoLabel": "示例图片",
+      "photoAdd": "添加图片（可选）",
+      "titleLabel": "任务标题",
+      "titlePlaceholder": "例如：在星巴克买一杯泡芙拿铁",
+      "descLabel": "任务说明",
+      "descPlaceholder": "请描述一下这是什么任务。\n附上达成小贴士或认证方法会更好！",
+      "difficultyLabel": "难度",
+      "hashtagLabel": "标签",
+      "hashtagOptional": "（可选）",
+      "addTag": "+ 添加标签",
+      "tagInputPlaceholder": "输入标签后按 Enter",
+      "submit": "创建任务"
+    },
+    "add": {
+      "title": "添加任务",
+      "myPlans": "我的行程",
+      "planCount": "{count}个",
+      "newPlan": "+ 添加新行程",
+      "cancel": "取消",
+      "confirm": "添加"
+    },
+    "remove": {
+      "confirmTitle": "''{title}''",
+      "confirmDesc": "要取消添加吗?",
+      "cancel": "取消",
+      "confirm": "确认"
+    },
+    "feed": {
+      "tabs": {
+        "latest": "最新",
+        "popular": "人气",
+        "weeklyHot": "本周热门"
+      },
+      "weeklyClear": "本周{count}人已完成",
+      "likeCount": "{count}个赞"
+    }
   }
 }
