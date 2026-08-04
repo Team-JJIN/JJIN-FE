@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import QueryProvider from "@/app/_components/providers/QueryProvider";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -46,7 +47,7 @@ export default async function LocaleLayout({ children, params }: Props) {
       <body className="bg-neutral-100">
         <div className="mx-auto w-full max-w-[430px] min-h-dvh max-h-dvh bg-white relative shadow-xl overflow-x-hidden overflow-y-auto scrollbar-hide">
           <NextIntlClientProvider messages={messages}>
-            {children}
+            <QueryProvider>{children}</QueryProvider>
           </NextIntlClientProvider>
         </div>
       </body>
