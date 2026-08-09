@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -9,13 +9,13 @@ import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import CheckBox from "@/app/_components/ui/CheckBox";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
+import { signUp, getTerms, type TermsItem } from "@/app/_api/auth";
+import { saveTokens } from "@/app/_api/token";
 
 type SignUpForm = {
   email: string;
   password: string;
   confirmPassword: string;
-  agreeTerms: boolean;
-  agreeMarketing: boolean;
 };
 
 export default function SignUpPage() {
@@ -24,7 +24,6 @@ export default function SignUpPage() {
   const locale = useLocale();
   const searchParams = useSearchParams();
 
-  // 인증 완료 여부 (이메일 인증 후 ?verified=true 로 돌아옴)
   const isVerified = searchParams?.get("verified") === "true";
   const verifiedEmail = searchParams?.get("email") ?? "";
 
@@ -32,29 +31,48 @@ export default function SignUpPage() {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
-  const { register, watch, setValue } = useForm<SignUpForm>({
+  // 약관 상태
+  const [terms, setTerms] = useState<TermsItem[]>([]);
+  const [agreedTermIds, setAgreedTermIds] = useState<Set<number>>(new Set());
+
+  const { register, watch } = useForm<SignUpForm>({
     defaultValues: {
       email: verifiedEmail || "",
       password: "",
       confirmPassword: "",
-      agreeTerms: false,
-      agreeMarketing: false,
     },
   });
 
   const email = watch("email");
   const password = watch("password");
   const confirmPassword = watch("confirmPassword");
-  const agreeTerms = watch("agreeTerms");
-  const agreeMarketing = watch("agreeMarketing");
 
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordValid = password.length >= 8 && /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
   const isConfirmMatch = password === confirmPassword && confirmPassword.length > 0;
-  const isFormValid = isEmailValid && isVerified && isPasswordValid && isConfirmMatch && agreeTerms;
+  const allRequiredTermsAgreed = terms
+    .filter((t) => t.required)
+    .every((t) => agreedTermIds.has(t.id));
+  const isFormValid = isEmailValid && isVerified && isPasswordValid && isConfirmMatch && allRequiredTermsAgreed;
 
-  // 인증 요청 클릭
+  // 약관 목록 조회
+  useEffect(() => {
+    getTerms()
+      .then(setTerms)
+      .catch(() => {});
+  }, []);
+
+  const toggleTerm = (id: number) => {
+    setAgreedTermIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const handleRequestVerification = () => {
     if (!isEmailValid) {
       setEmailError(t("errorEmailInvalid"));
@@ -64,36 +82,42 @@ export default function SignUpPage() {
     router.push(`/${locale}/auth/signup/verify?email=${encodeURIComponent(email)}`);
   };
 
-  // 비밀번호 blur
   const handlePasswordBlur = () => {
     if (password && !isPasswordValid) setPasswordError(t("errorPasswordInvalid"));
     else setPasswordError("");
   };
 
-  // 비밀번호 확인 blur
   const handleConfirmBlur = () => {
     if (confirmPassword && !isConfirmMatch) setConfirmError(t("errorPasswordMismatch"));
     else setConfirmError("");
   };
 
-  // 가입하기
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isFormValid) return;
-    // TODO: API 회원가입 요청
-    router.push(`/${locale}/onboarding`);
+    setSubmitError("");
+    try {
+      const termsAgreements = terms.map((term) => ({
+        type: term.type,
+        agreed: agreedTermIds.has(term.id),
+      }));
+      const tokens = await signUp(email, password, termsAgreements);
+      saveTokens(tokens.accessToken, tokens.refreshToken);
+      router.push(`/${locale}/onboarding`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "회원가입에 실패했습니다.";
+      setSubmitError(message);
+    }
   };
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      {/* 제목 */}
       <div className="pt-[7vh]">
         <h1 className="text-[22px] font-semibold tracking-[-1%] text-dark">{t("title")}</h1>
         <p className="mt-1 text-[12px] font-medium text-[#737373]">{t("subtitle")}</p>
       </div>
 
-      {/* 폼 */}
       <div className="flex flex-col gap-[12px] pt-[3vh]">
-        {/* 이메일 + 인증 요청/완료 */}
+        {/* 이메일 + 인증 */}
         <div className="flex gap-2">
           <div className="flex-1">
             <InputText
@@ -143,26 +167,25 @@ export default function SignUpPage() {
           onBlur={handleConfirmBlur}
         />
 
-        {/* 약관 동의 */}
+        {/* 약관 동의 (API에서 가져온 목록) */}
         <div className="flex flex-col gap-[10px] mt-[4px]">
-          <CheckBox
-            checked={agreeTerms}
-            onChange={() => setValue("agreeTerms", !agreeTerms)}
-            label={t("agreeTerms")}
-          />
-          <CheckBox
-            checked={agreeMarketing}
-            onChange={() => setValue("agreeMarketing", !agreeMarketing)}
-            label={t("agreeMarketing")}
-          />
+          {terms.map((term) => (
+            <CheckBox
+              key={term.id}
+              checked={agreedTermIds.has(term.id)}
+              onChange={() => toggleTerm(term.id)}
+              label={term.title}
+            />
+          ))}
         </div>
       </div>
 
-      {/* 빈 공간 */}
       <div className="flex-1" />
 
-      {/* 하단 버튼 */}
       <div className="pb-[43px]">
+        {submitError && (
+          <p className="mb-[10px] text-center text-[12px] text-red-500">{submitError}</p>
+        )}
         <BigButton fullWidth disabled={!isFormValid} onClick={handleSubmit}>
           {t("sendVerificationEmail")}
         </BigButton>
