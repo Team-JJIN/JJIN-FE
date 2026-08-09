@@ -10,6 +10,8 @@ import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
 import { buildGoogleOAuthUrl } from "@/app/_api/google-oauth";
+import { loginWithEmail } from "@/app/_api/auth";
+import { saveTokens } from "@/app/_api/token";
 
 type LoginForm = { email: string; password: string };
 
@@ -18,6 +20,7 @@ export default function LoginPage() {
   const router = useRouter();
   const locale = useLocale();
   const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   const {
     register,
@@ -30,12 +33,16 @@ export default function LoginPage() {
   const password = watch("password");
   const isFormFilled = !!email && !!password;
 
-  const onSubmit = async (_data: LoginForm) => {
-    // TODO: loginWithEmail API 연결 후 role에 따라 분기
-    // const { role } = await loginWithEmail(_data.email, _data.password);
-    // saveTokens(accessToken, refreshToken);
-    // role === "ONBOARDING" ? router.push(`/${locale}/onboarding`) : router.push(`/${locale}/home`);
-    router.push(`/${locale}/onboarding`);
+  const onSubmit = async (data: LoginForm) => {
+    setLoginError("");
+    try {
+      const { accessToken, refreshToken, role } = await loginWithEmail(data.email, data.password);
+      saveTokens(accessToken, refreshToken);
+      router.push(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/home`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "로그인에 실패했습니다.";
+      setLoginError(message);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -44,7 +51,6 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      {/* 로고 */}
       <div className="flex flex-[2] flex-col items-center justify-center">
         <Image
           src="/image/JJIN.png"
@@ -59,7 +65,6 @@ export default function LoginPage() {
         </p>
       </div>
 
-      {/* 폼 영역 */}
       <div className="flex flex-[3] flex-col">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[16px]">
           <InputText
@@ -85,6 +90,10 @@ export default function LoginPage() {
             {...register("password", { required: true })}
           />
 
+          {loginError && (
+            <p className="text-[12px] text-red-500 text-center">{loginError}</p>
+          )}
+
           <BigButton
             type="submit"
             variant="lime"
@@ -96,7 +105,6 @@ export default function LoginPage() {
           </BigButton>
         </form>
 
-        {/* 비밀번호 찾기 / 회원가입 */}
         <div className="flex items-center justify-between mt-[16px]">
           <button type="button" className="text-[13px] text-neutral-500">
             {t("forgotPassword")}
@@ -110,14 +118,12 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* 구분선 */}
         <div className="flex items-center gap-3 mt-[11px]">
           <div className="h-px flex-1 bg-neutral-200" />
           <span className="text-[12px] text-muted">{t("orContinueWith")}</span>
           <div className="h-px flex-1 bg-neutral-200" />
         </div>
 
-        {/* Google 로그인 버튼 */}
         <button
           type="button"
           onClick={handleGoogleLogin}
