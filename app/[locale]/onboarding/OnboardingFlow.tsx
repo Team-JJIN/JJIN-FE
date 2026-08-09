@@ -79,9 +79,18 @@ export default function OnboardingFlow() {
     }
   }, [step, data]);
 
-  const handleNext = useCallback(() => {
-    if (step < 4) setStep((s) => s + 1);
-    else alert("온보딩 완료!"); // TODO: API 제출 후 메인 이동
+  const handleNext = useCallback(async () => {
+    if (step < 4) {
+      setStep((s) => s + 1);
+    } else {
+      // TODO: 온보딩 API 연결 (홈 페이지 구현 후 활성화)
+      // try {
+      //   const res = await submitOnboarding({ ... });
+      //   saveTokens(res.accessToken, res.refreshToken);
+      //   router.push(`/${locale}/home`);
+      // } catch { ... }
+      alert("온보딩 완료!");
+    }
   }, [step]);
 
   const handlePrev = useCallback(() => {
