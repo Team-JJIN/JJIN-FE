@@ -7,7 +7,8 @@
     "signUp": "Sign Up",
     "orContinueWith": "Or",
     "errorEmailRequired": "Please enter your email",
-    "errorPasswordRequired": "Please enter your password"
+    "errorPasswordRequired": "Please enter your password",
+    "errorLoginFailed": "Login failed"
   },
   "signUp": {
     "title": "Sign Up",
@@ -22,7 +23,8 @@
     "sendVerificationEmail": "Sign Up",
     "errorEmailInvalid": "Please enter a valid email",
     "errorPasswordInvalid": "8+ characters, letters and numbers required",
-    "errorPasswordMismatch": "Passwords do not match"
+    "errorPasswordMismatch": "Passwords do not match",
+    "errorSignUpFailed": "Sign up failed"
   },
   "emailVerification": {
     "title": "Email Verification",

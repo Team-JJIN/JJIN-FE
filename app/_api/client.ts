@@ -22,14 +22,19 @@ export class ApiError extends Error {
 async function request<T>(method: "GET" | "POST" | "PATCH", path: string, body?: object): Promise<ApiResponse<T>> {
   const token = getAccessToken();
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+  } catch {
+    throw new ApiError(0, "서버에 연결할 수 없습니다.");
+  }
 
   // 401이고 refresh token이 있으면 재발급 시도
   if (res.status === 401 && path !== "/api/auth/reissue") {
@@ -37,23 +42,33 @@ async function request<T>(method: "GET" | "POST" | "PATCH", path: string, body?:
     if (refreshToken) {
       const refreshed = await tryReissue(refreshToken);
       if (refreshed) {
-        // 재발급 성공 → 원래 요청 재시도
-        const retryRes = await fetch(`${BASE_URL}${path}`, {
-          method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${refreshed}`,
-          },
-          ...(body ? { body: JSON.stringify(body) } : {}),
-        });
-        const retryData: ApiResponse<T> = await retryRes.json();
-        if (!retryRes.ok) throw new ApiError(retryData.status ?? retryRes.status, retryData.message ?? "요청에 실패했습니다.");
-        return retryData;
+        try {
+          const retryRes = await fetch(`${BASE_URL}${path}`, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${refreshed}`,
+            },
+            ...(body ? { body: JSON.stringify(body) } : {}),
+          });
+          const retryData: ApiResponse<T> = await retryRes.json();
+          if (!retryRes.ok) throw new ApiError(retryData.status ?? retryRes.status, retryData.message ?? "요청에 실패했습니다.");
+          return retryData;
+        } catch (err) {
+          if (err instanceof ApiError) throw err;
+          throw new ApiError(0, "서버에 연결할 수 없습니다.");
+        }
       }
     }
   }
 
-  const data: ApiResponse<T> = await res.json();
+  let data: ApiResponse<T>;
+  try {
+    data = await res.json();
+  } catch {
+    throw new ApiError(res.status, "응답을 처리할 수 없습니다.");
+  }
+
   if (!res.ok) throw new ApiError(data.status ?? res.status, data.message ?? "요청에 실패했습니다.");
   return data;
 }

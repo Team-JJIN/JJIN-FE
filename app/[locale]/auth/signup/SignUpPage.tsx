@@ -53,8 +53,8 @@ export default function SignUpPage() {
   const isPasswordValid = password.length >= 8 && /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
   const isConfirmMatch = password === confirmPassword && confirmPassword.length > 0;
   const allRequiredTermsAgreed = terms
-    .filter((t) => t.required)
-    .every((t) => agreedTermIds.has(t.id));
+    .filter((term) => term.required)
+    .every((term) => agreedTermIds.has(term.id));
   const isFormValid = isEmailValid && isVerified && isPasswordValid && isConfirmMatch && allRequiredTermsAgreed;
 
   // 약관 목록 조회
@@ -104,8 +104,11 @@ export default function SignUpPage() {
       saveTokens(tokens.accessToken, tokens.refreshToken);
       router.push(`/${locale}/onboarding`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "회원가입에 실패했습니다.";
-      setSubmitError(message);
+      if (err instanceof Error && err.message) {
+        setSubmitError(err.message);
+      } else {
+        setSubmitError(t("errorSignUpFailed"));
+      }
     }
   };
 

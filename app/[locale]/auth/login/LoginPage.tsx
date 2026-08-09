@@ -40,8 +40,11 @@ export default function LoginPage() {
       saveTokens(accessToken, refreshToken);
       router.push(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/home`);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "로그인에 실패했습니다.";
-      setLoginError(message);
+      if (err instanceof Error && err.message) {
+        setLoginError(err.message);
+      } else {
+        setLoginError(t("errorLoginFailed"));
+      }
     }
   };
 

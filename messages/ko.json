@@ -7,7 +7,8 @@
     "signUp": "회원가입",
     "orContinueWith": "또는",
     "errorEmailRequired": "이메일을 입력해주세요",
-    "errorPasswordRequired": "비밀번호를 입력해주세요"
+    "errorPasswordRequired": "비밀번호를 입력해주세요",
+    "errorLoginFailed": "로그인에 실패했습니다"
   },
   "signUp": {
     "title": "회원가입",
@@ -22,7 +23,8 @@
     "sendVerificationEmail": "가입하기",
     "errorEmailInvalid": "올바른 이메일을 입력해주세요",
     "errorPasswordInvalid": "8자 이상, 영문+숫자를 포함해야 합니다",
-    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다"
+    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다",
+    "errorSignUpFailed": "회원가입에 실패했습니다"
   },
   "emailVerification": {
     "title": "이메일 인증",

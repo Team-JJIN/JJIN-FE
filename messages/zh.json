@@ -7,7 +7,8 @@
     "signUp": "注册",
     "orContinueWith": "或者",
     "errorEmailRequired": "请输入电子邮件",
-    "errorPasswordRequired": "请输入密码"
+    "errorPasswordRequired": "请输入密码",
+    "errorLoginFailed": "登录失败"
   },
   "signUp": {
     "title": "注册",
@@ -22,7 +23,8 @@
     "sendVerificationEmail": "注册",
     "errorEmailInvalid": "请输入有效的电子邮件",
     "errorPasswordInvalid": "需要8位以上，包含字母和数字",
-    "errorPasswordMismatch": "密码不一致"
+    "errorPasswordMismatch": "密码不一致",
+    "errorSignUpFailed": "注册失败"
   },
   "emailVerification": {
     "title": "邮件验证",
