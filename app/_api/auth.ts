@@ -1,10 +1,5 @@
-/**
- * Auth API 함수들.
- * - loginWithGoogle: 실제 백엔드 연결 완료 (/api/auth/login/google)
- * - 나머지: 백엔드 미완성으로 mock 유지. apiPost 주석 교체 시 즉시 연결 가능.
- */
-
-import { apiPost } from "./client";
+import { apiPost, apiGet, apiPatch } from "./client";
+import { clearTokens } from "./token";
 
 export interface AuthTokens {
   accessToken: string;
@@ -12,67 +7,59 @@ export interface AuthTokens {
   role: "ONBOARDING" | "MEMBER";
 }
 
-// ─── 실제 연결된 API ───────────────────────────────────────────
+export interface TermsItem {
+  id: number;
+  type: "SERVICE" | "MARKETING";
+  title: string;
+  required: boolean;
+}
 
-/** 구글 소셜 로그인 / 회원가입 (백엔드 연결 완료) */
+/** 구글 소셜 로그인 / 회원가입 */
 export async function loginWithGoogle(code: string): Promise<AuthTokens> {
   const res = await apiPost<AuthTokens>("/api/auth/login/google", { code });
   return res.data;
 }
 
-// ─── 미연결 (mock) ─────────────────────────────────────────────
-
 /** 일반 이메일 로그인 */
-export async function loginWithEmail(
-  email: string,
-  password: string
-): Promise<AuthTokens> {
-  // TODO: return (await apiPost<AuthTokens>("/api/auth/login", { email, password })).data;
-  await delay(500);
-  return mockTokens("ONBOARDING");
+export async function loginWithEmail(email: string, password: string): Promise<AuthTokens> {
+  const res = await apiPost<AuthTokens>("/api/auth/login", { email, password });
+  return res.data;
 }
 
 /** 회원가입 */
 export async function signUp(
   email: string,
   password: string,
-  termsAgreements: { type: "SERVICE" | "MARKETING"; agreed: boolean }[]
+  termsAgreements: { type: string; agreed: boolean }[]
 ): Promise<AuthTokens> {
-  // TODO: return (await apiPost<AuthTokens>("/api/auth/signup", { email, password, termsAgreements })).data;
-  await delay(500);
-  return mockTokens("ONBOARDING");
+  const res = await apiPost<AuthTokens>("/api/auth/signup", { email, password, termsAgreements });
+  return res.data;
 }
 
-/** 인증 코드 발송 */
+/** 인증코드 발송 */
 export async function sendVerificationCode(email: string): Promise<void> {
-  // TODO: await apiPost("/api/auth/email/send", { email });
-  await delay(300);
+  await apiPost("/api/auth/email/code", { email });
 }
 
-/** 인증 코드 검증 */
-export async function verifyCode(email: string, code: string): Promise<boolean> {
-  // TODO: const res = await apiPost("/api/auth/email/verify", { email, code }); return res.status === 200;
-  await delay(500);
-  return code.length === 6;
+/** 인증코드 검증 */
+export async function verifyCode(email: string, code: string): Promise<void> {
+  await apiPost("/api/auth/email/verify", { email, code });
 }
 
-/** 액세스 토큰 재발급 */
-export async function refreshAccessToken(refreshToken: string): Promise<string> {
-  // TODO: return (await apiPost<{ accessToken: string }>("/api/auth/refresh", { refreshToken })).data.accessToken;
-  await delay(200);
-  return "mock-new-access-token";
+/** 약관 목록 조회 */
+export async function getTerms(): Promise<TermsItem[]> {
+  const res = await apiGet<TermsItem[]>("/api/terms");
+  return res.data;
 }
 
-// ─── 내부 유틸 (mock 전용) ─────────────────────────────────────
-
-function delay(ms: number) {
-  return new Promise<void>((r) => setTimeout(r, ms));
+/** role을 MEMBER로 변경 (온보딩 건너뛰기 시 호출) */
+export async function updateRoleToMember(): Promise<AuthTokens> {
+  const res = await apiPatch<AuthTokens>("/api/auth/role");
+  return res.data;
 }
 
-function mockTokens(role: "ONBOARDING" | "MEMBER"): AuthTokens {
-  return {
-    accessToken: "mock-access-token",
-    refreshToken: "mock-refresh-token",
-    role,
-  };
+/** 로그아웃 */
+export async function logout(): Promise<void> {
+  await apiPost("/api/auth/logout", {});
+  clearTokens();
 }
