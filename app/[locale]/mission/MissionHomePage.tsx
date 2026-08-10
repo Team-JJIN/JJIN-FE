@@ -88,7 +88,7 @@ export default function MissionHomePage() {
   }, [removalTarget, removeMissionMutation]);
 
   return (
-    <div className="flex h-dvh flex-col bg-white px-[20px]">
+    <div className="flex h-dvh flex-col bg-[#F8F8F8] px-[20px]">
       <div className="flex items-center justify-between pt-[32px] pb-4">
         <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">
           {t("title")}
@@ -105,7 +105,7 @@ export default function MissionHomePage() {
       {/* input을 button으로 감싸면 유효하지 않은 HTML 중첩이 되므로 div + onClick으로 처리 */}
       <div
         onClick={goToSearch}
-        className="flex h-[44px] cursor-pointer items-center rounded-[14px] bg-surface px-3"
+        className="flex h-[44px] cursor-pointer items-center rounded-[14px] bg-[#F0F0F0] px-3"
       >
         <input
           readOnly
@@ -130,7 +130,7 @@ export default function MissionHomePage() {
               onClick={() => handleFilterChange(f)}
               aria-pressed={selected}
               className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-medium whitespace-nowrap transition-colors ${
-                selected ? "bg-dark text-white" : "bg-surface text-subtext"
+                selected ? "bg-dark text-white" : "bg-[#F0F0F0] text-subtext"
               }`}
             >
               {t(`filters.${f}`)}
