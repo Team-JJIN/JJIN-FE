@@ -202,7 +202,6 @@
       "title": "添加任务",
       "myPlans": "我的行程",
       "planCount": "{count}个",
-      "newPlan": "+ 添加新行程",
       "cancel": "取消",
       "confirm": "添加"
     },

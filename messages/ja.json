@@ -202,7 +202,6 @@
       "title": "ミッション追加",
       "myPlans": "マイプラン",
       "planCount": "{count}件",
-      "newPlan": "+ 新しいプランを追加",
       "cancel": "キャンセル",
       "confirm": "追加する"
     },

@@ -202,7 +202,6 @@
       "title": "Add Mission",
       "myPlans": "My Plans",
       "planCount": "{count} plans",
-      "newPlan": "+ Add New Plan",
       "cancel": "Cancel",
       "confirm": "Add"
     },

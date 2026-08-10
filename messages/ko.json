@@ -202,7 +202,6 @@
       "title": "미션 추가",
       "myPlans": "내 일정",
       "planCount": "{count}개",
-      "newPlan": "+ 새 일정 추가하기",
       "cancel": "취소",
       "confirm": "추가하기"
     },

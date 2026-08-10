@@ -63,10 +63,6 @@ export default function AddMissionOverlay() {
     );
   }, [displayMission, selectedPlanId, addMissionMutation, closeOverlay]);
 
-  // 일정 생성 플로우는 이번 스코프 밖
-  // TODO: 일정 도메인 구현 시 연결
-  const handleCreateNewPlan = useCallback(() => {}, []);
-
   const formatPlanDate = useCallback(
     (plan: MyPlan) => {
       const formatter = new Intl.DateTimeFormat(locale, {
@@ -174,14 +170,6 @@ export default function AddMissionOverlay() {
             </button>
           );
         })}
-
-        <button
-          type="button"
-          onClick={handleCreateNewPlan}
-          className="flex h-[48px] w-full items-center justify-center rounded-[16px] border border-dashed border-line bg-white text-[15px] font-semibold text-muted"
-        >
-          {t("add.newPlan")}
-        </button>
       </div>
     </BottomSheet>
   );
