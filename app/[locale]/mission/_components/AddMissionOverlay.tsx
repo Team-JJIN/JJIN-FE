@@ -147,10 +147,10 @@ export default function AddMissionOverlay() {
               type="button"
               onClick={() => handleSelectPlan(plan.id)}
               aria-pressed={selected}
-              className={`flex w-full items-center gap-3 rounded-[14px] px-[16px] py-[13px] text-left transition-colors ${
+              className={`flex w-full items-center gap-3 rounded-[14px] border-[1.5px] px-[16px] py-[13px] text-left transition-colors ${
                 selected
-                  ? "border-[1.5px] border-lime-vivid bg-lime-pale"
-                  : "border border-line bg-white"
+                  ? "border-lime-vivid bg-lime-pale"
+                  : "border-line bg-white"
               }`}
             >
               <span
