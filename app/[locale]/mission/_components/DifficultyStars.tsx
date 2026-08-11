@@ -28,7 +28,7 @@ export default function DifficultyStars({
       <span className="text-[14px] font-medium text-muted">
         {t("difficultyLabel")}
       </span>
-      <div className="flex items-center -space-x-1" aria-hidden="true">
+      <div className="flex items-center" aria-hidden="true">
         {Array.from({ length: difficulty }).map((_, i) => (
           <StarIcon key={i} size={16} className="text-muted" />
         ))}
