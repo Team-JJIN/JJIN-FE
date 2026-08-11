@@ -161,7 +161,7 @@ export default function MissionSearchPage() {
       </div>
 
       <div
-        className="flex items-center gap-[6px] overflow-x-auto pb-1 scrollbar-hide"
+        className="flex items-center gap-[6px] overflow-x-auto py-2 scrollbar-hide"
         role="group"
         aria-label={t("filterGroupLabel")}
       >
@@ -187,7 +187,7 @@ export default function MissionSearchPage() {
                   ? t("filters.all")
                   : t("difficultyValue", { level })
               }
-              className={`flex shrink-0 items-center gap-[2px] rounded-full px-3 py-1 transition-colors ${
+              className={`flex h-[26px] shrink-0 items-center gap-[2px] rounded-full px-3 py-1 transition-colors ${
                 selected ? "bg-dark text-white" : "bg-surface text-subtext"
               }`}
             >
