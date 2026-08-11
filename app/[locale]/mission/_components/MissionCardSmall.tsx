@@ -66,7 +66,7 @@ export default function MissionCardSmall({
         )}
 
         <div className="absolute left-[9px] top-[9px] flex h-[27px] items-center rounded-full bg-dark/60 px-[5px]">
-          <div className="flex items-center -space-x-1">
+          <div className="flex items-center">
             {Array.from({ length: mission.difficulty }).map((_, i) => (
               <StarIcon key={i} size={16} className="text-white" />
             ))}
