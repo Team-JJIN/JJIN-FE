@@ -9,7 +9,9 @@
 
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 import { CheckIcon, PlusIcon } from "@/app/_components/icons";
+import { DUR, EASE, TAP } from "@/app/_components/motion/tokens";
 
 interface AddToggleButtonProps {
   isAdded: boolean;
@@ -35,41 +37,59 @@ export default function AddToggleButton({
   if (size === "small") {
     // 검색 카드(Step 4) 썸네일 위 원형 아이콘 버튼
     return (
-      <button
+      <motion.button
         type="button"
         onClick={handleClick}
         aria-pressed={isAdded}
         aria-label={t("addLabel")}
+        whileTap={TAP.icon}
         className={`flex size-[36px] items-center justify-center rounded-full border shadow-[0px_2px_3.5px_0px_rgba(23,23,23,0.16)] transition-colors ${
           isAdded
             ? "border-lime-vivid bg-lime-vivid text-white"
             : "border-line bg-white/80 text-dark"
         }`}
       >
-        {isAdded ? <CheckIcon size={20} /> : <PlusIcon size={20} />}
-      </button>
+        <motion.span
+          key={isAdded ? "check" : "plus"}
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: DUR.sm, ease: EASE.out }}
+          className="flex items-center justify-center"
+        >
+          {isAdded ? <CheckIcon size={20} /> : <PlusIcon size={20} />}
+        </motion.span>
+      </motion.button>
     );
   }
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={handleClick}
       aria-pressed={isAdded}
+      whileTap={TAP.button}
       className={`flex shrink-0 items-center rounded-full py-[3px] pl-[8px] pr-[14px] text-[12px] font-bold transition-colors ${
         isAdded ? "bg-lime-vivid text-dark" : "bg-dark text-white"
       }`}
     >
-      {isAdded ? (
-        <CheckIcon size={24} />
-      ) : (
-        // 플러스 글리프는 체크보다 시각 밀도가 높아 작게 렌더링하되,
-        // 24px 박스를 유지해 상태 전환 시 버튼 높이(30px)가 흔들리지 않게 한다
-        <span className="flex size-[24px] items-center justify-center">
-          <PlusIcon size={16} />
-        </span>
-      )}
+      <motion.span
+        key={isAdded ? "check" : "plus"}
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: DUR.sm, ease: EASE.out }}
+        className="flex items-center justify-center"
+      >
+        {isAdded ? (
+          <CheckIcon size={24} />
+        ) : (
+          // 플러스 글리프는 체크보다 시각 밀도가 높아 작게 렌더링하되,
+          // 24px 박스를 유지해 상태 전환 시 버튼 높이(30px)가 흔들리지 않게 한다
+          <span className="flex size-[24px] items-center justify-center">
+            <PlusIcon size={16} />
+          </span>
+        )}
+      </motion.span>
       <span>{t("addLabel")}</span>
-    </button>
+    </motion.button>
   );
 }

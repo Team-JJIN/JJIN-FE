@@ -10,10 +10,12 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import TopBarClose from "@/app/_components/ui/TopBarClose";
 import MissionCreateForm from "../_components/MissionCreateForm";
 import { useAddMissionStore } from "../_store/useAddMissionStore";
+import { sectionEnter } from "@/app/_components/motion/tokens";
 import type { Mission } from "@/app/_api/missions";
 
 export default function MissionCreatePage() {
@@ -37,14 +39,16 @@ export default function MissionCreatePage() {
 
   return (
     <div className="flex h-dvh flex-col overflow-y-auto bg-white px-[20px] pb-[40px] pt-[32px]">
-      <TopBarClose
-        title={t("title")}
-        onClose={handleClose}
-        closeLabel={tMission("close")}
-      />
-      <div className="mt-6">
+      <motion.div {...sectionEnter(0)}>
+        <TopBarClose
+          title={t("title")}
+          onClose={handleClose}
+          closeLabel={tMission("close")}
+        />
+      </motion.div>
+      <motion.div {...sectionEnter(1)} className="mt-6">
         <MissionCreateForm onDone={handleDone} />
-      </div>
+      </motion.div>
     </div>
   );
 }

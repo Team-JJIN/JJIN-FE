@@ -8,11 +8,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { AnimatePresence, motion } from "framer-motion";
 import InputText from "@/app/_components/ui/InputText";
 import TextArea from "@/app/_components/ui/TextArea";
 import BigButton from "@/app/_components/ui/BigButton";
 import { CameraIcon, StarIcon } from "@/app/_components/icons";
 import { useCreateMission } from "../_hooks/useMissionQueries";
+import { DUR, EASE, TAP } from "@/app/_components/motion/tokens";
 import {
   DEFAULT_HASHTAGS,
   DIFFICULTIES,
@@ -213,12 +215,16 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
           <button
             type="button"
             onClick={handlePhotoClick}
-            className="flex h-[152px] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-[14px] border border-dashed border-muted bg-white"
+            className="flex h-[152px] w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-[14px] border border-dashed border-muted bg-white transition duration-150 motion-safe:active:scale-[0.98]"
           >
             {imagePreviewUrl ? (
-              <img
+              <motion.img
+                key={imagePreviewUrl}
                 src={imagePreviewUrl}
                 alt={t("create.photoLabel")}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: DUR.md, ease: EASE.out }}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -291,7 +297,7 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
                   onClick={() => handleSelectDifficulty(level)}
                   aria-pressed={selected}
                   aria-label={t("difficultyValue", { level })}
-                  className={`flex h-[27px] items-center justify-center gap-[2px] rounded-full border px-[10px] transition-colors ${
+                  className={`flex h-[27px] items-center justify-center gap-[2px] rounded-full border px-[10px] transition motion-safe:active:scale-[0.96] ${
                     selected
                       ? "border-lime-vivid bg-lime-pale"
                       : "border-transparent bg-surface"
@@ -321,7 +327,8 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
             {t("create.hashtagLabel")}{" "}
             <span className="text-muted">{t("create.hashtagOptional")}</span>
           </p>
-          <div className="flex flex-wrap items-center gap-[9px]">
+          {/* relative: popLayout 퇴장 요소(absolute 전환)가 앱 셸이 아닌 이 컨테이너 기준으로 남게 한다 */}
+          <div className="relative flex flex-wrap items-center gap-[9px]">
             {DEFAULT_HASHTAGS.map((key) => {
               const label = t(`hashtags.${key}`);
               const selected = selectedHashtags.includes(label);
@@ -331,7 +338,7 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
                   type="button"
                   onClick={() => handleTogglePreset(key)}
                   aria-pressed={selected}
-                  className={`rounded-full border-[1.5px] px-[12px] py-[4px] text-[12px] font-medium text-subtext transition-colors ${
+                  className={`rounded-full border-[1.5px] px-[12px] py-[4px] text-[12px] font-medium text-subtext transition motion-safe:active:scale-[0.96] ${
                     selected
                       ? "border-lime-vivid bg-lime-pale"
                       : "border-transparent bg-surface"
@@ -342,46 +349,66 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
               );
             })}
 
-            {customTags.map((tag) => {
-              const selected = selectedHashtags.includes(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleToggleCustomTag(tag)}
-                  aria-pressed={selected}
-                  className={`rounded-full border-[1.5px] px-[12px] py-[4px] text-[12px] font-medium text-subtext transition-colors ${
-                    selected
-                      ? "border-lime-vivid bg-lime-pale"
-                      : "border-transparent bg-surface"
-                  }`}
-                >
-                  #{tag}
-                </button>
-              );
-            })}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {customTags.map((tag) => {
+                const selected = selectedHashtags.includes(tag);
+                return (
+                  <motion.button
+                    key={`tag-${tag}`}
+                    type="button"
+                    layout="position"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: DUR.sm, ease: EASE.out }}
+                    whileTap={TAP.button}
+                    onClick={() => handleToggleCustomTag(tag)}
+                    aria-pressed={selected}
+                    className={`rounded-full border-[1.5px] px-[12px] py-[4px] text-[12px] font-medium text-subtext transition-colors ${
+                      selected
+                        ? "border-lime-vivid bg-lime-pale"
+                        : "border-transparent bg-surface"
+                    }`}
+                  >
+                    #{tag}
+                  </motion.button>
+                );
+              })}
 
-            {isTagInputOpen ? (
-              <input
-                autoFocus
-                value={tagInputValue}
-                onChange={handleTagInputChange}
-                onKeyDown={handleTagInputKeyDown}
-                onBlur={handleTagInputBlur}
-                maxLength={CUSTOM_TAG_MAX + 1}
-                placeholder={t("create.tagInputPlaceholder")}
-                aria-label={t("create.addTag")}
-                className="h-[26px] w-[110px] rounded-full border-2 border-transparent bg-surface px-[12px] text-[12px] font-medium text-ink outline-none focus:border-dark"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={handleOpenTagInput}
-                className="rounded-full border border-dashed border-muted bg-surface px-[12px] py-[4px] text-[12px] font-medium text-subtext"
-              >
-                {t("create.addTag")}
-              </button>
-            )}
+              {isTagInputOpen ? (
+                <motion.input
+                  key="tag-input"
+                  layout="position"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: DUR.sm, ease: EASE.out }}
+                  autoFocus
+                  value={tagInputValue}
+                  onChange={handleTagInputChange}
+                  onKeyDown={handleTagInputKeyDown}
+                  onBlur={handleTagInputBlur}
+                  maxLength={CUSTOM_TAG_MAX + 1}
+                  placeholder={t("create.tagInputPlaceholder")}
+                  aria-label={t("create.addTag")}
+                  className="h-[26px] w-[110px] rounded-full border-2 border-transparent bg-surface px-[12px] text-[12px] font-medium text-ink outline-none focus:border-dark"
+                />
+              ) : (
+                <motion.button
+                  key="tag-add"
+                  type="button"
+                  layout="position"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: DUR.sm, ease: EASE.out }}
+                  onClick={handleOpenTagInput}
+                  className="rounded-full border border-dashed border-muted bg-surface px-[12px] py-[4px] text-[12px] font-medium text-subtext"
+                >
+                  {t("create.addTag")}
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

@@ -88,7 +88,7 @@ export default function AddMissionOverlay() {
           <button
             type="button"
             onClick={handleClose}
-            className="h-[48px] flex-1 rounded-[16px] bg-surface text-[15px] font-semibold text-dark"
+            className="h-[48px] flex-1 rounded-[16px] bg-surface text-[15px] font-semibold text-dark transition motion-safe:active:scale-[0.98]"
           >
             {t("add.cancel")}
           </button>
@@ -143,7 +143,7 @@ export default function AddMissionOverlay() {
               type="button"
               onClick={() => handleSelectPlan(plan.id)}
               aria-pressed={selected}
-              className={`flex w-full items-center gap-3 rounded-[14px] border-[1.5px] px-[16px] py-[13px] text-left transition-colors ${
+              className={`flex w-full items-center gap-3 rounded-[14px] border-[1.5px] px-[16px] py-[13px] text-left transition motion-safe:active:scale-[0.98] ${
                 selected
                   ? "border-lime-vivid bg-lime-pale"
                   : "border-line bg-white"
