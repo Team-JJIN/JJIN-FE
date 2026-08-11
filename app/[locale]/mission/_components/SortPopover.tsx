@@ -10,7 +10,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDownIcon, CheckRoundedIcon } from "@/app/_components/icons";
+import { popover } from "@/app/_components/motion/tokens";
 import { SORT_OPTIONS } from "../_constants";
 import type { MissionSort } from "@/app/_api/missions";
 
@@ -69,37 +71,43 @@ export default function SortPopover({ sort, onChange }: SortPopoverProps) {
           onClick={handleToggle}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="flex items-center gap-1 text-[13px] font-medium text-subtext"
+          className="flex items-center gap-1 text-[13px] font-medium text-subtext transition duration-150 motion-safe:active:scale-[0.97]"
         >
           <span>{t(`sort.${sort}`)}</span>
-          <ChevronDownIcon size={16} />
+          <ChevronDownIcon
+            size={16}
+            className={`transition-transform duration-200 motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
+          />
         </button>
 
-        {open && (
-          <div
-            role="listbox"
-            className="absolute right-0 top-full z-40 mt-2 w-[120px] overflow-hidden rounded-[12px] bg-white shadow-[0px_4px_16px_0px_rgba(23,23,23,0.12)]"
-          >
-            {SORT_OPTIONS.map((option) => {
-              const selected = option === sort;
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  onClick={() => handleSelect(option)}
-                  className="flex w-full items-center justify-between px-[14px] py-[11px] text-[13px] font-medium text-ink"
-                >
-                  <span>{t(`sort.${option}`)}</span>
-                  {selected && (
-                    <CheckRoundedIcon size={18} className="text-[#9B9B9B]" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              role="listbox"
+              {...popover}
+              className="absolute right-0 top-full z-40 mt-2 w-[120px] overflow-hidden rounded-[12px] bg-white shadow-[0px_4px_16px_0px_rgba(23,23,23,0.12)] origin-top-right"
+            >
+              {SORT_OPTIONS.map((option) => {
+                const selected = option === sort;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => handleSelect(option)}
+                    className="flex w-full items-center justify-between px-[14px] py-[11px] text-[13px] font-medium text-ink transition duration-150 active:bg-surface"
+                  >
+                    <span>{t(`sort.${option}`)}</span>
+                    {selected && (
+                      <CheckRoundedIcon size={18} className="text-[#9B9B9B]" />
+                    )}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

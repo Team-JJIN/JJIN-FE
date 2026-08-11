@@ -9,12 +9,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowBackIcon,
   StarIcon,
   ChevronDownIcon,
 } from "@/app/_components/icons";
 import Dialog from "@/app/_components/ui/Dialog";
+import {
+  sectionEnter,
+  listItemEnter,
+  fadeSwap,
+  TAP,
+} from "@/app/_components/motion/tokens";
 import { DIFFICULTIES } from "../_constants";
 import {
   useMissionSearch,
@@ -66,7 +73,15 @@ export default function MissionSearchPage() {
     isPending,
     isError,
     refetch,
+    isPlaceholderData,
   } = useMissionSearch(searchParams);
+
+  // keepPreviousData 대응: 새 데이터가 실제로 도착한 시점에만 리스트 키를 갱신해 크로스페이드를 건다
+  const serializedParams = JSON.stringify(searchParams);
+  const [displayedKey, setDisplayedKey] = useState(serializedParams);
+  if (!isPlaceholderData && displayedKey !== serializedParams) {
+    setDisplayedKey(serializedParams);
+  }
 
   const removeMissionMutation = useRemoveMissionFromPlan();
 
@@ -78,9 +93,15 @@ export default function MissionSearchPage() {
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    scrollContainerRef.current?.scrollTo({ top: 0 });
+  }, [displayedKey]);
+
   const sentinelRef = useInfiniteScroll({
     onLoadMore: fetchNextPage,
-    enabled: !!hasNextPage && !isFetchingNextPage,
+    // !isError: 에러 상태에서도 센티널이 마운트 상태라 재시도 무한 루프를 막는다
+    enabled:
+      !!hasNextPage && !isFetchingNextPage && !isPlaceholderData && !isError,
     rootRef: scrollContainerRef,
   });
 
@@ -141,12 +162,15 @@ export default function MissionSearchPage() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <div className="flex items-center gap-2 pt-[32px] pb-4">
+      <motion.div
+        className="flex items-center gap-2 pt-[32px] pb-4"
+        {...sectionEnter(0)}
+      >
         <button
           type="button"
           onClick={handleBack}
           aria-label="Go back"
-          className="flex h-10 w-10 shrink-0 items-center justify-center -ml-2 text-dark"
+          className="flex h-10 w-10 shrink-0 items-center justify-center -ml-2 text-dark transition duration-150 motion-safe:active:scale-90"
         >
           <ArrowBackIcon size={24} />
         </button>
@@ -158,20 +182,24 @@ export default function MissionSearchPage() {
           aria-label={t("searchPlaceholder")}
           className="h-[44px] flex-1 rounded-[14px] bg-surface px-3 text-[14px] font-medium outline-none placeholder:text-muted"
         />
-      </div>
+      </motion.div>
 
-      <div
+      <motion.div
         className="flex items-center gap-[6px] overflow-x-auto py-2 scrollbar-hide"
         role="group"
         aria-label={t("filterGroupLabel")}
+        {...sectionEnter(1)}
       >
         <button
           type="button"
           onClick={() => setCategorySheetOpen(true)}
-          className="flex shrink-0 items-center gap-1 rounded-full bg-surface px-3 py-1 text-[12px] font-medium whitespace-nowrap text-subtext"
+          className="flex shrink-0 items-center gap-1 rounded-full bg-surface px-3 py-1 text-[12px] font-medium whitespace-nowrap text-subtext transition duration-150 motion-safe:active:scale-[0.96]"
         >
           <span>{categoryButtonLabel}</span>
-          <ChevronDownIcon size={14} />
+          <ChevronDownIcon
+            size={14}
+            className={`transition-transform duration-200 motion-reduce:transition-none ${categorySheetOpen ? "rotate-180" : ""}`}
+          />
         </button>
 
         {[null, ...DIFFICULTIES].map((level) => {
@@ -187,7 +215,7 @@ export default function MissionSearchPage() {
                   ? t("filters.all")
                   : t("difficultyValue", { level })
               }
-              className={`flex h-[26px] shrink-0 items-center gap-[2px] rounded-full px-3 py-1 transition-colors ${
+              className={`flex h-[26px] shrink-0 items-center gap-[2px] rounded-full px-3 py-1 transition motion-safe:active:scale-[0.96] ${
                 selected ? "bg-dark text-white" : "bg-surface text-subtext"
               }`}
             >
@@ -203,66 +231,91 @@ export default function MissionSearchPage() {
             </button>
           );
         })}
-      </div>
+      </motion.div>
 
-      <div className="mt-4 flex items-center justify-between">
+      <motion.div
+        className="mt-4 flex items-center justify-between"
+        {...sectionEnter(2, true)}
+      >
         <span className="text-[13px] font-medium text-subtext">
           {t("totalCount", { count: totalCount })}
         </span>
         <SortPopover sort={sort} onChange={setSort} />
-      </div>
+      </motion.div>
 
-      <div
+      <motion.div
         ref={scrollContainerRef}
         className="mt-[15px] flex-1 overflow-y-auto pb-6"
+        {...sectionEnter(3, true)}
       >
-        {isError ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-20">
-            <p className="text-[13px] font-medium text-subtext">
-              {t("errorLoad")}
-            </p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="rounded-full bg-dark px-4 py-2 text-[12px] font-semibold text-white"
+        <AnimatePresence mode="wait" initial={false}>
+          {isError ? (
+            <motion.div
+              key="error"
+              className="flex flex-col items-center justify-center gap-3 py-20"
+              {...fadeSwap}
             >
-              {t("retry")}
-            </button>
-          </div>
-        ) : isPending ? (
-          <div className="flex items-center justify-center py-20">
-            <div
-              aria-hidden="true"
-              className="size-8 animate-spin rounded-full border-[3px] border-surface border-t-dark"
-            />
-          </div>
-        ) : missions.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-[13px] font-medium text-subtext">
-              {t("emptyList")}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-x-[9px] gap-y-[18px]">
-              {missions.map((mission) => (
-                <MissionCardSmall
+              <p className="text-[13px] font-medium text-subtext">
+                {t("errorLoad")}
+              </p>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="rounded-full bg-dark px-4 py-2 text-[12px] font-semibold text-white transition duration-150 motion-safe:active:scale-[0.97]"
+              >
+                {t("retry")}
+              </button>
+            </motion.div>
+          ) : isPending ? (
+            <motion.div
+              key="pending"
+              className="flex items-center justify-center py-20"
+              {...fadeSwap}
+            >
+              <div
+                aria-hidden="true"
+                className="size-8 animate-spin rounded-full border-[3px] border-surface border-t-dark"
+              />
+            </motion.div>
+          ) : missions.length === 0 ? (
+            <motion.div
+              key="empty"
+              className="flex items-center justify-center py-20"
+              {...fadeSwap}
+            >
+              <p className="text-[13px] font-medium text-subtext">
+                {t("emptyList")}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`list-${displayedKey}`}
+              className="grid grid-cols-2 gap-x-[9px] gap-y-[18px]"
+              {...fadeSwap}
+            >
+              {missions.map((mission, index) => (
+                <motion.div
                   key={mission.id}
-                  mission={mission}
-                  onAddClick={handleAddClick}
-                  onSelect={handleSelectMission}
-                />
+                  {...listItemEnter(index)}
+                  whileTap={TAP.card}
+                >
+                  <MissionCardSmall
+                    mission={mission}
+                    onAddClick={handleAddClick}
+                    onSelect={handleSelectMission}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <div ref={sentinelRef} />
+        <div ref={sentinelRef} />
 
-            {isFetchingNextPage && (
-              <p className="py-4 text-center text-[12px] text-muted">...</p>
-            )}
-          </>
+        {isFetchingNextPage && (
+          <p className="py-4 text-center text-[12px] text-muted">...</p>
         )}
-      </div>
+      </motion.div>
 
       <CategorySheet
         open={categorySheetOpen}
