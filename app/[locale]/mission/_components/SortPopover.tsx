@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDownIcon, CheckIcon } from "@/app/_components/icons";
+import { ChevronDownIcon, CheckRoundedIcon } from "@/app/_components/icons";
 import { SORT_OPTIONS } from "../_constants";
 import type { MissionSort } from "@/app/_api/missions";
 
@@ -93,7 +93,7 @@ export default function SortPopover({ sort, onChange }: SortPopoverProps) {
                 >
                   <span>{t(`sort.${option}`)}</span>
                   {selected && (
-                    <CheckIcon size={14} className="text-lime-vivid" />
+                    <CheckRoundedIcon size={18} className="text-[#9B9B9B]" />
                   )}
                 </button>
               );
