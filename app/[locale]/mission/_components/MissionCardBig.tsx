@@ -25,7 +25,7 @@ export default function MissionCardBig({
   }, [mission, onAddClick]);
 
   return (
-    <div className="w-full rounded-[20px] bg-white px-[13px] py-[17px] shadow-[0px_6px_11px_0px_rgba(23,23,23,0.09)]">
+    <div className="w-full rounded-[20px] bg-white px-[13px] py-[17px] shadow-[0px_6px_22px_0px_rgba(23,23,23,0.09)]">
       <div className="relative h-[185px] w-full overflow-hidden rounded-[12px] bg-surface">
         {mission.imageUrl ? (
           <img
