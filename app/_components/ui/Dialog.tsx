@@ -6,7 +6,9 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useFocusTrap } from "@/app/_components/hooks/useFocusTrap";
+import { dimFade, centerPanel } from "@/app/_components/motion/tokens";
 
 interface DialogProps {
   open: boolean;
@@ -16,6 +18,7 @@ interface DialogProps {
   confirmLabel: string;
   onCancel: () => void;
   onConfirm: () => void;
+  onExitComplete?: () => void;
 }
 
 export default function Dialog({
@@ -26,6 +29,7 @@ export default function Dialog({
   confirmLabel,
   onCancel,
   onConfirm,
+  onExitComplete,
 }: DialogProps) {
   const panelRef = useFocusTrap(open);
   const handleKeyDown = useCallback(
@@ -42,57 +46,61 @@ export default function Dialog({
     }
   }, [open, handleKeyDown]);
 
-  if (!open) return null;
-
   return (
-    <div className="absolute inset-0 z-[60] flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/30"
-        onClick={onCancel}
-        aria-hidden="true"
-      />
-
-      <div
-        ref={panelRef}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className="relative w-[85%] rounded-[16px] bg-white p-[20px]"
-      >
-        <button
-          type="button"
-          onClick={onCancel}
-          aria-label={cancelLabel}
-          className="absolute right-[16px] top-[16px] text-[18px] text-neutral-400 leading-none"
-        >
-          ✕
-        </button>
-
-        <h2 className="text-[16px] font-semibold text-dark">{title}</h2>
-        {description && (
-          <p className="mt-2 text-[13px] font-medium text-neutral-500">
-            {description}
-          </p>
-        )}
-
-        <div className="mt-[24px] flex items-center gap-2">
-          <button
-            type="button"
+    <AnimatePresence onExitComplete={onExitComplete}>
+      {open && (
+        <div className="absolute inset-0 z-[60] flex items-center justify-center">
+          <motion.div
+            className="absolute inset-0 bg-black/30"
             onClick={onCancel}
-            className="h-[44px] flex-1 rounded-[14px] bg-surface text-[14px] font-semibold text-dark"
+            aria-hidden="true"
+            {...dimFade}
+          />
+
+          <motion.div
+            ref={panelRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            className="relative w-[85%] rounded-[16px] bg-white p-[20px]"
+            {...centerPanel}
           >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="h-[44px] flex-1 rounded-[14px] bg-dark text-[14px] font-semibold text-lime-vivid"
-          >
-            {confirmLabel}
-          </button>
+            <button
+              type="button"
+              onClick={onCancel}
+              aria-label={cancelLabel}
+              className="absolute right-[16px] top-[16px] text-[18px] text-neutral-400 leading-none transition duration-150 motion-safe:active:scale-90"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-[16px] font-semibold text-dark">{title}</h2>
+            {description && (
+              <p className="mt-2 text-[13px] font-medium text-neutral-500">
+                {description}
+              </p>
+            )}
+
+            <div className="mt-[24px] flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="h-[44px] flex-1 rounded-[14px] bg-surface text-[14px] font-semibold text-dark transition duration-150 motion-safe:active:scale-[0.98]"
+              >
+                {cancelLabel}
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                className="h-[44px] flex-1 rounded-[14px] bg-dark text-[14px] font-semibold text-lime-vivid transition duration-150 motion-safe:active:scale-[0.98]"
+              >
+                {confirmLabel}
+              </button>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }
