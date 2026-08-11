@@ -25,7 +25,7 @@ export default function MissionCardBig({
   }, [mission, onAddClick]);
 
   return (
-    <div className="w-full rounded-[16px] bg-white p-[13px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]">
+    <div className="w-full rounded-[20px] bg-white px-[13px] py-[17px] shadow-[0px_6px_11px_0px_rgba(23,23,23,0.09)]">
       <div className="relative h-[185px] w-full overflow-hidden rounded-[12px] bg-surface">
         {mission.imageUrl ? (
           <img
@@ -40,30 +40,36 @@ export default function MissionCardBig({
         )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="line-clamp-1 text-[17px] font-semibold tracking-[-0.085px] text-ink">
-            {mission.title}
-          </h3>
-          <AddToggleButton isAdded={mission.isAdded} onClick={handleAddClick} />
+      <div className="mt-4 flex flex-col">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="line-clamp-1 text-[17px] font-semibold leading-[1.4] tracking-[-0.085px] text-ink">
+              {mission.title}
+            </h3>
+            <AddToggleButton
+              isAdded={mission.isAdded}
+              onClick={handleAddClick}
+            />
+          </div>
+
+          {/* 디자인은 설명 2줄 높이를 항상 예약 — 1줄이어도 카드 비율 유지 */}
+          <p className="line-clamp-2 min-h-[38.4px] text-[12px] font-medium leading-[1.6] text-subtext">
+            {mission.description}
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {mission.hashtags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-surface px-3 py-1 text-[12px] font-medium leading-[1.6] text-subtext"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
         </div>
 
-        <p className="line-clamp-2 text-[12px] font-medium leading-[1.6] text-subtext">
-          {mission.description}
-        </p>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {mission.hashtags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-surface px-3 py-1 text-[12px] font-medium text-subtext"
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex justify-end">
+        <div className="flex h-[24px] items-center justify-end">
           <DifficultyStars difficulty={mission.difficulty} />
         </div>
       </div>

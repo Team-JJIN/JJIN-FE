@@ -56,11 +56,19 @@ export default function AddToggleButton({
       type="button"
       onClick={handleClick}
       aria-pressed={isAdded}
-      className={`flex shrink-0 items-center gap-1 rounded-full py-[3px] pl-[8px] pr-[14px] text-[12px] font-bold transition-colors ${
+      className={`flex shrink-0 items-center rounded-full py-[3px] pl-[8px] pr-[14px] text-[12px] font-bold transition-colors ${
         isAdded ? "bg-lime-vivid text-dark" : "bg-dark text-white"
       }`}
     >
-      {isAdded ? <CheckIcon size={16} /> : <PlusIcon size={16} />}
+      {isAdded ? (
+        <CheckIcon size={24} />
+      ) : (
+        // 플러스 글리프는 체크보다 시각 밀도가 높아 작게 렌더링하되,
+        // 24px 박스를 유지해 상태 전환 시 버튼 높이(30px)가 흔들리지 않게 한다
+        <span className="flex size-[24px] items-center justify-center">
+          <PlusIcon size={16} />
+        </span>
+      )}
       <span>{t("addLabel")}</span>
     </button>
   );
