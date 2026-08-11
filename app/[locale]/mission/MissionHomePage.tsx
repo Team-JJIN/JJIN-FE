@@ -88,7 +88,7 @@ export default function MissionHomePage() {
   }, [removalTarget, removeMissionMutation]);
 
   return (
-    <div className="flex h-dvh flex-col bg-[#F8F8F8] px-[20px]">
+    <div className="flex h-dvh flex-col bg-white px-[20px]">
       <div className="flex items-center justify-between pt-[32px] pb-4">
         <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">
           {t("title")}
@@ -117,7 +117,7 @@ export default function MissionHomePage() {
       </div>
 
       <div
-        className="mt-3 flex gap-[5px] overflow-x-auto pb-1 scrollbar-hide"
+        className="mt-3 flex gap-[5px] overflow-x-auto py-2 scrollbar-hide"
         role="group"
         aria-label={t("filterGroupLabel")}
       >
@@ -141,7 +141,7 @@ export default function MissionHomePage() {
 
       <div
         ref={scrollContainerRef}
-        className="mt-[15px] flex-1 overflow-y-auto pb-6"
+        className="-mx-[20px] flex-1 overflow-y-auto px-[20px] pt-[15px] pb-6"
       >
         {isError ? (
           <div className="flex flex-col items-center justify-center gap-3 py-20">
