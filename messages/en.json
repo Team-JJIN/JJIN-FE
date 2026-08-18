@@ -139,5 +139,86 @@
       "yeosu": "Yeosu",
       "chuncheon": "Chuncheon"
     }
+  },
+  "mission": {
+    "title": "Missions",
+    "feedTitle": "Mission Feed",
+    "searchPlaceholder": "Search missions, stores, tags",
+    "filters": {
+      "all": "All",
+      "mustDo": "Must Do",
+      "hot": "Trending",
+      "mine": "My Missions"
+    },
+    "categories": {
+      "food": "Food",
+      "experience": "Experiential tourism",
+      "nature": "Nature tourism",
+      "history": "Historical tourism",
+      "culture": "Cultural tourism",
+      "shopping": "Shopping",
+      "festival": "Festival·Performance",
+      "leisure": "Leisure sports"
+    },
+    "sort": {
+      "popular": "Popular",
+      "latest": "Latest"
+    },
+    "hashtags": {
+      "cafeTour": "Cafe Tour",
+      "foodTour": "Food Tour",
+      "photoSpot": "Photo Spot",
+      "local": "Local Experience",
+      "challenge": "Challenge"
+    },
+    "totalCount": "{count} missions total",
+    "viewCount": "View {count} missions",
+    "difficultyLabel": "Difficulty",
+    "difficultyValue": "Difficulty level {level}",
+    "addLabel": "Add",
+    "close": "Close",
+    "errorLoad": "Couldn't load the list",
+    "retry": "Retry",
+    "emptyList": "No missions to show",
+    "filterGroupLabel": "Mission filters",
+    "categoryLabel": "Category",
+    "categoryMore": "{name} +{count}",
+    "create": {
+      "title": "Create New Mission",
+      "photoLabel": "Example Photo",
+      "photoAdd": "Add Photo (Optional)",
+      "titleLabel": "Mission Title",
+      "titlePlaceholder": "e.g. Buy a cream latte at Starbucks",
+      "descLabel": "Mission Description",
+      "descPlaceholder": "Describe what this mission is about.\nTips for completing it or how to verify are welcome!",
+      "difficultyLabel": "Difficulty",
+      "hashtagLabel": "Hashtags",
+      "hashtagOptional": "(Optional)",
+      "addTag": "+ Add Tag",
+      "tagInputPlaceholder": "Type a tag and press Enter",
+      "submit": "Create Mission"
+    },
+    "add": {
+      "title": "Add Mission",
+      "myPlans": "My Plans",
+      "planCount": "{count} plans",
+      "cancel": "Cancel",
+      "confirm": "Add"
+    },
+    "remove": {
+      "confirmTitle": "''{title}''",
+      "confirmDesc": "Cancel this addition?",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "feed": {
+      "tabs": {
+        "latest": "Latest",
+        "popular": "Popular",
+        "weeklyHot": "This Week's Hot"
+      },
+      "weeklyClear": "{count} people cleared this week",
+      "likeCount": "{count} likes"
+    }
   }
 }

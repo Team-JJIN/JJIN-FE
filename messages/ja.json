@@ -139,5 +139,86 @@
       "yeosu": "麗水",
       "chuncheon": "春川"
     }
+  },
+  "mission": {
+    "title": "ミッション",
+    "feedTitle": "ミッションフィード",
+    "searchPlaceholder": "ミッション、店舗、タグを検索",
+    "filters": {
+      "all": "全て",
+      "mustDo": "必須ミッション",
+      "hot": "今話題の",
+      "mine": "自分が作った"
+    },
+    "categories": {
+      "food": "グルメ",
+      "experience": "体験観光",
+      "nature": "自然観光",
+      "history": "歴史観光",
+      "culture": "文化観光",
+      "shopping": "ショッピング",
+      "festival": "祭り・公演・イベント",
+      "leisure": "レジャースポーツ"
+    },
+    "sort": {
+      "popular": "人気順",
+      "latest": "最新順"
+    },
+    "hashtags": {
+      "cafeTour": "カフェ巡り",
+      "foodTour": "グルメ探訪",
+      "photoSpot": "フォトスポット",
+      "local": "ローカル体験",
+      "challenge": "チャレンジ"
+    },
+    "totalCount": "合計{count}件のミッション",
+    "viewCount": "{count}件のミッションを見る",
+    "difficultyLabel": "難易度",
+    "difficultyValue": "難易度{level}段階",
+    "addLabel": "追加",
+    "close": "閉じる",
+    "errorLoad": "リストを読み込めませんでした",
+    "retry": "再試行",
+    "emptyList": "表示するミッションがありません",
+    "filterGroupLabel": "ミッションフィルター",
+    "categoryLabel": "カテゴリー",
+    "categoryMore": "{name}他{count}件",
+    "create": {
+      "title": "新しいミッションを作る",
+      "photoLabel": "見本写真",
+      "photoAdd": "写真を追加（任意）",
+      "titleLabel": "ミッションタイトル",
+      "titlePlaceholder": "例）スターバックスでシュークリームラテを飲む",
+      "descLabel": "ミッション説明",
+      "descPlaceholder": "どんなミッションか説明を書いてください。\n達成のコツや認証方法も一緒に書くといいです！",
+      "difficultyLabel": "難易度",
+      "hashtagLabel": "ハッシュタグ",
+      "hashtagOptional": "（任意）",
+      "addTag": "+ タグを追加",
+      "tagInputPlaceholder": "タグを入力してEnter",
+      "submit": "ミッションを作る"
+    },
+    "add": {
+      "title": "ミッション追加",
+      "myPlans": "マイプラン",
+      "planCount": "{count}件",
+      "cancel": "キャンセル",
+      "confirm": "追加する"
+    },
+    "remove": {
+      "confirmTitle": "''{title}''",
+      "confirmDesc": "追加を取り消しますか?",
+      "cancel": "キャンセル",
+      "confirm": "確認"
+    },
+    "feed": {
+      "tabs": {
+        "latest": "最新",
+        "popular": "人気",
+        "weeklyHot": "今週の話題"
+      },
+      "weeklyClear": "今週{count}人がクリア",
+      "likeCount": "いいね{count}件"
+    }
   }
 }
