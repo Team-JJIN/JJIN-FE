@@ -31,9 +31,12 @@ export function useFocusTrap(active: boolean) {
       const panel = panelRef.current;
       if (!panel) return;
 
+      // inert 조상 아래 요소는 브라우저가 focus()를 무시하므로 후보에서 제외한다.
+      // (시트 내부 스텝 슬라이드처럼 퇴장 중인 서브트리가 잠시 DOM에 남는 경우 — 빠뜨리면
+      // Shift+Tab 경계에서 last.focus()가 실패해 포커스가 body로 새어 나간다)
       const focusables = Array.from(
         panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      );
+      ).filter((el) => !el.closest("[inert]"));
       if (focusables.length === 0) {
         e.preventDefault();
         return;
