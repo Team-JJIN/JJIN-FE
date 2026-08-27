@@ -1,8 +1,9 @@
 /**
  * @component MissionSearchPage
  * 미션 검색 피드 페이지. 검색어(300ms 디바운스) + 카테고리/난이도 필터 + 정렬을 조합해
- * useMissionSearch로 무한 스크롤 결과를 2열 그리드로 보여준다. 카드 탭 시 상세 팝업,
- * 추가/해제 인터랙션은 추천 탭(MissionHomePage)과 동일한 패턴(전역 추가 오버레이 + 해제 확인 다이얼로그)을 따른다.
+ * useMissionSearch로 무한 스크롤 결과를 2열 그리드로 보여준다. 카드 탭 시 상세 화면,
+ * 카드 + 탭 시 추가 화면으로 전역 통합 바텀시트(MissionSheet)를 연다 — 상세/추가 화면 전환은
+ * 시트가 스스로 처리하므로 이 페이지는 "어느 화면으로 열지"만 지정한다.
  */
 "use client";
 
@@ -15,7 +16,6 @@ import {
   StarIcon,
   ChevronDownIcon,
 } from "@/app/_components/icons";
-import Dialog from "@/app/_components/ui/Dialog";
 import {
   sectionEnter,
   listItemEnter,
@@ -23,16 +23,12 @@ import {
   TAP,
 } from "@/app/_components/motion/tokens";
 import { DIFFICULTIES } from "../_constants";
-import {
-  useMissionSearch,
-  useRemoveMissionFromPlan,
-} from "../_hooks/useMissionQueries";
+import { useMissionSearch } from "../_hooks/useMissionQueries";
 import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
-import { useAddMissionStore } from "../_store/useAddMissionStore";
+import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import MissionCardSmall from "../_components/MissionCardSmall";
 import SortPopover from "../_components/SortPopover";
 import CategorySheet from "../_components/CategorySheet";
-import MissionDetailPopup from "../_components/MissionDetailPopup";
 import type {
   Mission,
   MissionCategory,
@@ -43,7 +39,8 @@ import type {
 export default function MissionSearchPage() {
   const t = useTranslations("mission");
   const router = useRouter();
-  const openAddMission = useAddMissionStore((s) => s.open);
+  const openDetail = useMissionSheetStore((s) => s.openDetail);
+  const openAdd = useMissionSheetStore((s) => s.openAdd);
 
   const [searchInput, setSearchInput] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -51,8 +48,6 @@ export default function MissionSearchPage() {
   const [difficulty, setDifficulty] = useState<MissionDifficulty | null>(null);
   const [sort, setSort] = useState<MissionSort>("popular");
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
-  const [detailMission, setDetailMission] = useState<Mission | null>(null);
-  const [removalTarget, setRemovalTarget] = useState<Mission | null>(null);
 
   // 실제 쿼리에는 디바운스된 값만 사용한다 (타이핑 중 매 글자마다 요청 방지)
   useEffect(() => {
@@ -82,8 +77,6 @@ export default function MissionSearchPage() {
   if (!isPlaceholderData && displayedKey !== serializedParams) {
     setDisplayedKey(serializedParams);
   }
-
-  const removeMissionMutation = useRemoveMissionFromPlan();
 
   const missions = useMemo<Mission[]>(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -120,35 +113,6 @@ export default function MissionSearchPage() {
     setCategories(next);
     setCategorySheetOpen(false);
   }, []);
-
-  const handleSelectMission = useCallback((mission: Mission) => {
-    setDetailMission(mission);
-  }, []);
-
-  const handleCloseDetail = useCallback(() => {
-    setDetailMission(null);
-  }, []);
-
-  const handleAddClick = useCallback(
-    (mission: Mission) => {
-      if (mission.isAdded) {
-        setRemovalTarget(mission);
-        return;
-      }
-      openAddMission(mission);
-    },
-    [openAddMission],
-  );
-
-  const handleRemovalCancel = useCallback(() => {
-    setRemovalTarget(null);
-  }, []);
-
-  const handleRemovalConfirm = useCallback(() => {
-    if (!removalTarget) return;
-    removeMissionMutation.mutate(removalTarget.id);
-    setRemovalTarget(null);
-  }, [removalTarget, removeMissionMutation]);
 
   // 카테고리 버튼 라벨: 0개=기본 라벨, 1개=해당 카테고리명, 2개 이상="{카테고리명} 외 N"
   const categoryButtonLabel = useMemo(() => {
@@ -301,8 +265,8 @@ export default function MissionSearchPage() {
                 >
                   <MissionCardSmall
                     mission={mission}
-                    onAddClick={handleAddClick}
-                    onSelect={handleSelectMission}
+                    onAddClick={openAdd}
+                    onSelect={openDetail}
                   />
                 </motion.div>
               ))}
@@ -324,22 +288,6 @@ export default function MissionSearchPage() {
         difficulty={difficulty}
         onClose={() => setCategorySheetOpen(false)}
         onConfirm={handleCategoryConfirm}
-      />
-
-      <MissionDetailPopup
-        mission={detailMission}
-        onClose={handleCloseDetail}
-        onAddClick={handleAddClick}
-      />
-
-      <Dialog
-        open={removalTarget !== null}
-        title={t("remove.confirmTitle", { title: removalTarget?.title ?? "" })}
-        description={t("remove.confirmDesc")}
-        cancelLabel={t("remove.cancel")}
-        confirmLabel={t("remove.confirm")}
-        onCancel={handleRemovalCancel}
-        onConfirm={handleRemovalConfirm}
       />
     </div>
   );

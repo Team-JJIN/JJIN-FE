@@ -198,18 +198,13 @@
       "tagInputPlaceholder": "输入标签后按 Enter",
       "submit": "创建任务"
     },
+    "back": "返回",
     "add": {
       "title": "添加任务",
       "myPlans": "我的行程",
       "planCount": "{count}个",
       "cancel": "取消",
       "confirm": "添加"
-    },
-    "remove": {
-      "confirmTitle": "''{title}''",
-      "confirmDesc": "要取消添加吗?",
-      "cancel": "取消",
-      "confirm": "确认"
     },
     "feed": {
       "tabs": {
