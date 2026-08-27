@@ -34,7 +34,7 @@ export interface Mission {
   // UGC 자유 문자열 — 번역 대상 아님. 프리셋 칩 선택 시 표시 언어의 라벨이 그대로 저장됨(다국어 태그 공존은 의도된 동작)
   hashtags: string[];
   isAdded: boolean;
-  addedPlanId: string | null;
+  addedPlanIds: string[]; // 이 미션을 담은 일정 id 목록 (한 미션을 여러 일정에 담을 수 있음)
   isMine: boolean;
 }
 
@@ -89,7 +89,7 @@ function delay(ms: number) {
 // 구조 공유(structural sharing)가 "변경 없음"으로 판단해 리렌더가 생략된다.
 // API 전환 시 이 복사 계층은 fetch 함수들과 함께 제거하면 된다.
 function cloneMission(m: Mission): Mission {
-  return { ...m, hashtags: [...m.hashtags] };
+  return { ...m, hashtags: [...m.hashtags], addedPlanIds: [...m.addedPlanIds] };
 }
 
 function cloneFeedPost(p: FeedPost): FeedPost {
@@ -204,7 +204,7 @@ export async function createMission(
     category: "food",
     hashtags: [...input.hashtags],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: true,
   };
 
@@ -212,31 +212,32 @@ export async function createMission(
   return cloneMission(newMission);
 }
 
-// 미션을 내 일정에 추가
-export async function addMissionToPlan(
-  missionId: string,
-  planId: string,
-): Promise<void> {
-  // 추후: await apiPost(`/api/missions/${missionId}/add`, { planId });
-  await delay(300);
-
-  const mission = missionsMock.find((m) => m.id === missionId);
-  if (mission) {
-    mission.isAdded = true;
-    mission.addedPlanId = planId;
-  }
+export interface MissionLike {
+  likeId: string;
+  planId: string;
 }
 
-// 미션 추가 취소
-export async function removeMissionFromPlan(missionId: string): Promise<void> {
-  // 추후: await apiPost(`/api/missions/${missionId}/remove`, {});
+// 미션을 담을 일정 목록을 통째로 설정한다 (set 의미: 목록에 없는 일정은 해제).
+// 추후: return (await apiPost<{ likes: MissionLike[] }>(`/api/missions/${missionId}/likes`, { planIds: planIds.map(Number) })).data;  (응답 planId는 String()으로 변환)
+export async function setMissionPlans(
+  missionId: string,
+  planIds: string[],
+): Promise<{ likes: MissionLike[] }> {
   await delay(300);
 
   const mission = missionsMock.find((m) => m.id === missionId);
   if (mission) {
-    mission.isAdded = false;
-    mission.addedPlanId = null;
+    mission.isAdded = planIds.length > 0;
+    mission.addedPlanIds = [...planIds];
   }
+
+  const likes: MissionLike[] = mission
+    ? planIds.map((planId) => ({
+        likeId: `like-${missionId}-${planId}`,
+        planId,
+      }))
+    : [];
+  return { likes };
 }
 
 // 미션 인증 피드
