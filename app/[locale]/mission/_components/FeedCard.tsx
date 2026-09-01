@@ -2,25 +2,32 @@
  * @component FeedCard
  * 미션 인증 피드 카드. 작성자 정보, 인증 사진(좌우 풀블리드), 좋아요/댓글 액션,
  * 게시글 본문, 하단 미션 요약 카드(추가/해제 토글 포함)로 구성된다.
+ * 좋아요 하트는 heartPop(켜질 때만 펄스), 댓글 버튼은 댓글 바텀시트를 연다.
  */
 "use client";
 
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { motion } from "framer-motion";
 import { HeartIcon, CommentIcon, SparkleIcon } from "@/app/_components/icons";
+import Avatar from "@/app/_components/ui/Avatar";
+import { heartPop, TAP } from "@/app/_components/motion/tokens";
 import DifficultyStars from "./DifficultyStars";
 import AddToggleButton from "./AddToggleButton";
-import type { FeedPost, Mission } from "@/app/_api/missions";
+import type { FeedPost } from "@/app/_api/feed";
+import type { Mission } from "@/app/_api/missions";
 
 interface FeedCardProps {
   post: FeedPost;
   onLikeToggle: (post: FeedPost) => void;
+  onCommentClick: (post: FeedPost) => void;
   onAddClick: (mission: Mission) => void;
 }
 
 export default function FeedCard({
   post,
   onLikeToggle,
+  onCommentClick,
   onAddClick,
 }: FeedCardProps) {
   const t = useTranslations("mission");
@@ -29,6 +36,10 @@ export default function FeedCard({
     onLikeToggle(post);
   }, [post, onLikeToggle]);
 
+  const handleCommentClick = useCallback(() => {
+    onCommentClick(post);
+  }, [post, onCommentClick]);
+
   const handleAddClick = useCallback(() => {
     onAddClick(post.mission);
   }, [post.mission, onAddClick]);
@@ -36,28 +47,16 @@ export default function FeedCard({
   return (
     <div className="flex w-full flex-col items-center gap-[10px] border-b border-surface pt-[8px] pb-[20px] last:border-b-0">
       <div className="flex w-full items-center gap-[9px] px-[20px]">
-        {post.author.avatarUrl ? (
-          <img
-            src={post.author.avatarUrl}
-            alt={post.author.nickname}
-            className="size-[40px] shrink-0 rounded-full object-cover"
-          />
-        ) : (
-          // 아바타 미지정 시 bg-surface 원 + 회색 실루엣(머리+어깨) 표시
-          <div
-            aria-hidden="true"
-            className="relative size-[40px] shrink-0 overflow-hidden rounded-full bg-surface"
-          >
-            <div className="absolute left-1/2 top-[30%] size-[16px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted" />
-            <div className="absolute -bottom-[8px] left-1/2 size-[30px] -translate-x-1/2 rounded-full bg-muted" />
-          </div>
-        )}
+        {/* 닉네임이 바로 옆에 텍스트로 있으므로 아바타는 장식 */}
+        <Avatar src={post.author.avatarUrl} alt="" size={40} />
         <div className="flex flex-col gap-px">
           <span className="text-[15px] font-semibold tracking-[-0.045px] text-ink">
             {post.author.nickname}
           </span>
           <span className="text-[12px] font-medium text-muted">
-            {t("feed.weeklyClear", { count: post.weeklyClearCount })}
+            {t("feed.weeklyClear", {
+              count: post.mission.weeklyCompletedCount,
+            })}
           </span>
         </div>
       </div>
@@ -72,19 +71,33 @@ export default function FeedCard({
 
       <div className="flex w-full flex-col gap-[8px] px-[20px]">
         <div className="flex items-center gap-[14px]">
-          <button
+          <motion.button
             type="button"
             onClick={handleLikeToggle}
             aria-pressed={post.likedByMe}
             aria-label={t("feed.likeCount", { count: post.likeCount })}
-            className={post.likedByMe ? "text-error" : "text-ink"}
+            whileTap={TAP.icon}
+            className={`transition-colors ${post.likedByMe ? "text-error" : "text-ink"}`}
           >
-            <HeartIcon size={24} />
-          </button>
-          {/* 댓글 아이콘 — 이번 단계는 표시 전용 */}
-          <span aria-hidden="true" className="text-ink">
+            <motion.span
+              variants={heartPop}
+              initial={false}
+              animate={post.likedByMe ? "liked" : "idle"}
+              className="flex"
+            >
+              <HeartIcon size={24} />
+            </motion.span>
+          </motion.button>
+          <motion.button
+            type="button"
+            onClick={handleCommentClick}
+            aria-haspopup="dialog"
+            aria-label={t("feed.commentButton", { count: post.commentCount })}
+            whileTap={TAP.icon}
+            className="text-ink"
+          >
             <CommentIcon size={24} />
-          </span>
+          </motion.button>
         </div>
 
         <div className="flex w-full flex-col items-start gap-[5px]">
