@@ -4,7 +4,7 @@
  * (주의: client.ts에는 아직 apiGet이 없음 — 백엔드 연동 시 GET 클라이언트 추가 필요)
  */
 
-import { missionsMock, myPlansMock, feedPostsMock } from "./mock/missions.mock";
+import { missionsMock, myPlansMock } from "./mock/missions.mock";
 
 export type MissionDifficulty = 1 | 2 | 3;
 
@@ -21,8 +21,6 @@ export type MissionCategory =
 export type MissionFilter = "all" | "mustDo" | "hot" | "mine";
 
 export type MissionSort = "popular" | "latest";
-
-export type FeedTab = "latest" | "popular" | "weeklyHot";
 
 export interface Mission {
   id: string;
@@ -45,19 +43,6 @@ export interface MyPlan {
   dateEnd: string;
 }
 
-export interface FeedPost {
-  id: string;
-  author: { nickname: string; avatarUrl: string | null };
-  imageUrl: string;
-  content: string;
-  likeCount: number;
-  likedByMe: boolean;
-  commentCount: number;
-  weeklyClearCount: number;
-  mission: Mission;
-  createdAt: string;
-}
-
 export interface Paginated<T> {
   items: T[];
   nextCursor: number | null;
@@ -73,7 +58,6 @@ export interface CreateMissionInput {
 
 const MISSION_PAGE_SIZE = 5;
 const SEARCH_PAGE_SIZE = 6;
-const FEED_PAGE_SIZE = 3;
 
 // mock 전용 id 충돌 방지 카운터. 동일 밀리초에 여러 미션이 생성돼도 id가 겹치지 않도록 병용한다.
 let missionIdSeq = 0;
@@ -90,10 +74,6 @@ function delay(ms: number) {
 // API 전환 시 이 복사 계층은 fetch 함수들과 함께 제거하면 된다.
 function cloneMission(m: Mission): Mission {
   return { ...m, hashtags: [...m.hashtags], addedPlanIds: [...m.addedPlanIds] };
-}
-
-function cloneFeedPost(p: FeedPost): FeedPost {
-  return { ...p, author: { ...p.author }, mission: cloneMission(p.mission) };
 }
 
 function paginate<T>(
@@ -238,51 +218,4 @@ export async function setMissionPlans(
       }))
     : [];
   return { likes };
-}
-
-// 미션 인증 피드
-export async function fetchFeed({
-  tab,
-  cursor,
-}: {
-  tab: FeedTab;
-  cursor: number;
-}): Promise<Paginated<FeedPost>> {
-  // 추후: return (await apiGet<Paginated<FeedPost>>(`/api/missions/feed?tab=${tab}&cursor=${cursor}`)).data;
-  await delay(400);
-
-  let sorted: FeedPost[];
-  switch (tab) {
-    case "popular":
-      sorted = [...feedPostsMock].sort((a, b) => b.likeCount - a.likeCount);
-      break;
-    case "weeklyHot":
-      sorted = [...feedPostsMock].sort(
-        (a, b) => b.weeklyClearCount - a.weeklyClearCount,
-      );
-      break;
-    default:
-      sorted = [...feedPostsMock].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-  }
-
-  const page = paginate(sorted, cursor, FEED_PAGE_SIZE);
-  return { ...page, items: page.items.map(cloneFeedPost) };
-}
-
-// 피드 좋아요 토글
-export async function toggleFeedLike(
-  postId: string,
-  liked: boolean,
-): Promise<void> {
-  // 추후: await apiPost(`/api/missions/feed/${postId}/like`, { liked });
-  await delay(300);
-
-  const post = feedPostsMock.find((p) => p.id === postId);
-  if (post && post.likedByMe !== liked) {
-    post.likeCount += liked ? 1 : -1;
-    post.likedByMe = liked;
-  }
 }

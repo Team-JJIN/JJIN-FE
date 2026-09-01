@@ -17,17 +17,11 @@ import {
   fetchMyPlans,
   createMission,
   setMissionPlans,
-  fetchFeed,
-  toggleFeedLike,
 } from "@/app/_api/missions";
-import type {
-  Mission,
-  MissionFilter,
-  Paginated,
-  FeedPost,
-  FeedTab,
-} from "@/app/_api/missions";
+import type { Mission, MissionFilter, Paginated } from "@/app/_api/missions";
+import type { FeedPost } from "@/app/_api/feed";
 import type { SearchFilterState } from "../_types";
+import { feedKeys } from "./useFeedQueries";
 
 // --- 쿼리 키 팩토리 ---
 export const missionKeys = {
@@ -40,11 +34,6 @@ export const missionKeys = {
 
 export const planKeys = {
   my: ["myPlans"] as const,
-};
-
-export const feedKeys = {
-  all: ["missionFeed"] as const,
-  list: (tab: FeedTab) => [...feedKeys.all, tab] as const,
 };
 
 // 미션 추천 목록 (필터별 무한 스크롤)
@@ -64,17 +53,6 @@ export function useMissionSearch(params: SearchFilterState) {
     queryKey: missionKeys.search(params),
     queryFn: ({ pageParam }) =>
       searchMissions({ ...params, cursor: pageParam }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    placeholderData: keepPreviousData,
-  });
-}
-
-// 미션 인증 피드 (탭별 무한 스크롤)
-export function useFeed(tab: FeedTab) {
-  return useInfiniteQuery({
-    queryKey: feedKeys.list(tab),
-    queryFn: ({ pageParam }) => fetchFeed({ tab, cursor: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextCursor,
     placeholderData: keepPreviousData,
@@ -206,62 +184,6 @@ export function useSetMissionPlans() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: missionKeys.all });
       queryClient.invalidateQueries({ queryKey: feedKeys.all });
-    },
-  });
-}
-
-// 피드 좋아요 토글 (낙관적 업데이트)
-export function useToggleFeedLike(tab: FeedTab) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ postId, liked }: { postId: string; liked: boolean }) =>
-      toggleFeedLike(postId, liked),
-    onMutate: async ({ postId, liked }) => {
-      // mutation이 pending인 동안 탭이 바뀌면 onError/onSettled 클로저의 tab이 최신 렌더
-      // 값으로 교체될 수 있다(react-query MutationObserver.setOptions가 pending mutation의
-      // 옵션도 갈아끼움). onMutate 시점에 queryKey를 계산해 context에 담아 반환하고,
-      // onError/onSettled는 반드시 이 context.queryKey를 사용해 다른 탭 캐시 오염을 막는다.
-      const queryKey = feedKeys.list(tab);
-
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousData =
-        queryClient.getQueryData<InfiniteData<Paginated<FeedPost>>>(queryKey);
-
-      queryClient.setQueryData<InfiniteData<Paginated<FeedPost>>>(
-        queryKey,
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              items: page.items.map((post) =>
-                post.id === postId
-                  ? {
-                      ...post,
-                      likedByMe: liked,
-                      likeCount: post.likeCount + (liked ? 1 : -1),
-                    }
-                  : post,
-              ),
-            })),
-          };
-        },
-      );
-
-      return { queryKey, previousData };
-    },
-    onError: (_err, _variables, context) => {
-      if (context && context.previousData) {
-        queryClient.setQueryData(context.queryKey, context.previousData);
-      }
-    },
-    onSettled: (_data, _err, _variables, context) => {
-      if (context) {
-        queryClient.invalidateQueries({ queryKey: context.queryKey });
-      }
     },
   });
 }
