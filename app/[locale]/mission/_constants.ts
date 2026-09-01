@@ -18,8 +18,13 @@ export const MISSION_CATEGORIES: MissionCategory[] = [
 // 정렬 옵션
 export const SORT_OPTIONS = ["popular", "latest"] as const;
 
-// 피드 탭
-export const FEED_TABS = ["latest", "popular", "weeklyHot"] as const;
+// 피드 탭 (mission.feed.tabs.* i18n 키와 동일)
+export const FEED_TABS = [
+  "latest",
+  "popular",
+  "weeklyHot",
+  "completed",
+] as const;
 
 // 난이도
 export const DIFFICULTIES: MissionDifficulty[] = [1, 2, 3];

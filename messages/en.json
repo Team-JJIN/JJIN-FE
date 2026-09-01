@@ -210,10 +210,21 @@
       "tabs": {
         "latest": "Latest",
         "popular": "Popular",
-        "weeklyHot": "This Week's Hot"
+        "weeklyHot": "This Week's Hot",
+        "completed": "Completed"
       },
       "weeklyClear": "{count} people cleared this week",
-      "likeCount": "{count} likes"
+      "likeCount": "{count} likes",
+      "commentButton": "View {count} comments",
+      "comments": {
+        "title": "{count} comments",
+        "placeholder": "Comment",
+        "inputLabel": "Write a comment",
+        "send": "Send comment",
+        "empty": "Be the first to comment",
+        "justNow": "Just now",
+        "sendError": "Couldn't send your comment. Please try again."
+      }
     }
   }
 }

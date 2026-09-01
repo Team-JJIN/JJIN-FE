@@ -8,7 +8,7 @@
  * - 기존 `transition-colors` → `transition`으로 교체해 transform도 전환 대상에 포함 (duration-150 유지)
  * - chevron 회전: `transition-transform duration-200 motion-reduce:transition-none` + 조건부 `rotate-180`
  */
-import type { Transition } from "framer-motion";
+import type { Transition, Variants } from "framer-motion";
 
 export const DUR = { xs: 0.12, sm: 0.18, md: 0.25, lg: 0.3 } as const;
 // md = PageTransition(0.25s), lg = BottomSheet(0.3s) 기존 관례와 동일
@@ -115,6 +115,25 @@ export const slideStep = {
     transition: { duration: DUR.md, ease: EASE.page },
   }),
 } as const;
+
+/** 탭 밑줄 인디케이터 layoutId 이동 (MissionFeedPage 탭바) */
+export const tabIndicator: Transition = {
+  type: "tween",
+  duration: DUR.md,
+  ease: EASE.page,
+};
+
+/**
+ * 좋아요 하트 펄스. `initial={false} animate={liked ? "liked" : "idle"}`로 쓰면
+ * 켜질 때만 1→1.3→1로 튀고, 첫 렌더·해제는 정적이다.
+ */
+export const heartPop: Variants = {
+  idle: { scale: 1 },
+  liked: {
+    scale: [1, 1.3, 1],
+    transition: { duration: DUR.md, ease: EASE.out, times: [0, 0.4, 1] },
+  },
+};
 
 /** whileTap 프리셋 (파일이 이미 framer를 쓸 때만 사용, 아니면 CSS 관례 사용) */
 export const TAP = {
