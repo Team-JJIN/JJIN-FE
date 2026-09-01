@@ -77,7 +77,7 @@ export default function FeedCard({
             aria-pressed={post.likedByMe}
             aria-label={t("feed.likeCount", { count: post.likeCount })}
             whileTap={TAP.icon}
-            className={`transition-colors ${post.likedByMe ? "text-error" : "text-ink"}`}
+            className={`flex transition-colors ${post.likedByMe ? "text-error" : "text-ink"}`}
           >
             <motion.span
               variants={heartPop}
@@ -85,7 +85,9 @@ export default function FeedCard({
               animate={post.likedByMe ? "liked" : "idle"}
               className="flex"
             >
-              <HeartIcon size={24} />
+              {/* 레이아웃 박스는 24px 유지, 시각 크기만 26px(×1.0833)로 살짝 확대.
+                  motion.span의 heartPop이 transform을 덮어쓰므로 SVG에만 적용 */}
+              <HeartIcon size={24} className="scale-[1.0833]" />
             </motion.span>
           </motion.button>
           <motion.button
@@ -94,7 +96,7 @@ export default function FeedCard({
             aria-haspopup="dialog"
             aria-label={t("feed.commentButton", { count: post.commentCount })}
             whileTap={TAP.icon}
-            className="text-ink"
+            className="flex text-ink"
           >
             <CommentIcon size={24} />
           </motion.button>
