@@ -210,10 +210,21 @@
       "tabs": {
         "latest": "最新",
         "popular": "人気",
-        "weeklyHot": "今週の話題"
+        "weeklyHot": "今週の話題",
+        "completed": "完了ミッション"
       },
       "weeklyClear": "今週{count}人がクリア",
-      "likeCount": "いいね{count}件"
+      "likeCount": "いいね{count}件",
+      "commentButton": "コメント{count}件を見る",
+      "comments": {
+        "title": "コメント{count}件",
+        "placeholder": "コメント",
+        "inputLabel": "コメントを入力",
+        "send": "コメントを送信",
+        "empty": "最初のコメントを書いてみましょう",
+        "justNow": "たった今",
+        "sendError": "コメントを送信できませんでした。もう一度お試しください。"
+      }
     }
   }
 }

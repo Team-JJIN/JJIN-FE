@@ -21,6 +21,8 @@ interface TopBarCloseProps {
   onBack?: () => void;
   /** ← 버튼의 접근 가능한 이름 */
   backLabel?: string;
+  /** 댓글 시트처럼 낮은 헤더용: 제목 15px, 행 최소 높이 24px */
+  compact?: boolean;
 }
 
 export default function TopBarClose({
@@ -29,10 +31,13 @@ export default function TopBarClose({
   closeLabel,
   onBack,
   backLabel,
+  compact = false,
 }: TopBarCloseProps) {
   return (
-    // min-h: h2(27px)와 ✕(22px)의 높이 차 때문에 ←/제목이 교체될 때 행 높이가 흔들리는 것을 막는다
-    <div className="flex min-h-[28px] items-center justify-between">
+    // min-h: h2(27px, compact는 15px 타이틀 기준 24px)와 ✕(22px)의 높이 차 때문에 ←/제목이 교체될 때 행 높이가 흔들리는 것을 막는다
+    <div
+      className={`flex items-center justify-between ${compact ? "min-h-[24px]" : "min-h-[28px]"}`}
+    >
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={`${onBack ? "back" : "plain"}:${title}`}
@@ -49,7 +54,15 @@ export default function TopBarClose({
               <ArrowBackIcon size={20} />
             </button>
           )}
-          <h2 className="text-[18px] font-semibold text-[#171717]">{title}</h2>
+          <h2
+            className={
+              compact
+                ? "text-[15px] font-semibold tracking-[-0.045px] text-ink"
+                : "text-[18px] font-semibold text-[#171717]"
+            }
+          >
+            {title}
+          </h2>
         </motion.div>
       </AnimatePresence>
       <button

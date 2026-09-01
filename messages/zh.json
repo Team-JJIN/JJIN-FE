@@ -210,10 +210,21 @@
       "tabs": {
         "latest": "最新",
         "popular": "人气",
-        "weeklyHot": "本周热门"
+        "weeklyHot": "本周热门",
+        "completed": "已完成任务"
       },
       "weeklyClear": "本周{count}人已完成",
-      "likeCount": "{count}个赞"
+      "likeCount": "{count}个赞",
+      "commentButton": "查看{count}条评论",
+      "comments": {
+        "title": "{count}条评论",
+        "placeholder": "评论",
+        "inputLabel": "输入评论",
+        "send": "发送评论",
+        "empty": "来写下第一条评论吧",
+        "justNow": "刚刚",
+        "sendError": "评论发送失败，请重试。"
+      }
     }
   }
 }

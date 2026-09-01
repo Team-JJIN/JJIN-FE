@@ -210,10 +210,21 @@
       "tabs": {
         "latest": "최신",
         "popular": "인기",
-        "weeklyHot": "이번 주 핫"
+        "weeklyHot": "이번 주 핫",
+        "completed": "완료 미션"
       },
       "weeklyClear": "이번주 {count}명이 클리어",
-      "likeCount": "좋아요 {count}개"
+      "likeCount": "좋아요 {count}개",
+      "commentButton": "댓글 {count}개 보기",
+      "comments": {
+        "title": "댓글 {count}개",
+        "placeholder": "댓글",
+        "inputLabel": "댓글 입력",
+        "send": "댓글 전송",
+        "empty": "첫 댓글을 남겨보세요",
+        "justNow": "방금 전",
+        "sendError": "댓글을 보내지 못했어요. 다시 시도해주세요."
+      }
     }
   }
 }
