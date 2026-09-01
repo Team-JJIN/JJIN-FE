@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import TopBarClose from "@/app/_components/ui/TopBarClose";
 import MissionCreateForm from "../_components/MissionCreateForm";
-import { useAddMissionStore } from "../_store/useAddMissionStore";
+import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import { sectionEnter } from "@/app/_components/motion/tokens";
 import type { Mission } from "@/app/_api/missions";
 
@@ -23,7 +23,7 @@ export default function MissionCreatePage() {
   const locale = useLocale();
   const t = useTranslations("mission.create");
   const tMission = useTranslations("mission");
-  const openAddMission = useAddMissionStore((s) => s.open);
+  const openAddMission = useMissionSheetStore((s) => s.openAdd);
 
   const handleClose = useCallback(() => {
     router.push(`/${locale}/mission`);

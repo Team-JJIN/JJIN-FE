@@ -9,26 +9,20 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import { SearchIcon } from "@/app/_components/icons";
-import Dialog from "@/app/_components/ui/Dialog";
 import { FEED_TABS } from "../_constants";
-import {
-  useFeed,
-  useToggleFeedLike,
-  useRemoveMissionFromPlan,
-} from "../_hooks/useMissionQueries";
+import { useFeed, useToggleFeedLike } from "../_hooks/useMissionQueries";
 import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
-import { useAddMissionStore } from "../_store/useAddMissionStore";
+import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import FeedCard from "../_components/FeedCard";
-import type { FeedPost, FeedTab, Mission } from "@/app/_api/missions";
+import type { FeedPost, FeedTab } from "@/app/_api/missions";
 
 export default function MissionFeedPage() {
   const t = useTranslations("mission");
   const router = useRouter();
   const locale = useLocale();
-  const openAddMission = useAddMissionStore((s) => s.open);
+  const openAddMission = useMissionSheetStore((s) => s.openAdd);
 
   const [tab, setTab] = useState<FeedTab>("latest");
-  const [removalTarget, setRemovalTarget] = useState<Mission | null>(null);
 
   const {
     data,
@@ -41,7 +35,6 @@ export default function MissionFeedPage() {
   } = useFeed(tab);
 
   const toggleLikeMutation = useToggleFeedLike(tab);
-  const removeMissionMutation = useRemoveMissionFromPlan();
 
   const posts = useMemo<FeedPost[]>(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -70,27 +63,6 @@ export default function MissionFeedPage() {
     },
     [toggleLikeMutation],
   );
-
-  const handleAddClick = useCallback(
-    (mission: Mission) => {
-      if (mission.isAdded) {
-        setRemovalTarget(mission);
-        return;
-      }
-      openAddMission(mission);
-    },
-    [openAddMission],
-  );
-
-  const handleRemovalCancel = useCallback(() => {
-    setRemovalTarget(null);
-  }, []);
-
-  const handleRemovalConfirm = useCallback(() => {
-    if (!removalTarget) return;
-    removeMissionMutation.mutate(removalTarget.id);
-    setRemovalTarget(null);
-  }, [removalTarget, removeMissionMutation]);
 
   return (
     <div className="flex h-dvh flex-col bg-white">
@@ -171,7 +143,7 @@ export default function MissionFeedPage() {
                   key={post.id}
                   post={post}
                   onLikeToggle={handleLikeToggle}
-                  onAddClick={handleAddClick}
+                  onAddClick={openAddMission}
                 />
               ))}
             </div>
@@ -184,16 +156,6 @@ export default function MissionFeedPage() {
           </>
         )}
       </div>
-
-      <Dialog
-        open={removalTarget !== null}
-        title={t("remove.confirmTitle", { title: removalTarget?.title ?? "" })}
-        description={t("remove.confirmDesc")}
-        cancelLabel={t("remove.cancel")}
-        confirmLabel={t("remove.confirm")}
-        onCancel={handleRemovalCancel}
-        onConfirm={handleRemovalConfirm}
-      />
     </div>
   );
 }

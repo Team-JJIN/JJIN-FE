@@ -15,7 +15,7 @@ export const missionsMock: Mission[] = [
     category: "food",
     hashtags: ["카페투어", "아인슈페너"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -28,7 +28,7 @@ export const missionsMock: Mission[] = [
     category: "food",
     hashtags: ["카페투어", "달달이"],
     isAdded: true,
-    addedPlanId: "plan-seoul",
+    addedPlanIds: ["plan-seoul"],
     isMine: false,
   },
   {
@@ -41,7 +41,7 @@ export const missionsMock: Mission[] = [
     category: "food",
     hashtags: ["카페투어", "고인물미션"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -54,7 +54,7 @@ export const missionsMock: Mission[] = [
     category: "food",
     hashtags: ["카페투어", "긴이름챌린지"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -67,7 +67,7 @@ export const missionsMock: Mission[] = [
     category: "food",
     hashtags: ["노포맛집", "완밥챌린지"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -80,7 +80,7 @@ export const missionsMock: Mission[] = [
     category: "food",
     hashtags: ["포장마차", "야식투어"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -93,7 +93,7 @@ export const missionsMock: Mission[] = [
     category: "experience",
     hashtags: ["한복체험", "고궁산책"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: true,
   },
   {
@@ -106,7 +106,7 @@ export const missionsMock: Mission[] = [
     category: "experience",
     hashtags: ["도자기공방", "원데이클래스"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -119,7 +119,7 @@ export const missionsMock: Mission[] = [
     category: "nature",
     hashtags: ["한라산등반", "정상인증"],
     isAdded: true,
-    addedPlanId: "plan-jeju",
+    addedPlanIds: ["plan-jeju"],
     isMine: false,
   },
   {
@@ -132,7 +132,7 @@ export const missionsMock: Mission[] = [
     category: "nature",
     hashtags: ["협재해변", "노을맛집"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -145,7 +145,7 @@ export const missionsMock: Mission[] = [
     category: "history",
     hashtags: ["불국사", "문화재탐방"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -158,7 +158,7 @@ export const missionsMock: Mission[] = [
     category: "history",
     hashtags: ["종묘", "세계유산"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -171,7 +171,7 @@ export const missionsMock: Mission[] = [
     category: "culture",
     hashtags: ["인사동갤러리", "전시투어"],
     isAdded: true,
-    addedPlanId: "plan-seoul",
+    addedPlanIds: ["plan-seoul"],
     isMine: false,
   },
   {
@@ -184,7 +184,7 @@ export const missionsMock: Mission[] = [
     category: "culture",
     hashtags: ["전통공연", "정동극장"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -197,7 +197,7 @@ export const missionsMock: Mission[] = [
     category: "shopping",
     hashtags: ["광장시장", "전통시장투어"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: true,
   },
   {
@@ -210,7 +210,7 @@ export const missionsMock: Mission[] = [
     category: "shopping",
     hashtags: ["동대문쇼핑", "심야투어"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -223,7 +223,7 @@ export const missionsMock: Mission[] = [
     category: "festival",
     hashtags: ["보령머드축제", "여름축제"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -236,7 +236,7 @@ export const missionsMock: Mission[] = [
     category: "festival",
     hashtags: ["부산불꽃축제", "야경사진"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -249,7 +249,7 @@ export const missionsMock: Mission[] = [
     category: "leisure",
     hashtags: ["한강라이딩", "자전거종주"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
   {
@@ -262,7 +262,7 @@ export const missionsMock: Mission[] = [
     category: "leisure",
     hashtags: ["양양서핑", "입문클래스"],
     isAdded: false,
-    addedPlanId: null,
+    addedPlanIds: [],
     isMine: false,
   },
 ];

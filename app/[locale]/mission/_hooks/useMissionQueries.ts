@@ -16,8 +16,7 @@ import {
   searchMissions,
   fetchMyPlans,
   createMission,
-  addMissionToPlan,
-  removeMissionFromPlan,
+  setMissionPlans,
   fetchFeed,
   toggleFeedLike,
 } from "@/app/_api/missions";
@@ -82,7 +81,7 @@ export function useFeed(tab: FeedTab) {
   });
 }
 
-// 내 일정 목록 (미션 추가 오버레이가 열렸을 때만 조회)
+// 내 일정 목록 (미션 시트가 열렸을 때만 조회)
 export function useMyPlans(enabled: boolean) {
   return useQuery({
     queryKey: planKeys.my,
@@ -108,7 +107,7 @@ export function useCreateMission() {
 function patchMissionInPages<T extends { items: Mission[] }>(
   old: InfiniteData<T> | undefined,
   missionId: string,
-  patch: Partial<Pick<Mission, "isAdded" | "addedPlanId">>,
+  patch: Partial<Pick<Mission, "isAdded" | "addedPlanIds">>,
 ): InfiniteData<T> | undefined {
   // ["missions"] prefix에는 인피니트가 아닌 캐시(예: 카테고리 시트의 카운트 단발 조회)도
   // 걸릴 수 있다 — pages 배열이 없으면 패치 대상이 아니므로 그대로 통과시킨다.
@@ -128,7 +127,7 @@ function patchMissionInPages<T extends { items: Mission[] }>(
 function patchMissionInFeedPages(
   old: InfiniteData<Paginated<FeedPost>> | undefined,
   missionId: string,
-  patch: Partial<Pick<Mission, "isAdded" | "addedPlanId">>,
+  patch: Partial<Pick<Mission, "isAdded" | "addedPlanIds">>,
 ): InfiniteData<Paginated<FeedPost>> | undefined {
   if (!old || !Array.isArray(old.pages)) return old;
   return {
@@ -144,19 +143,19 @@ function patchMissionInFeedPages(
   };
 }
 
-// 미션을 내 일정에 추가 (낙관적 업데이트)
-export function useAddMissionToPlan() {
+// 미션을 담을 일정 목록을 설정 (낙관적 업데이트 → 실패 시 롤백 → 성공 시 서버 응답으로 재패치 → 정리 refetch)
+export function useSetMissionPlans() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({
       missionId,
-      planId,
+      planIds,
     }: {
       missionId: string;
-      planId: string;
-    }) => addMissionToPlan(missionId, planId),
-    onMutate: async ({ missionId, planId }) => {
+      planIds: string[];
+    }) => setMissionPlans(missionId, planIds),
+    onMutate: async ({ missionId, planIds }) => {
       await queryClient.cancelQueries({ queryKey: missionKeys.all });
       await queryClient.cancelQueries({ queryKey: feedKeys.all });
 
@@ -167,7 +166,9 @@ export function useAddMissionToPlan() {
         InfiniteData<Paginated<FeedPost>>
       >({ queryKey: feedKeys.all });
 
-      const patch = { isAdded: true, addedPlanId: planId };
+      // planIds는 호출한 컴포넌트의 state 배열 그 자체일 수 있다 — 캐시가 그 배열을 공유하면
+      // 컴포넌트 쪽 제자리 변경이 여러 쿼리 캐시로 번지므로 경계에서 복사한다.
+      const patch = { isAdded: planIds.length > 0, addedPlanIds: [...planIds] };
 
       queryClient.setQueriesData<InfiniteData<Paginated<Mission>>>(
         { queryKey: missionKeys.all },
@@ -188,31 +189,10 @@ export function useAddMissionToPlan() {
         queryClient.setQueryData(queryKey, data);
       });
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: missionKeys.all });
-      queryClient.invalidateQueries({ queryKey: feedKeys.all });
-    },
-  });
-}
-
-// 미션 추가 취소 (낙관적 업데이트)
-export function useRemoveMissionFromPlan() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (missionId: string) => removeMissionFromPlan(missionId),
-    onMutate: async (missionId) => {
-      await queryClient.cancelQueries({ queryKey: missionKeys.all });
-      await queryClient.cancelQueries({ queryKey: feedKeys.all });
-
-      const previousMissionQueries = queryClient.getQueriesData<
-        InfiniteData<Paginated<Mission>>
-      >({ queryKey: missionKeys.all });
-      const previousFeedQueries = queryClient.getQueriesData<
-        InfiniteData<Paginated<FeedPost>>
-      >({ queryKey: feedKeys.all });
-
-      const patch = { isAdded: false, addedPlanId: null };
+    onSuccess: (data, { missionId }) => {
+      // 서버가 반환한 현재 찜 목록을 진실로 삼아 낙관적 패치를 재확정한다 (invalidate refetch 전까지의 간극을 메움).
+      const planIds = data.likes.map((like) => like.planId);
+      const patch = { isAdded: planIds.length > 0, addedPlanIds: planIds };
 
       queryClient.setQueriesData<InfiniteData<Paginated<Mission>>>(
         { queryKey: missionKeys.all },
@@ -222,16 +202,6 @@ export function useRemoveMissionFromPlan() {
         { queryKey: feedKeys.all },
         (old) => patchMissionInFeedPages(old, missionId, patch),
       );
-
-      return { previousMissionQueries, previousFeedQueries };
-    },
-    onError: (_err, _variables, context) => {
-      context?.previousMissionQueries.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
-      });
-      context?.previousFeedQueries.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
-      });
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: missionKeys.all });

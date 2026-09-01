@@ -2,8 +2,10 @@
  * @component AddToggleButton
  * 미션 카드의 '추가' 상태 토글 표시 버튼. 미추가 = 검정 pill + 흰 텍스트 + PlusIcon,
  * 추가됨 = lime pill + 검정 텍스트 + CheckIcon. 클릭 시 상위(카드) 탭과 분리되도록 이벤트 전파를 막는다.
+ * 이름과 달리 즉시 토글하지 않고 미션 시트(dialog)를 연다 — 그래서 aria-pressed가 아니라
+ * aria-haspopup="dialog"다. (aria-pressed는 누르면 상태가 바로 바뀌는 토글 버튼의 의미)
  * size="small"은 검색 카드(Step 4)용 원형 아이콘 버튼. 미추가 = 반투명 흰 원 + 검정 PlusIcon,
- * 추가됨 = lime-vivid 원 + 흰 CheckIcon (디자인 실측: 원 지름 36px).
+ * 추가됨 = lime-vivid 원 + 검정 CheckIcon (디자인 실측: 원 지름 36px).
  */
 "use client";
 
@@ -40,12 +42,12 @@ export default function AddToggleButton({
       <motion.button
         type="button"
         onClick={handleClick}
-        aria-pressed={isAdded}
+        aria-haspopup="dialog"
         aria-label={t("addLabel")}
         whileTap={TAP.icon}
         className={`flex size-[36px] items-center justify-center rounded-full border shadow-[0px_2px_3.5px_0px_rgba(23,23,23,0.16)] transition-colors ${
           isAdded
-            ? "border-lime-vivid bg-lime-vivid text-white"
+            ? "border-lime-vivid bg-lime-vivid text-dark"
             : "border-line bg-white/80 text-dark"
         }`}
       >
@@ -66,7 +68,7 @@ export default function AddToggleButton({
     <motion.button
       type="button"
       onClick={handleClick}
-      aria-pressed={isAdded}
+      aria-haspopup="dialog"
       whileTap={TAP.button}
       className={`flex shrink-0 items-center rounded-full py-[3px] pl-[8px] pr-[14px] text-[12px] font-bold transition-colors ${
         isAdded ? "bg-lime-vivid text-dark" : "bg-dark text-white"

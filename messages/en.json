@@ -198,18 +198,13 @@
       "tagInputPlaceholder": "Type a tag and press Enter",
       "submit": "Create Mission"
     },
+    "back": "Back",
     "add": {
       "title": "Add Mission",
       "myPlans": "My Plans",
       "planCount": "{count} plans",
       "cancel": "Cancel",
       "confirm": "Add"
-    },
-    "remove": {
-      "confirmTitle": "''{title}''",
-      "confirmDesc": "Cancel this addition?",
-      "cancel": "Cancel",
-      "confirm": "Confirm"
     },
     "feed": {
       "tabs": {

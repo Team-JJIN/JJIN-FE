@@ -10,7 +10,6 @@ import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import { PlusIcon, SearchIcon } from "@/app/_components/icons";
-import Dialog from "@/app/_components/ui/Dialog";
 import {
   fadeSwap,
   listItemEnter,
@@ -18,12 +17,9 @@ import {
   TAP,
 } from "@/app/_components/motion/tokens";
 import { MISSION_FILTERS } from "./_constants";
-import {
-  useMissionList,
-  useRemoveMissionFromPlan,
-} from "./_hooks/useMissionQueries";
+import { useMissionList } from "./_hooks/useMissionQueries";
 import { useInfiniteScroll } from "./_hooks/useInfiniteScroll";
-import { useAddMissionStore } from "./_store/useAddMissionStore";
+import { useMissionSheetStore } from "./_store/useMissionSheetStore";
 import MissionCardBig from "./_components/MissionCardBig";
 import type { Mission, MissionFilter } from "@/app/_api/missions";
 
@@ -31,10 +27,9 @@ export default function MissionHomePage() {
   const t = useTranslations("mission");
   const router = useRouter();
   const locale = useLocale();
-  const openAddMission = useAddMissionStore((s) => s.open);
+  const openAddMission = useMissionSheetStore((s) => s.openAdd);
 
   const [filter, setFilter] = useState<MissionFilter>("all");
-  const [removalTarget, setRemovalTarget] = useState<Mission | null>(null);
 
   const {
     data,
@@ -46,8 +41,6 @@ export default function MissionHomePage() {
     isPlaceholderData,
     refetch,
   } = useMissionList(filter);
-
-  const removeMissionMutation = useRemoveMissionFromPlan();
 
   const missions = useMemo<Mission[]>(
     () => data?.pages.flatMap((page) => page.items) ?? [],
@@ -85,27 +78,6 @@ export default function MissionHomePage() {
   const handleFilterChange = useCallback((f: MissionFilter) => {
     setFilter(f);
   }, []);
-
-  const handleAddClick = useCallback(
-    (mission: Mission) => {
-      if (mission.isAdded) {
-        setRemovalTarget(mission);
-        return;
-      }
-      openAddMission(mission);
-    },
-    [openAddMission],
-  );
-
-  const handleRemovalCancel = useCallback(() => {
-    setRemovalTarget(null);
-  }, []);
-
-  const handleRemovalConfirm = useCallback(() => {
-    if (!removalTarget) return;
-    removeMissionMutation.mutate(removalTarget.id);
-    setRemovalTarget(null);
-  }, [removalTarget, removeMissionMutation]);
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
@@ -220,7 +192,7 @@ export default function MissionHomePage() {
                 <motion.div key={mission.id} {...listItemEnter(index)}>
                   <MissionCardBig
                     mission={mission}
-                    onAddClick={handleAddClick}
+                    onAddClick={openAddMission}
                   />
                 </motion.div>
               ))}
@@ -236,16 +208,6 @@ export default function MissionHomePage() {
           <p className="py-4 text-center text-[12px] text-muted">...</p>
         )}
       </motion.div>
-
-      <Dialog
-        open={removalTarget !== null}
-        title={t("remove.confirmTitle", { title: removalTarget?.title ?? "" })}
-        description={t("remove.confirmDesc")}
-        cancelLabel={t("remove.cancel")}
-        confirmLabel={t("remove.confirm")}
-        onCancel={handleRemovalCancel}
-        onConfirm={handleRemovalConfirm}
-      />
     </div>
   );
 }

@@ -198,18 +198,13 @@
       "tagInputPlaceholder": "태그 입력 후 Enter",
       "submit": "미션 만들기"
     },
+    "back": "뒤로",
     "add": {
       "title": "미션 추가",
       "myPlans": "내 일정",
       "planCount": "{count}개",
       "cancel": "취소",
       "confirm": "추가하기"
-    },
-    "remove": {
-      "confirmTitle": "''{title}''",
-      "confirmDesc": "추가를 취소하시겠습니까?",
-      "cancel": "취소",
-      "confirm": "확인"
     },
     "feed": {
       "tabs": {

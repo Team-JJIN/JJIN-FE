@@ -198,18 +198,13 @@
       "tagInputPlaceholder": "タグを入力してEnter",
       "submit": "ミッションを作る"
     },
+    "back": "戻る",
     "add": {
       "title": "ミッション追加",
       "myPlans": "マイプラン",
       "planCount": "{count}件",
       "cancel": "キャンセル",
       "confirm": "追加する"
-    },
-    "remove": {
-      "confirmTitle": "''{title}''",
-      "confirmDesc": "追加を取り消しますか?",
-      "cancel": "キャンセル",
-      "confirm": "確認"
     },
     "feed": {
       "tabs": {

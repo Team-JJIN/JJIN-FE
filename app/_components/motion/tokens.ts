@@ -65,7 +65,7 @@ export const dimFade = {
   exit: { opacity: 0, transition: { duration: 0.15, ease: EASE.out } },
 } as const;
 
-/** 중앙 패널 (Dialog, MissionDetailPopup) */
+/** 중앙 패널 (Dialog) */
 export const centerPanel = {
   initial: { opacity: 0, scale: 0.96, y: 8 },
   animate: {
@@ -96,6 +96,24 @@ export const popover = {
     y: -4,
     transition: { duration: 0.12, ease: EASE.out },
   },
+} as const;
+
+/**
+ * 바텀시트 내부 가로 스텝 전환 (MissionSheet detail↔add). custom = 진행 방향(1: 앞으로, -1: 뒤로).
+ * opacity를 함께 두는 이유: reducedMotion="user"에서 transform이 꺼져도 크로스페이드로 전환이 보이도록.
+ */
+export const slideStep = {
+  enter: (dir: 1 | -1) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0 }),
+  center: {
+    x: 0,
+    opacity: 1,
+    transition: { duration: DUR.md, ease: EASE.page },
+  },
+  exit: (dir: 1 | -1) => ({
+    x: dir > 0 ? "-100%" : "100%",
+    opacity: 0,
+    transition: { duration: DUR.md, ease: EASE.page },
+  }),
 } as const;
 
 /** whileTap 프리셋 (파일이 이미 framer를 쓸 때만 사용, 아니면 CSS 관례 사용) */

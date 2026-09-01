@@ -12,14 +12,14 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import MissionCreateForm from "../../_components/MissionCreateForm";
-import { useAddMissionStore } from "../../_store/useAddMissionStore";
+import { useMissionSheetStore } from "../../_store/useMissionSheetStore";
 import type { Mission } from "@/app/_api/missions";
 
 export default function InterceptedMissionCreatePage() {
   const router = useRouter();
   const t = useTranslations("mission.create");
   const tMission = useTranslations("mission");
-  const openAddMission = useAddMissionStore((s) => s.open);
+  const openAddMission = useMissionSheetStore((s) => s.openAdd);
 
   // X·성공 시 open을 먼저 false로 내려 하강 모션을 재생하고,
   // 모션이 끝난 뒤(onExitComplete)에 실제로 이전 화면으로 돌아간다.
