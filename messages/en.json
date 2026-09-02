@@ -148,17 +148,17 @@
       "all": "All",
       "mustDo": "Must Do",
       "hot": "Trending",
-      "mine": "My Missions"
+      "mine": "Added"
     },
     "categories": {
-      "food": "Food",
-      "experience": "Experiential tourism",
-      "nature": "Nature tourism",
-      "history": "Historical tourism",
-      "culture": "Cultural tourism",
-      "shopping": "Shopping",
-      "festival": "Festival·Performance",
-      "leisure": "Leisure sports"
+      "TOURIST_ATTRACTION": "Tourist attractions",
+      "CULTURAL_FACILITY": "Cultural facilities",
+      "FESTIVAL_EVENT": "Festivals & events",
+      "TRAVEL_COURSE": "Travel courses",
+      "LEISURE_SPORTS": "Leisure sports",
+      "LODGING": "Lodging",
+      "SHOPPING": "Shopping",
+      "RESTAURANT": "Restaurants"
     },
     "sort": {
       "popular": "Popular",
@@ -183,10 +183,13 @@
     "filterGroupLabel": "Mission filters",
     "categoryLabel": "Category",
     "categoryMore": "{name} +{count}",
+    "sheet": {
+      "loadError": "Couldn't load the mission."
+    },
     "create": {
       "title": "Create New Mission",
       "photoLabel": "Example Photo",
-      "photoAdd": "Add Photo (Optional)",
+      "photoAdd": "Add Photo",
       "titleLabel": "Mission Title",
       "titlePlaceholder": "e.g. Buy a cream latte at Starbucks",
       "descLabel": "Mission Description",
@@ -196,6 +199,8 @@
       "hashtagOptional": "(Optional)",
       "addTag": "+ Add Tag",
       "tagInputPlaceholder": "Type a tag and press Enter",
+      "imageRequired": "Please add a photo.",
+      "submitError": "Couldn't create the mission. Please try again.",
       "submit": "Create Mission"
     },
     "back": "Back",
@@ -204,7 +209,9 @@
       "myPlans": "My Plans",
       "planCount": "{count} plans",
       "cancel": "Cancel",
-      "confirm": "Add"
+      "confirm": "Add",
+      "saveError": "Couldn't save. Please try again.",
+      "noPlans": "No trips yet. Create a trip first, then add missions."
     },
     "feed": {
       "tabs": {
@@ -225,6 +232,9 @@
         "justNow": "Just now",
         "sendError": "Couldn't send your comment. Please try again."
       }
+    },
+    "search": {
+      "counting": "Counting…"
     }
   }
 }

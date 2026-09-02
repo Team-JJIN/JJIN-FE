@@ -148,17 +148,17 @@
       "all": "全部",
       "mustDo": "必做",
       "hot": "热门",
-      "mine": "我创建的"
+      "mine": "已添加"
     },
     "categories": {
-      "food": "美食",
-      "experience": "体验观光",
-      "nature": "自然观光",
-      "history": "历史观光",
-      "culture": "文化观光",
-      "shopping": "购物",
-      "festival": "节日·演出·活动",
-      "leisure": "休闲运动"
+      "TOURIST_ATTRACTION": "旅游景点",
+      "CULTURAL_FACILITY": "文化设施",
+      "FESTIVAL_EVENT": "节庆·演出·活动",
+      "TRAVEL_COURSE": "旅游路线",
+      "LEISURE_SPORTS": "休闲运动",
+      "LODGING": "住宿",
+      "SHOPPING": "购物",
+      "RESTAURANT": "餐厅"
     },
     "sort": {
       "popular": "人气排序",
@@ -183,10 +183,13 @@
     "filterGroupLabel": "任务筛选",
     "categoryLabel": "分类",
     "categoryMore": "{name}等{count}个",
+    "sheet": {
+      "loadError": "无法加载任务信息。"
+    },
     "create": {
       "title": "创建新任务",
       "photoLabel": "示例图片",
-      "photoAdd": "添加图片（可选）",
+      "photoAdd": "添加图片",
       "titleLabel": "任务标题",
       "titlePlaceholder": "例如：在星巴克买一杯泡芙拿铁",
       "descLabel": "任务说明",
@@ -196,6 +199,8 @@
       "hashtagOptional": "（可选）",
       "addTag": "+ 添加标签",
       "tagInputPlaceholder": "输入标签后按 Enter",
+      "imageRequired": "请添加照片。",
+      "submitError": "无法创建任务，请重试。",
       "submit": "创建任务"
     },
     "back": "返回",
@@ -204,7 +209,9 @@
       "myPlans": "我的行程",
       "planCount": "{count}个",
       "cancel": "取消",
-      "confirm": "添加"
+      "confirm": "添加",
+      "saveError": "保存失败，请重试。",
+      "noPlans": "还没有旅行日程。请先创建日程，再添加任务。"
     },
     "feed": {
       "tabs": {
@@ -225,6 +232,9 @@
         "justNow": "刚刚",
         "sendError": "评论发送失败，请重试。"
       }
+    },
+    "search": {
+      "counting": "统计中…"
     }
   }
 }

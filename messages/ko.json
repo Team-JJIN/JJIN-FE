@@ -148,17 +148,17 @@
       "all": "전체",
       "mustDo": "꼭 해봐야 할",
       "hot": "요즘 핫한",
-      "mine": "내가 만든"
+      "mine": "내가 담은"
     },
     "categories": {
-      "food": "음식",
-      "experience": "체험관광",
-      "nature": "자연관광",
-      "history": "역사관광",
-      "culture": "문화관광",
-      "shopping": "쇼핑",
-      "festival": "축제·공연·행사",
-      "leisure": "레저스포츠"
+      "TOURIST_ATTRACTION": "관광지",
+      "CULTURAL_FACILITY": "문화시설",
+      "FESTIVAL_EVENT": "축제·공연·행사",
+      "TRAVEL_COURSE": "여행코스",
+      "LEISURE_SPORTS": "레포츠",
+      "LODGING": "숙박",
+      "SHOPPING": "쇼핑",
+      "RESTAURANT": "음식점"
     },
     "sort": {
       "popular": "인기순",
@@ -183,10 +183,13 @@
     "filterGroupLabel": "미션 필터",
     "categoryLabel": "카테고리",
     "categoryMore": "{name} 외 {count}개",
+    "sheet": {
+      "loadError": "미션 정보를 불러오지 못했어요."
+    },
     "create": {
       "title": "새 미션 만들기",
       "photoLabel": "예시 사진",
-      "photoAdd": "사진 추가하기 (선택)",
+      "photoAdd": "사진 추가하기",
       "titleLabel": "미션 제목",
       "titlePlaceholder": "예) 스타벅스에서 슈크림라떼 사먹기",
       "descLabel": "미션 설명",
@@ -196,6 +199,8 @@
       "hashtagOptional": "(선택)",
       "addTag": "+ 태그 추가",
       "tagInputPlaceholder": "태그 입력 후 Enter",
+      "imageRequired": "예시 사진을 추가해주세요.",
+      "submitError": "미션을 만들지 못했어요. 다시 시도해주세요.",
       "submit": "미션 만들기"
     },
     "back": "뒤로",
@@ -204,7 +209,9 @@
       "myPlans": "내 일정",
       "planCount": "{count}개",
       "cancel": "취소",
-      "confirm": "추가하기"
+      "confirm": "추가하기",
+      "saveError": "저장하지 못했어요. 다시 시도해 주세요.",
+      "noPlans": "아직 여행 일정이 없어요. 일정을 만든 뒤 미션을 담아 보세요."
     },
     "feed": {
       "tabs": {
@@ -225,6 +232,9 @@
         "justNow": "방금 전",
         "sendError": "댓글을 보내지 못했어요. 다시 시도해주세요."
       }
+    },
+    "search": {
+      "counting": "확인 중…"
     }
   }
 }
