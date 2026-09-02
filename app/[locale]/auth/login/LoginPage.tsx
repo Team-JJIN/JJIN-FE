@@ -11,6 +11,7 @@ import InputText from "@/app/_components/ui/InputText";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
 import { buildGoogleOAuthUrl } from "@/app/_api/google-oauth";
 import { loginWithEmail } from "@/app/_api/auth";
+import { ApiError, getApiErrorMessage } from "@/app/_api/client";
 import { saveTokens } from "@/app/_api/token";
 
 type LoginForm = { email: string; password: string };
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const locale = useLocale();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const {
     register,
@@ -32,18 +34,21 @@ export default function LoginPage() {
   const email = watch("email");
   const password = watch("password");
   const isFormFilled = !!email && !!password;
+  const isLoggingIn = isSubmitting || isNavigating;
 
   const onSubmit = async (data: LoginForm) => {
     setLoginError("");
     try {
       const { accessToken, refreshToken, role } = await loginWithEmail(data.email, data.password);
       saveTokens(accessToken, refreshToken);
-      router.push(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/home`);
+      // 성공 후 화면 전환까지 스피너 유지 (스피너가 먼저 사라지는 어색함 방지)
+      setIsNavigating(true);
+      router.push(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/mission`);
     } catch (err: unknown) {
-      if (err instanceof Error && err.message) {
-        setLoginError(err.message);
+      if (err instanceof ApiError && err.status === 408) {
+        setLoginError(t("errorTimeout"));
       } else {
-        setLoginError(t("errorLoginFailed"));
+        setLoginError(getApiErrorMessage(err, t("errorLoginFailed")));
       }
     }
   };
@@ -63,7 +68,7 @@ export default function LoginPage() {
           priority
           className="w-[141px] h-auto object-contain"
         />
-        <p className="mt-[6px] text-[11px] font-normal text-[#C4C4C4]">
+        <p className="mt-[6px] text-[15px] font-normal text-[#C4C4C4]">
           Living life for real
         </p>
       </div>
@@ -101,8 +106,8 @@ export default function LoginPage() {
             type="submit"
             variant="lime"
             fullWidth
-            isLoading={isSubmitting}
-            disabled={!isFormFilled}
+            isLoading={isLoggingIn}
+            disabled={!isFormFilled || isLoggingIn}
           >
             {t("loginButton")}
           </BigButton>
@@ -130,7 +135,8 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={handleGoogleLogin}
-          className="mt-[16px] flex h-[48px] w-full items-center justify-center gap-[10px] rounded-2xl border border-[#EAEBEC] bg-white text-[14px] font-medium text-dark"
+          disabled={isLoggingIn}
+          className="mt-[16px] flex h-[48px] w-full items-center justify-center gap-[10px] rounded-2xl border border-[#EAEBEC] bg-white text-[14px] font-medium text-dark disabled:opacity-50"
         >
           <img src="/image/google-icon.svg" alt="Google" width={18} height={18} />
           Sign in with Google

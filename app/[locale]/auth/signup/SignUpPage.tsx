@@ -10,6 +10,7 @@ import InputText from "@/app/_components/ui/InputText";
 import CheckBox from "@/app/_components/ui/CheckBox";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
 import { signUp, getTerms, type TermsItem } from "@/app/_api/auth";
+import { getApiErrorMessage } from "@/app/_api/client";
 import { saveTokens } from "@/app/_api/token";
 
 type SignUpForm = {
@@ -104,11 +105,7 @@ export default function SignUpPage() {
       saveTokens(tokens.accessToken, tokens.refreshToken);
       router.push(`/${locale}/onboarding`);
     } catch (err: unknown) {
-      if (err instanceof Error && err.message) {
-        setSubmitError(err.message);
-      } else {
-        setSubmitError(t("errorSignUpFailed"));
-      }
+      setSubmitError(getApiErrorMessage(err, t("errorSignUpFailed")));
     }
   };
 

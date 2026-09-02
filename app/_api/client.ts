@@ -1,6 +1,14 @@
 import { getAccessToken, getRefreshToken, saveTokens, clearTokens } from "./token";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const REQUEST_TIMEOUT_MS = 10000;
+
+type HttpMethod = "GET" | "POST" | "PATCH";
+
+const MSG_TIMEOUT = "요청 시간이 초과되었습니다.";
+const MSG_NETWORK = "서버에 연결할 수 없습니다.";
+const MSG_PARSE = "응답을 처리할 수 없습니다.";
+const MSG_FAILED = "요청에 실패했습니다.";
 
 export interface ApiResponse<T = null> {
   status: number;
@@ -19,63 +27,83 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(method: "GET" | "POST" | "PATCH", path: string, body?: object): Promise<ApiResponse<T>> {
-  const token = getAccessToken();
+/** UI에서 catch한 에러를 사용자 메시지로 변환. ApiError면 서버 메시지, 아니면 fallback. */
+export function getApiErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError && err.message) return err.message;
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
 
-  let res: Response;
+function isAbortError(err: unknown): boolean {
+  return err instanceof DOMException && err.name === "AbortError";
+}
+
+/** timeout 초과 시 AbortController로 요청을 중단하는 fetch 래퍼. */
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-    });
-  } catch {
-    throw new ApiError(0, "서버에 연결할 수 없습니다.");
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
   }
+}
 
-  // 401이고 refresh token이 있으면 재발급 시도
+/** 공통 fetch init 구성 (인증 헤더 + JSON 바디). */
+function buildInit(method: HttpMethod, token: string | null, body?: object): RequestInit {
+  return {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  };
+}
+
+/** fetchWithTimeout 호출을 감싸 네트워크/타임아웃 에러를 ApiError로 정규화. */
+async function sendRequest(path: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetchWithTimeout(`${BASE_URL}${path}`, init);
+  } catch (err) {
+    throw new ApiError(isAbortError(err) ? 408 : 0, isAbortError(err) ? MSG_TIMEOUT : MSG_NETWORK);
+  }
+}
+
+/** Response를 ApiResponse<T>로 파싱. 실패 응답이면 ApiError를 던진다. */
+async function parseResponse<T>(res: Response): Promise<ApiResponse<T>> {
+  let data: ApiResponse<T>;
+  try {
+    data = await res.json();
+  } catch {
+    throw new ApiError(res.status, MSG_PARSE);
+  }
+  if (!res.ok) throw new ApiError(data.status ?? res.status, data.message ?? MSG_FAILED);
+  return data;
+}
+
+async function request<T>(method: HttpMethod, path: string, body?: object): Promise<ApiResponse<T>> {
+  const res = await sendRequest(path, buildInit(method, getAccessToken(), body));
+
+  // 401이고 refresh token이 있으면 재발급 후 1회 재시도
   if (res.status === 401 && path !== "/api/auth/reissue") {
     const refreshToken = getRefreshToken();
     if (refreshToken) {
       const refreshed = await tryReissue(refreshToken);
       if (refreshed) {
-        try {
-          const retryRes = await fetch(`${BASE_URL}${path}`, {
-            method,
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${refreshed}`,
-            },
-            ...(body ? { body: JSON.stringify(body) } : {}),
-          });
-          const retryData: ApiResponse<T> = await retryRes.json();
-          if (!retryRes.ok) throw new ApiError(retryData.status ?? retryRes.status, retryData.message ?? "요청에 실패했습니다.");
-          return retryData;
-        } catch (err) {
-          if (err instanceof ApiError) throw err;
-          throw new ApiError(0, "서버에 연결할 수 없습니다.");
-        }
+        const retryRes = await sendRequest(path, buildInit(method, refreshed, body));
+        return parseResponse<T>(retryRes);
       }
     }
   }
 
-  let data: ApiResponse<T>;
-  try {
-    data = await res.json();
-  } catch {
-    throw new ApiError(res.status, "응답을 처리할 수 없습니다.");
-  }
-
-  if (!res.ok) throw new ApiError(data.status ?? res.status, data.message ?? "요청에 실패했습니다.");
-  return data;
+  return parseResponse<T>(res);
 }
 
 async function tryReissue(refreshToken: string): Promise<string | null> {
   try {
-    const res = await fetch(`${BASE_URL}/api/auth/reissue`, {
+    const res = await fetchWithTimeout(`${BASE_URL}/api/auth/reissue`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
