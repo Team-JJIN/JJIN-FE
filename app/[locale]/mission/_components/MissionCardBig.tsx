@@ -52,11 +52,6 @@ export default function MissionCardBig({
             />
           </div>
 
-          {/* 디자인은 설명 2줄 높이를 항상 예약 — 1줄이어도 카드 비율 유지 */}
-          <p className="line-clamp-2 min-h-[38.4px] text-[12px] font-medium leading-[1.6] text-subtext">
-            {mission.description}
-          </p>
-
           <div className="flex flex-wrap items-center gap-2">
             {mission.hashtags.map((tag) => (
               <span

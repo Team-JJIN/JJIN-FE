@@ -1,7 +1,7 @@
 /**
  * @component MissionSheet
  * 미션 상세 ↔ 미션 추가를 한 바텀시트 안에서 가로 슬라이드로 오가는 통합 시트.
- * useMissionSheetStore의 mission이 non-null이면 열리고, step이 어떤 화면을 보여줄지 정한다.
+ * useMissionSheetStore의 missionId가 non-null이면 열리고, step이 어떤 화면을 보여줄지 정한다.
  *
  * 구조·결정 메모
  * - 딤/ESC/✕/포커스트랩은 전부 BottomSheet가 담당하고, 여기서는 "어떤 스텝을 보여줄지"만 다룬다.
@@ -14,12 +14,16 @@
  *   대상이라 자기 props가 갱신되지 않으므로, AnimatePresence 쪽 custom이 그 pane의 exit
  *   variant로 전달돼야 방향이 맞는다.
  * - 닫힘 exit 모션 동안 콘텐츠를 유지하는 책임은 store에 있다: close()는 open만 내리고
- *   mission/step/entry를 그대로 두므로 여기서 별도 미러가 필요 없다.
- * - inner 래퍼의 key={`${mission.id}:${openSeq}`}: 오픈 단위로 콘텐츠를 통째로 리마운트한다.
- *   mission.id만 key로 쓰면, exit 모션(300ms) 도중 같은 미션을 다시 열 때 BottomSheet의
+ *   missionId/preview/step/entry를 그대로 두므로 여기서 별도 미러가 필요 없다.
+ * - inner 래퍼의 key={`${missionId}:${openSeq}`}: 오픈 단위로 콘텐츠를 통째로 리마운트한다.
+ *   missionId만 key로 쓰면, exit 모션(300ms) 도중 같은 미션을 다시 열 때 BottomSheet의
  *   AnimatePresence가 서브트리를 언마운트하지 않아 AddMissionPanel의 로컬 선택(useState)이
  *   이전 오픈 그대로 살아남는다 — "취소하면 로컬 토글은 버려진다"는 계약이 깨지고, 그 상태로
  *   '추가하기'를 누르면 담겨 있던 일정이 해제된다. openSeq가 그 창을 닫는다.
+ * - 상세 스텝은 useMissionDetail(missionId)을 구독해 로딩/에러/성공 세 상태를 그린다. preview는
+ *   상세 응답이 오기 전 헤더 제목(및 add 진입 시 요약 카드)을 즉시 그리기 위한 값일 뿐이다.
+ * - 일정 추가 화면에서 쓸 찜 목록은 useMissionPlanLikes(missionId)을 시트가 열릴 때 함께
+ *   프리페치한다 — AddMissionPanel이 같은 쿼리 키로 다시 구독하면 캐시를 그대로 재사용한다.
  */
 "use client";
 
@@ -29,7 +33,12 @@ import { AnimatePresence, motion, useIsPresent } from "framer-motion";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import { slideStep } from "@/app/_components/motion/tokens";
 import { useMissionSheetStore } from "../_store/useMissionSheetStore";
-import { useMyPlans } from "../_hooks/useMissionQueries";
+import {
+  useMissionDetail,
+  useMissionPlanLikes,
+} from "../_hooks/useMissionQueries";
+import type { MissionDetail } from "@/app/_api/missions";
+import type { UseQueryResult } from "@tanstack/react-query";
 import AddMissionPanel from "./AddMissionPanel";
 import MissionDetailPanel from "./MissionDetailPanel";
 
@@ -60,11 +69,66 @@ function StepPane({
   );
 }
 
+/** 상세 조회 로딩 중 보여줄 스켈레톤. 이미지 블록 + 별점 줄 + 본문 2~3줄 정도로 실제 패널과 높이를 맞춘다 */
+function MissionDetailSkeleton() {
+  return (
+    <div className="h-full overflow-y-auto overscroll-contain scrollbar-hide px-[20px] pb-8">
+      <div className="aspect-[343/387] w-full animate-pulse rounded-[12px] bg-surface" />
+      <div className="mt-[17px] flex items-center justify-between gap-2">
+        <div className="h-[16px] w-[72px] animate-pulse rounded-full bg-surface" />
+        <div className="h-[32px] w-[74px] animate-pulse rounded-full bg-surface" />
+      </div>
+      <div className="mt-[21px] flex flex-col gap-2">
+        <div className="h-[14px] w-full animate-pulse rounded-full bg-surface" />
+        <div className="h-[14px] w-full animate-pulse rounded-full bg-surface" />
+        <div className="h-[14px] w-2/3 animate-pulse rounded-full bg-surface" />
+      </div>
+    </div>
+  );
+}
+
+/** 상세 조회 실패 시 보여줄 재시도 화면 */
+function MissionDetailErrorState({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslations("mission");
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-[20px]">
+      <p className="text-[13px] font-medium text-subtext">
+        {t("sheet.loadError")}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="rounded-full bg-dark px-4 py-2 text-[12px] font-semibold text-white transition duration-150 motion-safe:active:scale-[0.97]"
+      >
+        {t("retry")}
+      </button>
+    </div>
+  );
+}
+
+/** 상세 스텝 콘텐츠. 로딩/에러/성공 세 상태를 detail 쿼리 결과로 분기한다 */
+function MissionDetailStep({
+  detail,
+  onAddClick,
+}: {
+  detail: UseQueryResult<MissionDetail>;
+  onAddClick: () => void;
+}) {
+  if (detail.data) {
+    return <MissionDetailPanel detail={detail.data} onAddClick={onAddClick} />;
+  }
+  if (detail.isError) {
+    return <MissionDetailErrorState onRetry={() => detail.refetch()} />;
+  }
+  return <MissionDetailSkeleton />;
+}
+
 export default function MissionSheet() {
   const t = useTranslations("mission");
 
   const open = useMissionSheetStore((s) => s.open);
-  const mission = useMissionSheetStore((s) => s.mission);
+  const missionId = useMissionSheetStore((s) => s.missionId);
+  const preview = useMissionSheetStore((s) => s.preview);
   const openSeq = useMissionSheetStore((s) => s.openSeq);
   const step = useMissionSheetStore((s) => s.step);
   const entry = useMissionSheetStore((s) => s.entry);
@@ -72,8 +136,10 @@ export default function MissionSheet() {
   const goBackToDetail = useMissionSheetStore((s) => s.goBackToDetail);
   const close = useMissionSheetStore((s) => s.close);
 
-  // 시트가 열릴 때 내 일정 목록을 미리 fetch (실제 사용은 AddMissionPanel 내부)
-  useMyPlans(open);
+  const detail = useMissionDetail(missionId, open);
+  // 일정 추가 화면에서 쓸 찜 목록을 시트가 열릴 때 함께 프리페치한다.
+  // 결과는 AddMissionPanel이 같은 훅으로 캐시에서 읽는다.
+  useMissionPlanLikes(missionId, open);
 
   // 스텝 전환 시 새 pane으로 포커스를 옮긴다. 퇴장 중인 pane이 언마운트될 때 실행되는
   // ref 콜백(null)이 새 pane 참조를 지우지 않도록 non-null일 때만 기록한다.
@@ -90,7 +156,7 @@ export default function MissionSheet() {
     paneRef.current?.focus({ preventScroll: true });
   }, [step, openSeq]);
 
-  if (!mission) return null;
+  if (!missionId || !preview) return null;
 
   const showBack = entry === "detail" && step === "add";
   // 스텝이 둘뿐이라 "어디로 가는가"만으로 방향이 결정된다 (add=앞으로, detail=뒤로)
@@ -99,8 +165,9 @@ export default function MissionSheet() {
   return (
     <BottomSheet
       open={open}
-      // 상세 스텝의 헤더 제목은 미션 제목 자체다 (디자인 685:2251). 본문에는 제목을 다시 쓰지 않는다.
-      title={step === "detail" ? mission.title : t("add.title")}
+      // 상세 스텝의 헤더 제목은 미션 제목 자체다 (디자인 685:2251). 상세 응답 도착 전에도
+      // preview.title로 즉시 그린다. 본문에는 제목을 다시 쓰지 않는다.
+      title={step === "detail" ? preview.title : t("add.title")}
       onClose={close}
       closeLabel={t("close")}
       onBack={showBack ? goBackToDetail : undefined}
@@ -108,7 +175,7 @@ export default function MissionSheet() {
       animated
       contentMode="fill"
     >
-      <div key={`${mission.id}:${openSeq}`} className="relative h-full">
+      <div key={`${missionId}:${openSeq}`} className="relative h-full">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={step}
@@ -121,9 +188,15 @@ export default function MissionSheet() {
           >
             <StepPane paneRef={setPaneRef}>
               {step === "detail" ? (
-                <MissionDetailPanel mission={mission} onAddClick={goToAdd} />
+                <MissionDetailStep detail={detail} onAddClick={goToAdd} />
               ) : (
-                <AddMissionPanel mission={mission} onDone={close} onCancel={close} />
+                <AddMissionPanel
+                  missionId={missionId}
+                  preview={preview}
+                  active={open}
+                  onDone={close}
+                  onCancel={close}
+                />
               )}
             </StepPane>
           </motion.div>

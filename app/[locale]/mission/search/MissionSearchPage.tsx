@@ -22,6 +22,7 @@ import {
   fadeSwap,
   TAP,
 } from "@/app/_components/motion/tokens";
+import { dedupeById } from "@/app/_lib/dedupeById";
 import { DIFFICULTIES } from "../_constants";
 import { useMissionSearch } from "../_hooks/useMissionQueries";
 import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
@@ -79,7 +80,7 @@ export default function MissionSearchPage() {
   }
 
   const missions = useMemo<Mission[]>(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
+    () => dedupeById(data?.pages.flatMap((page) => page.items) ?? []),
     [data],
   );
   const totalCount = data?.pages[0]?.totalCount ?? 0;
@@ -113,6 +114,26 @@ export default function MissionSearchPage() {
     setCategories(next);
     setCategorySheetOpen(false);
   }, []);
+
+  const handleSelect = useCallback(
+    (m: Mission) =>
+      openDetail(m.id, {
+        title: m.title,
+        difficulty: m.difficulty,
+        imageUrl: m.imageUrl,
+      }),
+    [openDetail],
+  );
+
+  const handleAddClick = useCallback(
+    (m: Mission) =>
+      openAdd(m.id, {
+        title: m.title,
+        difficulty: m.difficulty,
+        imageUrl: m.imageUrl,
+      }),
+    [openAdd],
+  );
 
   // 카테고리 버튼 라벨: 0개=기본 라벨, 1개=해당 카테고리명, 2개 이상="{카테고리명} 외 N"
   const categoryButtonLabel = useMemo(() => {
@@ -265,8 +286,8 @@ export default function MissionSearchPage() {
                 >
                   <MissionCardSmall
                     mission={mission}
-                    onAddClick={openAdd}
-                    onSelect={openDetail}
+                    onAddClick={handleAddClick}
+                    onSelect={handleSelect}
                   />
                 </motion.div>
               ))}
@@ -286,6 +307,7 @@ export default function MissionSearchPage() {
         categories={categories}
         query={debouncedQuery}
         difficulty={difficulty}
+        sort={sort}
         onClose={() => setCategorySheetOpen(false)}
         onConfirm={handleCategoryConfirm}
       />

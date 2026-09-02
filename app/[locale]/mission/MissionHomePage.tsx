@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
+import { dedupeById } from "@/app/_lib/dedupeById";
 import { PlusIcon, SearchIcon } from "@/app/_components/icons";
 import {
   fadeSwap,
@@ -43,8 +44,18 @@ export default function MissionHomePage() {
   } = useMissionList(filter);
 
   const missions = useMemo<Mission[]>(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
+    () => dedupeById(data?.pages.flatMap((page) => page.items) ?? []),
     [data],
+  );
+
+  const handleAddClick = useCallback(
+    (m: Mission) =>
+      openAddMission(m.id, {
+        title: m.title,
+        difficulty: m.difficulty,
+        imageUrl: m.imageUrl,
+      }),
+    [openAddMission],
   );
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -192,7 +203,7 @@ export default function MissionHomePage() {
                 <motion.div key={mission.id} {...listItemEnter(index)}>
                   <MissionCardBig
                     mission={mission}
-                    onAddClick={openAddMission}
+                    onAddClick={handleAddClick}
                   />
                 </motion.div>
               ))}
