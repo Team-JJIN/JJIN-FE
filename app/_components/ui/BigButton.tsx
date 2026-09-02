@@ -20,16 +20,27 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const BigButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", fullWidth = false, isLoading = false, className, children, disabled, ...props }, ref) => {
+  (
+    {
+      variant = "primary",
+      fullWidth = false,
+      isLoading = false,
+      className,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <button
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "h-[48px] rounded-[16px] font-semibold text-[15px] leading-[140%] tracking-[-0.3%] transition-colors duration-150",
+          "h-[48px] rounded-[16px] font-semibold text-[15px] leading-[140%] tracking-[-0.3%] transition duration-150 motion-safe:active:enabled:scale-[0.98]",
           variantStyles[variant],
           fullWidth && "w-full",
-          className
+          className,
         )}
         {...props}
       >
@@ -43,7 +54,7 @@ const BigButton = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </button>
     );
-  }
+  },
 );
 
 BigButton.displayName = "BigButton";

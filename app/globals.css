@@ -6,8 +6,14 @@
 
 html,
 body {
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
-    system-ui, Roboto, sans-serif;
+  font-family:
+    "Pretendard Variable",
+    Pretendard,
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
@@ -18,11 +24,11 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* 스크롤바 숨김 */
-.scrollbar-hide::-webkit-scrollbar {
+/* 스크롤바 전역 숨김 (스크롤 동작은 유지) */
+*::-webkit-scrollbar {
   display: none;
 }
-.scrollbar-hide {
+* {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
