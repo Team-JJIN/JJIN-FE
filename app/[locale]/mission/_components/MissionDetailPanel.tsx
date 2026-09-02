@@ -13,25 +13,25 @@
 import { CameraIcon } from "@/app/_components/icons";
 import AddToggleButton from "./AddToggleButton";
 import DifficultyStars from "./DifficultyStars";
-import type { Mission } from "@/app/_api/missions";
+import type { MissionDetail } from "@/app/_api/missions";
 
 interface MissionDetailPanelProps {
-  mission: Mission;
+  detail: MissionDetail;
   onAddClick: () => void;
 }
 
 export default function MissionDetailPanel({
-  mission,
+  detail,
   onAddClick,
 }: MissionDetailPanelProps) {
   return (
     <div className="h-full overflow-y-auto overscroll-contain scrollbar-hide px-[20px] pb-8">
       {/* 이미지: 디자인 실측 343×387 (r12). 고정 높이 대신 비율로 잡아 시트 폭에 따라 같이 커진다 */}
       <div className="relative aspect-[343/387] w-full overflow-hidden rounded-[12px] bg-surface">
-        {mission.imageUrl ? (
+        {detail.imageUrl ? (
           <img
-            src={mission.imageUrl}
-            alt={mission.title}
+            src={detail.imageUrl}
+            alt={detail.title}
             className="h-full w-full object-cover"
           />
         ) : (
@@ -43,16 +43,16 @@ export default function MissionDetailPanel({
 
       {/* 난이도(좌) | 추가(우) — 제목은 시트 헤더로 올라갔으므로 본문의 첫 행은 메타 정보다 */}
       <div className="mt-[17px] flex items-center justify-between gap-2">
-        <DifficultyStars difficulty={mission.difficulty} />
-        <AddToggleButton isAdded={mission.isAdded} onClick={onAddClick} />
+        <DifficultyStars difficulty={detail.difficulty} />
+        <AddToggleButton isAdded={detail.isAdded} onClick={onAddClick} />
       </div>
 
       <p className="mt-[21px] whitespace-pre-line text-[12px] font-medium leading-[1.6] text-subtext">
-        {mission.description}
+        {detail.description}
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {mission.hashtags.map((tag) => (
+        {detail.hashtags.map((tag) => (
           <span
             key={tag}
             className="rounded-full bg-surface px-3 py-1 text-[12px] font-medium text-subtext"

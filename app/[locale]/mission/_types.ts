@@ -3,7 +3,7 @@
  */
 export type {
   Mission,
-  MyPlan,
+  MissionDetail,
   Paginated,
   CreateMissionInput,
   MissionDifficulty,
@@ -16,7 +16,7 @@ export type {
   FeedPost,
   FeedTab,
   FeedComment,
-  FeedMission,
+  FeedMissionSummary,
 } from "@/app/_api/feed";
 
 import type {

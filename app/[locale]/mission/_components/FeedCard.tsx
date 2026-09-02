@@ -14,14 +14,13 @@ import Avatar from "@/app/_components/ui/Avatar";
 import { heartPop, TAP } from "@/app/_components/motion/tokens";
 import DifficultyStars from "./DifficultyStars";
 import AddToggleButton from "./AddToggleButton";
-import type { FeedPost } from "@/app/_api/feed";
-import type { Mission } from "@/app/_api/missions";
+import type { FeedPost, FeedMissionSummary } from "@/app/_api/feed";
 
 interface FeedCardProps {
   post: FeedPost;
   onLikeToggle: (post: FeedPost) => void;
   onCommentClick: (post: FeedPost) => void;
-  onAddClick: (mission: Mission) => void;
+  onAddClick: (mission: FeedMissionSummary) => void;
 }
 
 export default function FeedCard({
@@ -113,17 +112,10 @@ export default function FeedCard({
           {/* 하단 미션 요약 카드 */}
           <div className="mt-1 flex w-full items-center justify-between gap-3 rounded-[16px] bg-white px-[21px] py-[11px] shadow-[0px_5px_9px_0px_rgba(23,23,23,0.08)]">
             <div className="flex min-w-0 items-center gap-[24px]">
-              {post.mission.imageUrl ? (
-                <img
-                  src={post.mission.imageUrl}
-                  alt={post.mission.title}
-                  className="size-[35px] shrink-0 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex size-[35px] shrink-0 items-center justify-center rounded-full bg-lime-pale">
-                  <SparkleIcon size={20} className="text-lime-vivid" />
-                </div>
-              )}
+              {/* 서버 피드 mission 요약에 imageUrl이 없어(BE 확인 필요, plan §6-5) 항상 플레이스홀더를 그린다 */}
+              <div className="flex size-[35px] shrink-0 items-center justify-center rounded-full bg-lime-pale">
+                <SparkleIcon size={20} className="text-lime-vivid" />
+              </div>
               <div className="flex min-w-0 flex-col gap-[2px]">
                 <h3 className="line-clamp-2 text-[15px] font-semibold tracking-[-0.045px] text-ink">
                   {post.mission.title}
@@ -131,10 +123,8 @@ export default function FeedCard({
                 <DifficultyStars difficulty={post.mission.difficulty} />
               </div>
             </div>
-            <AddToggleButton
-              isAdded={post.mission.isAdded}
-              onClick={handleAddClick}
-            />
+            {/* 서버 피드 mission 요약에 isAdded가 없어(BE 확인 필요, plan §6-5) 추가 상태 없이 시트만 연다 */}
+            <AddToggleButton isAdded={false} onClick={handleAddClick} />
           </div>
         </div>
       </div>

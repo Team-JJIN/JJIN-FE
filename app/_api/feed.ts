@@ -2,35 +2,34 @@
  * @module api/feed
  * 미션 인증 피드 API 모듈. 3층 구조:
  *   [DTO 타입: 서버 응답 그대로] → [mapper: 도메인 변환] → [fetch 함수: 훅이 호출]
- * 현재 fetch 함수 본문은 mock을 부르지만, mock도 DTO 페이지를 만들어 같은 mapper를 통과하므로
- * 실서버 전환 시 각 fetch 함수의 `// 추후:` 한 줄로 본문만 바꾸면 된다. 규칙: docs/API-RULE.md
- * (주의: client.ts에는 아직 apiGet이 없음 — 연동 시 apiPost와 같은 서명으로 추가)
+ * 실서버(`/api/missions/proofs/*`) 연결됨. 공용 DTO·mapper(`MissionDifficultyDto`, `Paginated`,
+ * `toPaginated`, `normalizeServerDate` 등)는 app/_api/shared.ts에서 가져온다. 규칙: docs/API-RULE.md
  */
 
-import type { Mission, MissionDifficulty, Paginated } from "./missions";
+import { apiGet, apiPost } from "./client";
 import {
-  findMockMission,
-  mockCommentPage,
-  mockCreateComment,
-  mockFeedPage,
-  mockToggleLike,
-} from "./mock/feed.mock";
+  buildQuery,
+  toDifficulty,
+  toPaginated,
+  normalizeServerDate,
+  type MissionDifficulty,
+  type MissionDifficultyDto,
+  type PageMetaDto,
+  type Paginated,
+} from "./shared";
 
-// ───────────── DTO (서버 계약: Notion Temp API "미션 인증 피드") ─────────────
+// ───────────── DTO (서버 계약: MissionProofController, BE 소스 verbatim) ─────────────
 
 /** 피드 탭 서버 enum (MissionProofFeedTab) */
 export type FeedTabDto = "LATEST" | "POPULAR" | "WEEKLY_HOT" | "COMPLETED";
 
-/** 난이도 서버 enum */
-export type MissionDifficultyDto = "ONE" | "TWO" | "THREE";
-
 export interface FeedAuthorDto {
   memberId: number;
-  nickname: string;
+  nickname: string | null;
   profileImageUrl: string | null;
 }
 
-/** 피드 item.mission — 요약 4필드뿐. 전체 Mission이 아니다 (계약 공백 #1) */
+/** 피드 item.mission — 요약 4필드뿐. 전체 Mission이 아니다 (계약 공백 #1, docs/API-RULE.md) */
 export interface FeedMissionSummaryDto {
   missionId: number;
   title: string;
@@ -51,13 +50,6 @@ export interface FeedItemDto {
   mission: FeedMissionSummaryDto;
 }
 
-/** page/size/hasNext 페이지 메타 (피드·댓글 공통) */
-export interface PageMetaDto {
-  page: number;
-  size: number;
-  hasNext: boolean;
-}
-
 export interface FeedPageDto extends PageMetaDto {
   tab: FeedTabDto;
   items: FeedItemDto[];
@@ -69,9 +61,15 @@ export interface FeedLikeToggleDto {
   likeCount: number;
 }
 
+/** 댓글 작성자 — 피드 author(MissionProofAuthorResponse)와 별개 타입(MissionProofCommentAuthorResponse). profileImageUrl 없음 */
+export interface FeedCommentAuthorDto {
+  memberId: number;
+  nickname: string | null;
+}
+
 export interface FeedCommentDto {
   commentId: number;
-  author: { memberId: number; nickname: string };
+  author: FeedCommentAuthorDto;
   content: string;
   /** LocalDateTime — 타임존 없음 */
   createdAt: string;
@@ -87,8 +85,6 @@ export interface FeedCommentCreateDto {
   commentId: number;
   proofId: number;
   content: string;
-  /** 서버 계산 표시 문자열. 클라이언트는 쓰지 않는다 (언어별 표기 + 표시 시점 재계산 필요) */
-  timeAgo: string;
   createdAt: string;
   commentCount: number;
 }
@@ -103,8 +99,14 @@ export interface FeedAuthor {
   avatarUrl: string | null;
 }
 
-/** 피드 카드 하단 미션 요약 = 기존 Mission(추가 토글·시트가 요구) + 주간 완료 수 */
-export interface FeedMission extends Mission {
+/**
+ * 피드 카드 하단 미션 요약. 서버 item.mission이 4필드뿐이라(계약 공백 #1) 카드 추가 토글·상세 시트가
+ * 요구하는 isAdded/imageUrl/category/hashtags 등은 없다 — 소비처는 missionId로 미션 상세를 따로 연다.
+ */
+export interface FeedMissionSummary {
+  id: string;
+  title: string;
+  difficulty: MissionDifficulty;
   weeklyCompletedCount: number;
 }
 
@@ -118,7 +120,7 @@ export interface FeedPost {
   commentCount: number;
   /** ISO 8601 (타임존 포함) */
   createdAt: string;
-  mission: FeedMission;
+  mission: FeedMissionSummary;
 }
 
 export interface FeedComment {
@@ -153,46 +155,12 @@ export const FEED_TAB_TO_DTO: Record<FeedTab, FeedTabDto> = {
   completed: "COMPLETED",
 };
 
-const DIFFICULTY_FROM_DTO: Record<MissionDifficultyDto, MissionDifficulty> = {
-  ONE: 1,
-  TWO: 2,
-  THREE: 3,
-};
-
-export function toDifficulty(dto: MissionDifficultyDto): MissionDifficulty {
-  return DIFFICULTY_FROM_DTO[dto];
-}
-
-const HAS_ZONE = /(Z|[+-]\d{2}:?\d{2})$/i;
-
-/** 서버 LocalDateTime(타임존 없음)을 KST(+09:00)로 못박은 ISO 문자열로 만든다. 이미 타임존이 있으면 그대로 */
-export function normalizeServerDate(value: string): string {
-  return HAS_ZONE.test(value) ? value : `${value}+09:00`;
-}
-
-/** 서버 {page, hasNext} 페이지를 앱의 커서 페이지네이션으로 (다음 커서 = page + 1) */
-export function toPaginated<TDto, T>(
-  meta: PageMetaDto,
-  items: TDto[],
-  mapItem: (dto: TDto) => T,
-): Paginated<T> {
-  return {
-    items: items.map(mapItem),
-    nextCursor: meta.hasNext ? meta.page + 1 : null,
-  };
-}
-
-/**
- * mission 인자: 카드의 추가 토글·상세 시트가 전체 Mission을 요구하지만 피드 item.mission은 요약 4필드뿐이다.
- * 그래서 호출부가 전체 Mission을 넘기고, 요약 DTO의 값(title/difficulty/weeklyCompletedCount)으로 덮는다.
- * 계약 공백 #1 (docs/API-RULE.md) — 서버가 item.mission을 확장하면 두 번째 인자를 없앤다.
- */
-export function toFeedPost(dto: FeedItemDto, mission: Mission): FeedPost {
+export function toFeedPost(dto: FeedItemDto): FeedPost {
   return {
     id: String(dto.proofId),
     author: {
       id: String(dto.author.memberId),
-      nickname: dto.author.nickname,
+      nickname: dto.author.nickname ?? "",
       avatarUrl: dto.author.profileImageUrl,
     },
     imageUrl: dto.imageUrl,
@@ -202,9 +170,7 @@ export function toFeedPost(dto: FeedItemDto, mission: Mission): FeedPost {
     commentCount: dto.commentCount,
     createdAt: normalizeServerDate(dto.createdAt),
     mission: {
-      // id는 전체 Mission 것을 그대로 쓴다 (mock: "mission-N"; 실서버 전환 시 Mission.id는
-      // String(serverId)로 통일되므로 동일하다). 요약 DTO의 missionId는 조회 키일 뿐 덮어쓰지 않는다.
-      ...mission,
+      id: String(dto.mission.missionId),
       title: dto.mission.title,
       difficulty: toDifficulty(dto.mission.difficulty),
       weeklyCompletedCount: dto.mission.weeklyCompletedCount,
@@ -217,7 +183,7 @@ export function toFeedComment(dto: FeedCommentDto): FeedComment {
     id: String(dto.commentId),
     author: {
       id: String(dto.author.memberId),
-      nickname: dto.author.nickname,
+      nickname: dto.author.nickname ?? "",
       // 계약 공백 #2: 댓글 author에 profileImageUrl이 없다
       avatarUrl: null,
     },
@@ -248,14 +214,10 @@ export function toCreatedFeedComment(
 
 // ───────────── fetch 함수 ─────────────
 
-/** mock 무한 스크롤 확인용으로 작게 둔다. 실서버 연동 시 서버 기본값 10(최대 50)으로 */
-export const FEED_PAGE_SIZE = 3;
+/** 서버 기본값과 동일 */
+export const FEED_PAGE_SIZE = 10;
 /** 서버 기본값과 동일 */
 export const COMMENT_PAGE_SIZE = 20;
-
-function delay(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
-}
 
 // 미션 인증 피드 (탭별 페이지)
 export async function fetchFeed({
@@ -265,24 +227,30 @@ export async function fetchFeed({
   tab: FeedTab;
   cursor: number;
 }): Promise<Paginated<FeedPost>> {
-  // 추후 (경로는 가정 — docs/API-RULE.md 계약 공백 #6):
-  // const page = (await apiGet<FeedPageDto>(`/api/mission-proofs/feed?${new URLSearchParams({ tab: FEED_TAB_TO_DTO[tab], page: String(cursor), size: String(FEED_PAGE_SIZE) })}`)).data;
-  await delay(400);
-  const page = mockFeedPage(FEED_TAB_TO_DTO[tab], cursor, FEED_PAGE_SIZE);
-  // 추후: toFeedPost 두 번째 인자(findMockMission)는 계약 공백 #1 해소 후 제거(서버 item.mission 확장) 또는 미션 상세 조회로 대체
-  return toPaginated(page, page.items, (item) =>
-    toFeedPost(item, findMockMission(item.mission.missionId)),
-  );
+  const page = (
+    await apiGet<FeedPageDto>(
+      `/api/missions/proofs/feed${buildQuery({
+        tab: FEED_TAB_TO_DTO[tab],
+        page: cursor,
+        size: FEED_PAGE_SIZE,
+      })}`,
+    )
+  ).data;
+  return toPaginated(page, page.items.map(toFeedPost));
 }
 
 // 피드 좋아요 토글 — 서버가 토글 후 상태를 돌려준다 (클라이언트는 원하는 상태를 보내지 않는다)
 export async function toggleFeedLike(postId: string): Promise<FeedLikeResult> {
-  // 추후: return toFeedLikeResult((await apiPost<FeedLikeToggleDto>(`/api/mission-proofs/${Number(postId)}/likes`, {})).data);
-  await delay(300);
-  return toFeedLikeResult(mockToggleLike(Number(postId)));
+  const result = (
+    await apiPost<FeedLikeToggleDto>(
+      `/api/missions/proofs/${Number(postId)}/likes/toggle`,
+      {}, // 바디 없는 엔드포인트 — client.ts(apiPost)가 body를 필수로 받아 빈 객체를 보낸다
+    )
+  ).data;
+  return toFeedLikeResult(result);
 }
 
-// 댓글 목록 (오래된 순, page 0 = 가장 오래된 댓글 — 정렬은 가정, 계약 공백 #5)
+// 댓글 목록 (오래된 순, page 0 = 가장 오래된 댓글 — BE MissionProofCommentRepository가 `order by createdAt asc, id asc`로 정렬)
 export async function fetchFeedComments({
   postId,
   cursor,
@@ -290,10 +258,15 @@ export async function fetchFeedComments({
   postId: string;
   cursor: number;
 }): Promise<Paginated<FeedComment>> {
-  // 추후: const page = (await apiGet<FeedCommentPageDto>(`/api/mission-proofs/${Number(postId)}/comments?${new URLSearchParams({ page: String(cursor), size: String(COMMENT_PAGE_SIZE) })}`)).data;
-  await delay(300);
-  const page = mockCommentPage(Number(postId), cursor, COMMENT_PAGE_SIZE);
-  return toPaginated(page, page.comments, toFeedComment);
+  const page = (
+    await apiGet<FeedCommentPageDto>(
+      `/api/missions/proofs/${Number(postId)}/comments${buildQuery({
+        page: cursor,
+        size: COMMENT_PAGE_SIZE,
+      })}`,
+    )
+  ).data;
+  return toPaginated(page, page.comments.map(toFeedComment));
 }
 
 // 댓글 생성
@@ -301,7 +274,11 @@ export async function createFeedComment(
   postId: string,
   content: string,
 ): Promise<CreatedFeedComment> {
-  // 추후: return toCreatedFeedComment((await apiPost<FeedCommentCreateDto>(`/api/mission-proofs/${Number(postId)}/comments`, { content })).data);
-  await delay(300);
-  return toCreatedFeedComment(mockCreateComment(Number(postId), content));
+  const created = (
+    await apiPost<FeedCommentCreateDto>(
+      `/api/missions/proofs/${Number(postId)}/comments`,
+      { content },
+    )
+  ).data;
+  return toCreatedFeedComment(created);
 }

@@ -14,14 +14,23 @@ import {
 import {
   fetchMissions,
   searchMissions,
-  fetchMyPlans,
+  fetchMissionDetail,
+  fetchMissionPlanLikes,
+  addMissionToPlans,
+  removeMissionFromPlans,
   createMission,
-  setMissionPlans,
+  uploadMissionImage,
 } from "@/app/_api/missions";
-import type { Mission, MissionFilter, Paginated } from "@/app/_api/missions";
-import type { FeedPost } from "@/app/_api/feed";
+import type {
+  Mission,
+  MissionDetail,
+  MissionPlanLikes,
+  MissionFilter,
+  MissionDifficulty,
+  SearchMissionsParams,
+  Paginated,
+} from "@/app/_api/missions";
 import type { SearchFilterState } from "../_types";
-import { feedKeys } from "./useFeedQueries";
 
 // --- 쿼리 키 팩토리 ---
 export const missionKeys = {
@@ -30,10 +39,10 @@ export const missionKeys = {
     [...missionKeys.all, "list", filter] as const,
   search: (params: SearchFilterState) =>
     [...missionKeys.all, "search", params] as const,
-};
-
-export const planKeys = {
-  my: ["myPlans"] as const,
+  searchCount: (params: Omit<SearchMissionsParams, "cursor">) =>
+    [...missionKeys.all, "searchCount", params] as const,
+  detail: (id: string) => [...missionKeys.all, "detail", id] as const,
+  planLikes: (id: string) => [...missionKeys.all, "planLikes", id] as const,
 };
 
 // 미션 추천 목록 (필터별 무한 스크롤)
@@ -59,131 +68,173 @@ export function useMissionSearch(params: SearchFilterState) {
   });
 }
 
-// 내 일정 목록 (미션 시트가 열렸을 때만 조회)
-export function useMyPlans(enabled: boolean) {
-  return useQuery({
-    queryKey: planKeys.my,
-    queryFn: fetchMyPlans,
+// 검색 필터 조합에 해당하는 총 미션 수 (CategorySheet 확인 버튼 라벨용)
+// enabled: 시트가 닫혀 있을 때는 조회하지 않는다 — 검색 페이지에서 필터를 바꿀 때마다 카운트가
+// 따라 도는 것을 막고, 비활성 쿼리는 invalidateQueries의 재조회 대상에서도 빠진다.
+// 키는 ["missions"] prefix 아래에 둔다 — 미션 생성 시 총 건수가 실제로 바뀌므로
+// useCreateMission의 missionKeys.all invalidate에 같이 걸리는 것이 맞다.
+export function useMissionSearchCount(
+  params: Omit<SearchMissionsParams, "cursor">,
+  enabled = true,
+) {
+  return useQuery<number>({
+    queryKey: missionKeys.searchCount(params),
+    queryFn: () =>
+      searchMissions({ ...params, cursor: 0 }).then((p) => p.totalCount),
+    placeholderData: keepPreviousData,
     enabled,
   });
 }
 
-// 미션 생성
+// 미션 상세 (시트가 열렸을 때만 조회)
+export function useMissionDetail(missionId: string | null, enabled: boolean) {
+  return useQuery<MissionDetail>({
+    queryKey: missionKeys.detail(missionId ?? ""),
+    queryFn: () => fetchMissionDetail(missionId as string),
+    enabled: enabled && !!missionId,
+  });
+}
+
+// 미션의 일정별 찜 여부 (일정 추가 화면이 열렸을 때만 조회)
+export function useMissionPlanLikes(
+  missionId: string | null,
+  enabled: boolean,
+) {
+  return useQuery<MissionPlanLikes>({
+    queryKey: missionKeys.planLikes(missionId ?? ""),
+    queryFn: () => fetchMissionPlanLikes(missionId as string),
+    enabled: enabled && !!missionId,
+  });
+}
+
+// 미션 생성 (이미지 업로드 → 생성을 mutationFn 안에서 순차 실행)
 export function useCreateMission() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: createMission,
+    mutationFn: async ({
+      title,
+      description,
+      difficulty,
+      hashtags,
+      file,
+    }: {
+      title: string;
+      description: string;
+      difficulty: MissionDifficulty;
+      hashtags: string[];
+      file: File;
+    }) => {
+      const imageUrl = await uploadMissionImage(file);
+      const created = await createMission({
+        title,
+        description,
+        difficulty,
+        hashtags,
+        imageUrl,
+      });
+      // 서버 응답은 missionId뿐이라, 생성 직후 시트 preview(썸네일)에 쓸 업로드 URL을 함께 돌려준다
+      return { id: created.id, imageUrl };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: missionKeys.all });
-      queryClient.invalidateQueries({ queryKey: feedKeys.all });
     },
   });
 }
 
-// 미션 추가/제거 시 미션·피드 인피니트 캐시에서 해당 미션의 필드를 갱신한다.
-// list·search 페이지 형태가 달라도(search는 totalCount 포함) ...page 스프레드로 나머지 필드를 보존한다.
+// missionKeys.all 아래 모든 무한 스크롤 페이지에서 해당 미션의 isAdded를 패치한다.
+// list·search 페이지 형태가 달라도(search는 totalCount 포함) items만 있으면 매칭한다.
+// ["missions"] prefix에는 인피니트가 아닌 캐시(detail 단건, searchCount 단발 조회)도 걸릴 수
+// 있다 — pages 배열이 없으면 패치 대상이 아니므로 그대로 통과시킨다.
+// (여기서 throw가 나면 onMutate 전체가 실패해 mutation이 시작되지 않는다)
+// page.items가 배열이 아닌 페이지도 마찬가지로 그대로 통과시킨다 (useFeedQueries.ts의
+// patchFeedPost와 동일한 방어).
 function patchMissionInPages<T extends { items: Mission[] }>(
   old: InfiniteData<T> | undefined,
   missionId: string,
-  patch: Partial<Pick<Mission, "isAdded" | "addedPlanIds">>,
+  isAdded: boolean,
 ): InfiniteData<T> | undefined {
-  // ["missions"] prefix에는 인피니트가 아닌 캐시(예: 카테고리 시트의 카운트 단발 조회)도
-  // 걸릴 수 있다 — pages 배열이 없으면 패치 대상이 아니므로 그대로 통과시킨다.
-  // (여기서 throw가 나면 onMutate 전체가 실패해 mutation이 시작되지 않는다)
   if (!old || !Array.isArray(old.pages)) return old;
   return {
     ...old,
-    pages: old.pages.map((page) => ({
-      ...page,
-      items: page.items.map((m) =>
-        m.id === missionId ? { ...m, ...patch } : m,
-      ),
-    })),
+    pages: old.pages.map((page) => {
+      if (!Array.isArray(page.items)) return page;
+      return {
+        ...page,
+        items: page.items.map((m) =>
+          m.id === missionId ? { ...m, isAdded } : m,
+        ),
+      };
+    }),
   };
 }
 
-function patchMissionInFeedPages(
-  old: InfiniteData<Paginated<FeedPost>> | undefined,
-  missionId: string,
-  patch: Partial<Pick<Mission, "isAdded" | "addedPlanIds">>,
-): InfiniteData<Paginated<FeedPost>> | undefined {
-  if (!old || !Array.isArray(old.pages)) return old;
-  return {
-    ...old,
-    pages: old.pages.map((page) => ({
-      ...page,
-      items: page.items.map((post) =>
-        post.mission.id === missionId
-          ? { ...post, mission: { ...post.mission, ...patch } }
-          : post,
-      ),
-    })),
-  };
-}
-
-// 미션을 담을 일정 목록을 설정 (낙관적 업데이트 → 실패 시 롤백 → 성공 시 서버 응답으로 재패치 → 정리 refetch)
-export function useSetMissionPlans() {
+// 미션을 담을 일정 목록을 갱신 (add/remove diff를 순차 반영) — 낙관적 업데이트 → 실패 시 롤백 →
+// 정리 시 detail·planLikes·목록 전부 invalidate
+export function useUpdateMissionPlans() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       missionId,
-      planIds,
+      addPlanIds,
+      removePlanIds,
     }: {
       missionId: string;
-      planIds: string[];
-    }) => setMissionPlans(missionId, planIds),
-    onMutate: async ({ missionId, planIds }) => {
+      addPlanIds: string[];
+      removePlanIds: string[];
+      nextIsAdded: boolean;
+    }) => {
+      // 순서 고정: 해제(DELETE)는 client-ext 경유라 401 재발급이 없어, 앞선 POST(add)가
+      // 토큰을 갱신하게 둔다(병렬 금지). 부분 실패(add 성공·remove 실패)는 onError 롤백 뒤
+      // onSettled invalidate가 서버 진실로 수렴시키고, 실패 자체는 AddMissionPanel이
+      // isError로 표시한다.
+      if (addPlanIds.length > 0) {
+        await addMissionToPlans(missionId, addPlanIds);
+      }
+      if (removePlanIds.length > 0) {
+        await removeMissionFromPlans(missionId, removePlanIds);
+      }
+    },
+    onMutate: async ({ missionId, nextIsAdded }) => {
       await queryClient.cancelQueries({ queryKey: missionKeys.all });
-      await queryClient.cancelQueries({ queryKey: feedKeys.all });
 
       const previousMissionQueries = queryClient.getQueriesData<
         InfiniteData<Paginated<Mission>>
       >({ queryKey: missionKeys.all });
-      const previousFeedQueries = queryClient.getQueriesData<
-        InfiniteData<Paginated<FeedPost>>
-      >({ queryKey: feedKeys.all });
-
-      // planIds는 호출한 컴포넌트의 state 배열 그 자체일 수 있다 — 캐시가 그 배열을 공유하면
-      // 컴포넌트 쪽 제자리 변경이 여러 쿼리 캐시로 번지므로 경계에서 복사한다.
-      const patch = { isAdded: planIds.length > 0, addedPlanIds: [...planIds] };
+      const previousDetail = queryClient.getQueryData<MissionDetail>(
+        missionKeys.detail(missionId),
+      );
 
       queryClient.setQueriesData<InfiniteData<Paginated<Mission>>>(
         { queryKey: missionKeys.all },
-        (old) => patchMissionInPages(old, missionId, patch),
+        (old) => patchMissionInPages(old, missionId, nextIsAdded),
       );
-      queryClient.setQueriesData<InfiniteData<Paginated<FeedPost>>>(
-        { queryKey: feedKeys.all },
-        (old) => patchMissionInFeedPages(old, missionId, patch),
+      queryClient.setQueryData<MissionDetail>(
+        missionKeys.detail(missionId),
+        (old) => (old ? { ...old, isAdded: nextIsAdded } : old),
       );
 
-      return { previousMissionQueries, previousFeedQueries };
+      return { previousMissionQueries, previousDetail, missionId };
     },
     onError: (_err, _variables, context) => {
       context?.previousMissionQueries.forEach(([queryKey, data]) => {
         queryClient.setQueryData(queryKey, data);
       });
-      context?.previousFeedQueries.forEach(([queryKey, data]) => {
-        queryClient.setQueryData(queryKey, data);
+      if (context) {
+        queryClient.setQueryData(
+          missionKeys.detail(context.missionId),
+          context.previousDetail,
+        );
+      }
+    },
+    onSettled: (_data, _error, { missionId }) => {
+      queryClient.invalidateQueries({
+        queryKey: missionKeys.detail(missionId),
       });
-    },
-    onSuccess: (data, { missionId }) => {
-      // 서버가 반환한 현재 찜 목록을 진실로 삼아 낙관적 패치를 재확정한다 (invalidate refetch 전까지의 간극을 메움).
-      const planIds = data.likes.map((like) => like.planId);
-      const patch = { isAdded: planIds.length > 0, addedPlanIds: planIds };
-
-      queryClient.setQueriesData<InfiniteData<Paginated<Mission>>>(
-        { queryKey: missionKeys.all },
-        (old) => patchMissionInPages(old, missionId, patch),
-      );
-      queryClient.setQueriesData<InfiniteData<Paginated<FeedPost>>>(
-        { queryKey: feedKeys.all },
-        (old) => patchMissionInFeedPages(old, missionId, patch),
-      );
-    },
-    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: missionKeys.planLikes(missionId),
+      });
       queryClient.invalidateQueries({ queryKey: missionKeys.all });
-      queryClient.invalidateQueries({ queryKey: feedKeys.all });
     },
   });
 }

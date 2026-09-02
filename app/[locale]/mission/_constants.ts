@@ -3,16 +3,16 @@ import type { MissionCategory, MissionDifficulty } from "@/app/_api/missions";
 // 미션 필터 탭
 export const MISSION_FILTERS = ["all", "mustDo", "hot", "mine"] as const;
 
-// 미션 대분류 — onboarding.categories와 동일 키 체계
+// 미션 대분류 — 서버 TourApiContentType 8코드(mission.categories.* i18n 키와 동일)
 export const MISSION_CATEGORIES: MissionCategory[] = [
-  "food",
-  "experience",
-  "nature",
-  "history",
-  "culture",
-  "shopping",
-  "festival",
-  "leisure",
+  "TOURIST_ATTRACTION",
+  "CULTURAL_FACILITY",
+  "FESTIVAL_EVENT",
+  "TRAVEL_COURSE",
+  "LEISURE_SPORTS",
+  "LODGING",
+  "SHOPPING",
+  "RESTAURANT",
 ];
 
 // 정렬 옵션

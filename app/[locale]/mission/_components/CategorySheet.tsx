@@ -3,26 +3,30 @@
  * 카테고리 다중 선택 바텀시트. 열릴 때마다 커밋된 선택값을 임시 상태(temp)로 복사해 두고,
  * 확인 버튼을 눌러야만 상위로 커밋한다. X·딤 배경 탭·ESC로 닫으면 temp를 즉시 커밋값으로
  * 되돌린 뒤 onClose를 호출한다(재오픈 시 1프레임 stale 표시 및 카운트 쿼리 캐시 증식 방지).
- * 확인 버튼 라벨의 개수는 temp 카테고리 + 현재 검색어/난이도를 조합한 단발성 조회로 계산하며,
- * 이 쿼리키는 ["missions"] prefix 밖에 둬 미션 목록 낙관적 패치/무효화 대상에서 원천 제외한다.
+ * 확인 버튼 라벨의 개수는 temp 카테고리 + 현재 검색어/난이도/정렬을 조합해
+ * useMissionSearchCount(단발성 조회)로 계산한다.
  */
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import BigButton from "@/app/_components/ui/BigButton";
 import SelectChip from "@/app/_components/ui/SelectChip";
-import { searchMissions } from "@/app/_api/missions";
+import { useMissionSearchCount } from "../_hooks/useMissionQueries";
 import { MISSION_CATEGORIES } from "../_constants";
-import type { MissionCategory, MissionDifficulty } from "@/app/_api/missions";
+import type {
+  MissionCategory,
+  MissionDifficulty,
+  MissionSort,
+} from "@/app/_api/missions";
 
 interface CategorySheetProps {
   open: boolean;
   categories: MissionCategory[];
   query: string;
   difficulty: MissionDifficulty | null;
+  sort: MissionSort;
   onClose: () => void;
   onConfirm: (categories: MissionCategory[]) => void;
 }
@@ -32,6 +36,7 @@ export default function CategorySheet({
   categories,
   query,
   difficulty,
+  sort,
   onClose,
   onConfirm,
 }: CategorySheetProps) {
@@ -46,20 +51,16 @@ export default function CategorySheet({
     }
   }, [open, categories]);
 
-  const { data } = useQuery({
-    queryKey: ["missionSearchCount", tempCategories, query, difficulty],
-    queryFn: () =>
-      searchMissions({
-        query,
-        categories: tempCategories,
-        difficulty,
-        sort: "popular",
-        cursor: 0,
-      }),
-    enabled: open,
-    placeholderData: keepPreviousData,
-  });
-  const count = data?.totalCount ?? 0;
+  const { data, isFetching } = useMissionSearchCount(
+    {
+      query,
+      categories: tempCategories,
+      difficulty,
+      sort,
+    },
+    open,
+  );
+  const count = data ?? 0;
 
   const handleToggle = useCallback((category: MissionCategory) => {
     setTempCategories((prev) =>
@@ -88,8 +89,13 @@ export default function CategorySheet({
       animated
       heightClass="h-auto"
       footer={
-        <BigButton variant="primary" fullWidth onClick={handleConfirm}>
-          {t("viewCount", { count })}
+        <BigButton
+          variant="primary"
+          fullWidth
+          onClick={handleConfirm}
+          aria-busy={isFetching}
+        >
+          {isFetching ? t("search.counting") : t("viewCount", { count })}
         </BigButton>
       }
     >

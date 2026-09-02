@@ -21,17 +21,25 @@ import {
   TITLE_MAX,
   DESC_MAX,
 } from "../_constants";
-import type { Mission, MissionDifficulty } from "@/app/_api/missions";
+import { ApiError } from "@/app/_api/client";
+import type { MissionDifficulty } from "@/app/_api/missions";
+import type { MissionPreview } from "../_store/useMissionSheetStore";
 
 // 커스텀 해시태그 입력 최대 길이 (기획 재량치)
 const CUSTOM_TAG_MAX = 15;
+
+/** 생성 성공 시 onDone으로 전달되는 결과 — id는 다음 화면 이동, preview는 추가 오버레이 헤더 즉시 표시용 */
+export interface CreatedMissionResult {
+  id: string;
+  preview: MissionPreview;
+}
 
 interface MissionCreateFormProps {
   /**
    * 생성 성공 시 생성된 미션과 함께 호출된다(취소 시엔 호출되지 않음).
    * store.open 호출 시점(즉시 vs 퇴장 모션 이후)과 닫힘 모션·라우팅은 상위 껍데기가 처리한다.
    */
-  onDone: (created?: Mission) => void;
+  onDone: (created?: CreatedMissionResult) => void;
 }
 
 export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
@@ -47,22 +55,18 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
   const [isTagInputOpen, setIsTagInputOpen] = useState(false);
   const [tagInputValue, setTagInputValue] = useState("");
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState(false);
+  const [submitErrorDetail, setSubmitErrorDetail] = useState<string | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // 제출 성공 시점의 imagePreviewUrl을 기록한다. mock 저장소가 이 URL을 그대로 들고
-  // 생성된 미션 카드 이미지로 계속 참조하므로(=URL 소유권이 폼에서 저장소로 이전됨),
-  // 이후 교체·언마운트 cleanup에서는 이 URL만은 revoke하지 않는다.
-  // (mock 한정 이슈 — 실서버 연동 시 imageUrl은 업로드 응답으로 받은 별도 URL로 대체되어
-  // blob URL 자체를 더 이상 저장소에 넘기지 않게 되므로 이 예외 처리는 자연히 불필요해진다.)
-  const submittedUrlRef = useRef<string | null>(null);
 
-  // blob 미리보기 URL(mock 전용, 세션 내에서만 유효)은 교체·언마운트 시 해제한다.
-  // 단, 제출 성공으로 소유권이 이전된 URL은 위 정책에 따라 건너뛴다.
+  // blob 미리보기 URL은 교체·언마운트 시 항상 해제한다.
   useEffect(() => {
     return () => {
-      if (imagePreviewUrl && imagePreviewUrl !== submittedUrlRef.current) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
     };
   }, [imagePreviewUrl]);
 
@@ -75,9 +79,12 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
       const file = e.target.files?.[0];
       e.target.value = ""; // 동일 파일을 다시 선택해도 change가 발생하도록 초기화
       if (!file) return;
+      setImageFile(file);
+      // updater 밖에서 미리 생성 — StrictMode가 updater를 두 번 호출해도 URL이 한 번만 만들어져 새지 않는다
+      const nextPreviewUrl = URL.createObjectURL(file);
       setImagePreviewUrl((prev) => {
-        if (prev && prev !== submittedUrlRef.current) URL.revokeObjectURL(prev);
-        return URL.createObjectURL(file);
+        if (prev) URL.revokeObjectURL(prev);
+        return nextPreviewUrl;
       });
     },
     [],
@@ -172,34 +179,44 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
     () =>
       title.trim().length > 0 &&
       description.trim().length > 0 &&
-      difficulty !== null,
-    [title, description, difficulty],
+      difficulty !== null &&
+      imageFile !== null,
+    [title, description, difficulty, imageFile],
   );
 
-  const handleSubmit = useCallback(() => {
-    if (!isFormValid || difficulty === null) return;
-    createMissionMutation.mutate(
-      {
+  const handleSubmit = useCallback(async () => {
+    if (!isFormValid || difficulty === null || imageFile === null) return;
+    setSubmitError(false);
+    setSubmitErrorDetail(null);
+    try {
+      const created = await createMissionMutation.mutateAsync({
         title: title.trim(),
         description: description.trim(),
         difficulty,
         hashtags: selectedHashtags,
-        imageUrl: imagePreviewUrl,
-      },
-      {
-        onSuccess: (created: Mission) => {
-          if (imagePreviewUrl) submittedUrlRef.current = imagePreviewUrl;
-          onDone(created);
+        file: imageFile,
+      });
+      onDone({
+        id: created.id,
+        preview: {
+          title: title.trim(),
+          difficulty,
+          imageUrl: created.imageUrl,
         },
-      },
-    );
+      });
+    } catch (err) {
+      setSubmitError(true);
+      setSubmitErrorDetail(
+        err instanceof ApiError && err.message ? err.message : null,
+      );
+    }
   }, [
     isFormValid,
     difficulty,
+    imageFile,
     title,
     description,
     selectedHashtags,
-    imagePreviewUrl,
     createMissionMutation,
     onDone,
   ]);
@@ -207,7 +224,7 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-col gap-[18px]">
-        {/* 예시 사진 (선택) */}
+        {/* 예시 사진 */}
         <div className="flex flex-col gap-[10px]">
           <p className="text-[15px] font-semibold tracking-[-0.045px] text-ink">
             {t("create.photoLabel")}
@@ -236,10 +253,15 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
               </>
             )}
           </button>
+          {imageFile === null && (
+            <p className="text-[12px] text-muted">
+              {t("create.imageRequired")}
+            </p>
+          )}
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/gif,image/webp"
             onChange={handleFileChange}
             className="hidden"
           />
@@ -285,7 +307,8 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
         {/* 난이도 */}
         <div className="flex flex-col gap-[10px]">
           <p className="text-[15px] font-semibold tracking-[-0.045px] text-ink">
-            {t("create.difficultyLabel")}
+            {t("create.difficultyLabel")}{" "}
+            <span className="text-red-400">*</span>
           </p>
           <div className="flex items-center gap-[13px]">
             {DIFFICULTIES.map((level) => {
@@ -414,6 +437,16 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
       </div>
 
       <div className="mt-[31px]">
+        {submitError && (
+          <div className="mb-[10px] flex flex-col gap-[2px]">
+            <p className="text-[12px] font-medium text-red-400">
+              {t("create.submitError")}
+            </p>
+            {submitErrorDetail && (
+              <p className="text-[12px] text-muted">{submitErrorDetail}</p>
+            )}
+          </div>
+        )}
         <BigButton
           fullWidth
           disabled={!isFormValid || createMissionMutation.isPending}

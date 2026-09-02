@@ -1,22 +1,134 @@
 /**
- * 미션(M1) 도메인 API 함수들. 현재 mock 데이터 반환.
- * 추후 apiGet/apiPost로 교체하면 백엔드 연결 완료.
- * (주의: client.ts에는 아직 apiGet이 없음 — 백엔드 연동 시 GET 클라이언트 추가 필요)
+ * @module api/missions
+ * 미션 도메인 API 모듈. 3층 구조:
+ *   [DTO 타입: 서버 응답 그대로] → [mapper: 도메인 변환] → [fetch 함수: 훅이 호출]
+ * 규칙: docs/API-RULE.md. 기준 구현: app/_api/feed.ts
  */
 
-import { missionsMock, myPlansMock } from "./mock/missions.mock";
+import { apiGet, apiPost, ApiError } from "./client";
+import { apiDelete } from "./client-ext";
+import {
+  buildQuery,
+  toDifficulty,
+  toDifficultyDto,
+  toPaginated,
+  type MissionDifficultyDto,
+  type MissionDifficulty,
+  type Paginated,
+} from "./shared";
 
-export type MissionDifficulty = 1 | 2 | 3;
+// ───────────── DTO (서버 계약: BE 소스 com.JJIN.domain.mission) ─────────────
 
-export type MissionCategory =
-  | "food"
-  | "experience"
-  | "nature"
-  | "history"
-  | "culture"
-  | "shopping"
-  | "festival"
-  | "leisure";
+/** TourAPI KorService2 관광타입 8종 (TourApiContentType) */
+export type TourApiContentTypeDto =
+  | "TOURIST_ATTRACTION"
+  | "CULTURAL_FACILITY"
+  | "FESTIVAL_EVENT"
+  | "TRAVEL_COURSE"
+  | "LEISURE_SPORTS"
+  | "LODGING"
+  | "SHOPPING"
+  | "RESTAURANT";
+
+/** 미션 목록 조회 소스 (MissionSourceTypeOption) */
+export type MissionSourceDto = "ALL" | "OFFICIAL" | "HOT" | "ADDED";
+
+/** 정렬 쿼리 파라미터 값 (MissionSortOption.value, 대소문자 무시) */
+export type MissionSortDto = "popular" | "latest";
+
+/** 미션 검색 피드 카드 (MissionCardResponse) */
+export interface MissionCardDto {
+  missionId: number;
+  title: string;
+  thumbnailImageUrl: string | null;
+  tags: string[];
+  category: TourApiContentTypeDto;
+  difficulty: MissionDifficultyDto;
+  popularity: number;
+  /** LocalDateTime — 타임존 없음. 도메인 Mission에는 쓰지 않는다 */
+  createdAt: string;
+  isAdded: boolean;
+}
+
+/** 미션 검색 피드 목록 응답 (MissionSearchFeedResponse) */
+export interface MissionListDto {
+  missions: MissionCardDto[];
+  totalMissionCount: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+}
+
+/** 미션 상세 응답 (MissionDetailResponse) */
+export interface MissionDetailDto {
+  missionId: number;
+  title: string;
+  representativeImageUrl: string | null;
+  description: string;
+  tags: string[];
+  category: TourApiContentTypeDto;
+  difficulty: MissionDifficultyDto;
+  isAdded: boolean;
+}
+
+/** 일정별 미션 찜 여부 항목 (MissionLikeStatusResponse.PlanLikeItem) */
+export interface MissionPlanLikeDto {
+  planId: number;
+  planName: string;
+  /** LocalDate "YYYY-MM-DD" — 타임존 변환 대상 아님(LocalDateTime이 아니다) */
+  planStartDate: string;
+  planEndDate: string;
+  isLiked: boolean;
+  likeId: number | null;
+}
+
+/** 일정별 미션 찜 여부 응답 (MissionLikeStatusResponse) */
+export interface MissionPlanLikesDto {
+  totalPlans: number;
+  likes: MissionPlanLikeDto[];
+}
+
+/** 미션 찜 설정 항목 (AddMissionToPlansResponse.LikeItem) */
+export interface MissionLikeDto {
+  likeId: number;
+  planId: number;
+}
+
+/** 미션 찜 설정 응답 (AddMissionToPlansResponse) */
+export interface MissionLikesDto {
+  likes: MissionLikeDto[];
+}
+
+/** 미션 생성 요청 (CreateMissionRequest) */
+export interface MissionCreateDto {
+  imageUrl: string;
+  title: string;
+  description: string;
+  difficulty: MissionDifficultyDto;
+  tags: string[];
+}
+
+/** 미션 생성 응답 (CreateMissionResponse) — 훅/컴포넌트로 새지 않는 내부 전용 DTO */
+interface MissionCreatedDto {
+  missionId: number;
+}
+
+/** presigned URL 발급 요청 (PresignedUrlRequest) */
+export interface PresignedUrlRequestDto {
+  fileName: string;
+  contentType: string;
+}
+
+/** presigned URL 발급 응답 (PresignedUrlResponse) */
+export interface PresignedUrlDto {
+  presignedUrl: string;
+  fileName: string;
+}
+
+// ───────────── 도메인 타입 (훅/컴포넌트가 보는 형태) ─────────────
+
+/** 서버 8코드를 그대로 쓴다 (결정 ① — 근사 매핑 대신 서버 코드로 교체, 카테고리는 검색 필터 전용) */
+export type MissionCategory = TourApiContentTypeDto;
 
 export type MissionFilter = "all" | "mustDo" | "hot" | "mine";
 
@@ -25,27 +137,35 @@ export type MissionSort = "popular" | "latest";
 export interface Mission {
   id: string;
   title: string;
-  description: string;
   imageUrl: string | null;
   difficulty: MissionDifficulty;
   category: MissionCategory;
   // UGC 자유 문자열 — 번역 대상 아님. 프리셋 칩 선택 시 표시 언어의 라벨이 그대로 저장됨(다국어 태그 공존은 의도된 동작)
   hashtags: string[];
   isAdded: boolean;
-  addedPlanIds: string[]; // 이 미션을 담은 일정 id 목록 (한 미션을 여러 일정에 담을 수 있음)
-  isMine: boolean;
 }
 
-export interface MyPlan {
-  id: string;
-  title: string;
+export interface MissionDetail extends Mission {
+  description: string;
+}
+
+export interface MissionPlanLike {
+  planId: string;
+  planName: string;
   dateStart: string;
   dateEnd: string;
+  isLiked: boolean;
+  likeId: string | null;
 }
 
-export interface Paginated<T> {
-  items: T[];
-  nextCursor: number | null;
+export interface MissionPlanLikes {
+  totalPlans: number;
+  plans: MissionPlanLike[];
+}
+
+export interface MissionLike {
+  likeId: string;
+  planId: string;
 }
 
 export interface CreateMissionInput {
@@ -53,41 +173,91 @@ export interface CreateMissionInput {
   description: string;
   difficulty: MissionDifficulty;
   hashtags: string[];
-  imageUrl: string | null;
+  imageUrl: string;
 }
 
-const MISSION_PAGE_SIZE = 5;
-const SEARCH_PAGE_SIZE = 6;
-
-// mock 전용 id 충돌 방지 카운터. 동일 밀리초에 여러 미션이 생성돼도 id가 겹치지 않도록 병용한다.
-let missionIdSeq = 0;
-
-// --- 유틸 ---
-function delay(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
+export interface CreatedMission {
+  id: string;
 }
 
-// mock 전용: 조회 결과를 사본으로 반환한다.
-// 실제 API는 매 응답이 새로 역직렬화된 객체지만, mock은 모듈 배열의 참조를 그대로
-// 돌려주면 mutation의 제자리 수정이 react-query 캐시와 같은 객체를 건드려
-// 구조 공유(structural sharing)가 "변경 없음"으로 판단해 리렌더가 생략된다.
-// API 전환 시 이 복사 계층은 fetch 함수들과 함께 제거하면 된다.
-function cloneMission(m: Mission): Mission {
-  return { ...m, hashtags: [...m.hashtags], addedPlanIds: [...m.addedPlanIds] };
+/** searchMissions 파라미터 — useMissionSearchCount가 cursor를 뺀 형태로 재사용한다 */
+export interface SearchMissionsParams {
+  query: string;
+  categories: MissionCategory[];
+  difficulty: MissionDifficulty | null;
+  sort: MissionSort;
+  cursor: number;
 }
 
-function paginate<T>(
-  items: T[],
-  cursor: number,
-  pageSize: number,
-): Paginated<T> {
-  const start = cursor * pageSize;
-  const pageItems = items.slice(start, start + pageSize);
-  const hasMore = start + pageSize < items.length;
-  return { items: pageItems, nextCursor: hasMore ? cursor + 1 : null };
+// 기존 소비처 호환 재수출 (경계 유틸은 shared.ts가 단일 진실 원천)
+export type { MissionDifficulty, Paginated } from "./shared";
+
+// ───────────── mapper ─────────────
+
+export function toMission(dto: MissionCardDto): Mission {
+  return {
+    id: String(dto.missionId),
+    title: dto.title,
+    imageUrl: dto.thumbnailImageUrl,
+    difficulty: toDifficulty(dto.difficulty),
+    category: dto.category,
+    hashtags: [...dto.tags],
+    isAdded: dto.isAdded,
+  };
 }
 
-// 미션 추천 목록 (필터별)
+export function toMissionDetail(dto: MissionDetailDto): MissionDetail {
+  return {
+    id: String(dto.missionId),
+    title: dto.title,
+    imageUrl: dto.representativeImageUrl,
+    description: dto.description,
+    difficulty: toDifficulty(dto.difficulty),
+    category: dto.category,
+    hashtags: [...dto.tags],
+    isAdded: dto.isAdded,
+  };
+}
+
+export function toMissionPlanLike(dto: MissionPlanLikeDto): MissionPlanLike {
+  return {
+    planId: String(dto.planId),
+    planName: dto.planName,
+    dateStart: dto.planStartDate,
+    dateEnd: dto.planEndDate,
+    isLiked: dto.isLiked,
+    likeId: dto.likeId === null ? null : String(dto.likeId),
+  };
+}
+
+export function toMissionPlanLikes(dto: MissionPlanLikesDto): MissionPlanLikes {
+  return {
+    totalPlans: dto.totalPlans,
+    plans: dto.likes.map(toMissionPlanLike),
+  };
+}
+
+export function toMissionLike(dto: MissionLikeDto): MissionLike {
+  return {
+    likeId: String(dto.likeId),
+    planId: String(dto.planId),
+  };
+}
+
+/** 홈 필터 → 서버 source (결정 ② — mine은 "내가 담은"=ADDED로 연결, 라벨은 i18n에서 교체) */
+export const FILTER_TO_SOURCE: Record<MissionFilter, MissionSourceDto> = {
+  all: "ALL",
+  mustDo: "OFFICIAL",
+  hot: "HOT",
+  mine: "ADDED",
+};
+
+// ───────────── fetch 함수 ─────────────
+
+export const MISSION_PAGE_SIZE = 20;
+export const SEARCH_PAGE_SIZE = 20;
+
+// 미션 추천 목록 (홈 필터별 무한 스크롤)
 export async function fetchMissions({
   filter,
   cursor,
@@ -95,28 +265,14 @@ export async function fetchMissions({
   filter: MissionFilter;
   cursor: number;
 }): Promise<Paginated<Mission>> {
-  // 추후: return (await apiGet<Paginated<Mission>>(`/api/missions?filter=${filter}&cursor=${cursor}`)).data;
-  await delay(400);
-
-  let filtered: Mission[];
-  switch (filter) {
-    case "mustDo":
-      // 꼭 해봐야 할 = 난이도 3(고난이도) 또는 인기 상위 흉내(앞쪽 노출 미션)
-      filtered = missionsMock.filter((m, i) => m.difficulty === 3 || i < 4);
-      break;
-    case "hot":
-      // 요즘 핫한 = 최근 생성 흉내 (배열 뒤쪽일수록 최근 추가된 것으로 간주해 역순 노출)
-      filtered = [...missionsMock].reverse();
-      break;
-    case "mine":
-      filtered = missionsMock.filter((m) => m.isMine);
-      break;
-    default:
-      filtered = missionsMock;
-  }
-
-  const page = paginate(filtered, cursor, MISSION_PAGE_SIZE);
-  return { ...page, items: page.items.map(cloneMission) };
+  const { data } = await apiGet<MissionListDto>(
+    `/api/missions${buildQuery({
+      source: FILTER_TO_SOURCE[filter],
+      page: cursor,
+      size: MISSION_PAGE_SIZE,
+    })}`,
+  );
+  return toPaginated(data, (data.missions ?? []).map(toMission));
 }
 
 // 미션 검색 (검색어/카테고리/난이도/정렬)
@@ -126,96 +282,106 @@ export async function searchMissions({
   difficulty,
   sort,
   cursor,
-}: {
-  query: string;
-  categories: MissionCategory[];
-  difficulty: MissionDifficulty | null;
-  sort: MissionSort;
-  cursor: number;
-}): Promise<Paginated<Mission> & { totalCount: number }> {
-  // 추후: return (await apiGet<Paginated<Mission> & { totalCount: number }>("/api/missions/search", { params: {...} })).data;
-  await delay(400);
-
-  const q = query.trim().toLowerCase();
-
-  let filtered = missionsMock.filter((m) => {
-    const matchesQuery =
-      q === "" ||
-      m.title.toLowerCase().includes(q) ||
-      m.hashtags.some((h) => h.toLowerCase().includes(q));
-    const matchesCategory =
-      categories.length === 0 || categories.includes(m.category);
-    const matchesDifficulty =
-      difficulty === null || m.difficulty === difficulty;
-    return matchesQuery && matchesCategory && matchesDifficulty;
-  });
-
-  filtered = sort === "latest" ? [...filtered].reverse() : filtered;
-
-  const { items, nextCursor } = paginate(filtered, cursor, SEARCH_PAGE_SIZE);
+}: SearchMissionsParams): Promise<Paginated<Mission> & { totalCount: number }> {
+  const { data } = await apiGet<MissionListDto>(
+    `/api/missions${buildQuery({
+      keyword: query || undefined,
+      categories,
+      difficulties: difficulty ? [toDifficultyDto(difficulty)] : undefined,
+      sort,
+      page: cursor,
+      size: SEARCH_PAGE_SIZE,
+    })}`,
+  );
   return {
-    items: items.map(cloneMission),
-    nextCursor,
-    totalCount: filtered.length,
+    ...toPaginated(data, (data.missions ?? []).map(toMission)),
+    totalCount: data.totalMissionCount,
   };
 }
 
-// 내 일정 목록
-export async function fetchMyPlans(): Promise<MyPlan[]> {
-  // 추후: return (await apiGet<MyPlan[]>("/api/plans/my")).data;
-  await delay(300);
-  return myPlansMock.map((p) => ({ ...p }));
+// 미션 상세
+export async function fetchMissionDetail(
+  missionId: string,
+): Promise<MissionDetail> {
+  const { data } = await apiGet<MissionDetailDto>(`/api/missions/${Number(missionId)}`);
+  return toMissionDetail(data);
 }
 
-// 미션 생성
-export async function createMission(
-  input: CreateMissionInput,
-): Promise<Mission> {
-  // 추후: return (await apiPost<Mission>("/api/missions", input)).data;
-  await delay(500);
-
-  const newMission: Mission = {
-    id: `mission-${Date.now()}-${missionIdSeq++}`,
-    title: input.title,
-    description: input.description,
-    imageUrl: input.imageUrl,
-    difficulty: input.difficulty,
-    // TODO: 생성 폼에 카테고리 입력 없음 — 실서버 연동 시 서버 분류 or 폼 추가 결정
-    category: "food",
-    hashtags: [...input.hashtags],
-    isAdded: false,
-    addedPlanIds: [],
-    isMine: true,
-  };
-
-  missionsMock.unshift(newMission);
-  return cloneMission(newMission);
+// 미션의 일정별 찜 여부 (일정 추가 패널)
+export async function fetchMissionPlanLikes(
+  missionId: string,
+): Promise<MissionPlanLikes> {
+  const { data } = await apiGet<MissionPlanLikesDto>(
+    `/api/missions/likes/${Number(missionId)}`,
+  );
+  return toMissionPlanLikes(data);
 }
 
-export interface MissionLike {
-  likeId: string;
-  planId: string;
-}
-
-// 미션을 담을 일정 목록을 통째로 설정한다 (set 의미: 목록에 없는 일정은 해제).
-// 추후: return (await apiPost<{ likes: MissionLike[] }>(`/api/missions/${missionId}/likes`, { planIds: planIds.map(Number) })).data;  (응답 planId는 String()으로 변환)
-export async function setMissionPlans(
+// 미션 찜 설정 (멱등) — planIds 경계에서만 Number() 변환
+export async function addMissionToPlans(
   missionId: string,
   planIds: string[],
-): Promise<{ likes: MissionLike[] }> {
-  await delay(300);
+): Promise<MissionLike[]> {
+  const { data } = await apiPost<MissionLikesDto>(
+    `/api/missions/${Number(missionId)}`,
+    {
+      planIds: planIds.map(Number),
+    },
+  );
+  return data.likes.map(toMissionLike);
+}
 
-  const mission = missionsMock.find((m) => m.id === missionId);
-  if (mission) {
-    mission.isAdded = planIds.length > 0;
-    mission.addedPlanIds = [...planIds];
+// 미션 찜 해제
+export async function removeMissionFromPlans(
+  missionId: string,
+  planIds: string[],
+): Promise<void> {
+  await apiDelete(`/api/missions/${Number(missionId)}`, {
+    planIds: planIds.map(Number),
+  });
+}
+
+// 미션 생성 (이미지는 uploadMissionImage로 먼저 업로드한 URL을 받는다)
+export async function createMission(
+  input: CreateMissionInput,
+): Promise<CreatedMission> {
+  const { data } = await apiPost<MissionCreatedDto>("/api/missions", {
+    imageUrl: input.imageUrl,
+    title: input.title,
+    description: input.description,
+    difficulty: toDifficultyDto(input.difficulty),
+    tags: input.hashtags,
+  });
+  return { id: String(data.missionId) };
+}
+
+// 미션 생성 이미지 업로드 — presigned URL 발급 후 S3에 직접 PUT (인증 헤더·응답 봉투 없음)
+// BE 확인 필요: imageUrl로 공개 객체 URL을 보내는지 key(fileName)를 보내는지 미확정(plan §6-1).
+// 여기서는 presignedUrl의 origin+pathname(공개 객체 URL로 추정)을 보낸다.
+export async function uploadMissionImage(file: File): Promise<string> {
+  const { data } = await apiPost<PresignedUrlDto>(
+    "/api/missions/presigned-url",
+    {
+      fileName: file.name,
+      contentType: file.type,
+    },
+  );
+
+  // 버킷 CORS 미설정·네트워크 단절은 fetch가 TypeError로 reject한다 — ApiError로 통일해 폼이 같은 경로로 처리
+  let res: Response;
+  try {
+    res = await fetch(data.presignedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+  } catch {
+    throw new ApiError(0, "이미지 업로드 서버에 연결할 수 없습니다.");
+  }
+  if (!res.ok) {
+    throw new ApiError(res.status, "이미지 업로드에 실패했습니다.");
   }
 
-  const likes: MissionLike[] = mission
-    ? planIds.map((planId) => ({
-        likeId: `like-${missionId}-${planId}`,
-        planId,
-      }))
-    : [];
-  return { likes };
+  const u = new URL(data.presignedUrl);
+  return u.origin + u.pathname;
 }

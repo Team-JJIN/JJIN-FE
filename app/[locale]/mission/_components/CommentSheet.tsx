@@ -6,7 +6,7 @@
  *   resolve하지만, refetch는 "이미 로드된 페이지"만 다시 가져온다. 사용자가 목록 끝까지 스크롤하지 않은
  *   상태(다음 페이지 존재)라면 새 댓글은 아직 로드되지 않은 페이지에 있으므로, resolve 후 남은 페이지를
  *   전부 로드한 뒤 맨 아래로 스크롤한다.
- * - CommentSheetBody key={`${post.id}:${openSeq}`}: 오픈 단위로 입력값·스크롤·쿼리 관찰자를 리셋 (MissionSheet와 같은 이유).
+ * - CommentSheetBody key={`${postId}:${openSeq}`}: 오픈 단위로 입력값·스크롤·쿼리 관찰자를 리셋 (MissionSheet와 같은 이유).
  * - 전송 실패 시 입력값을 유지하고 sendError를 띄운다 (사용자가 바로 재전송할 수 있게).
  */
 "use client";
@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
+import { dedupeById } from "@/app/_lib/dedupeById";
 import { ArrowUpIcon } from "@/app/_components/icons";
 import { fadeSwap, listItemEnter, TAP } from "@/app/_components/motion/tokens";
 import { useCommentSheetStore } from "../_store/useCommentSheetStore";
@@ -27,10 +28,10 @@ import {
 import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
 import CommentItem from "./CommentItem";
 import type { FeedComment } from "@/app/_api/feed";
-import type { Paginated } from "@/app/_api/missions";
+import type { Paginated } from "@/app/_api/shared";
 
-/** 서버 계약에 길이 제한이 명시돼 있지 않아 클라이언트 값으로 둔다 (docs/API-RULE.md 계약 공백 #5) */
-export const COMMENT_MAX = 200;
+/** 서버 계약: trim 후 1~500자 (MissionProofCommentCreateRequest content) */
+export const COMMENT_MAX = 500;
 
 /** 댓글 작성 후 다음 페이지를 이어서 로드하는 횟수 상한 (무한 루프 방지 안전장치) */
 const MAX_CATCH_UP_FETCHES = 20;
@@ -38,12 +39,12 @@ const MAX_CATCH_UP_FETCHES = 20;
 export default function CommentSheet() {
   const t = useTranslations("mission");
   const open = useCommentSheetStore((s) => s.open);
-  const post = useCommentSheetStore((s) => s.post);
+  const postId = useCommentSheetStore((s) => s.postId);
   const commentCount = useCommentSheetStore((s) => s.commentCount);
   const openSeq = useCommentSheetStore((s) => s.openSeq);
   const close = useCommentSheetStore((s) => s.close);
 
-  if (!post) return null;
+  if (!postId) return null;
 
   return (
     <BottomSheet
@@ -57,8 +58,8 @@ export default function CommentSheet() {
       headerVariant="compact"
     >
       <CommentSheetBody
-        key={`${post.id}:${openSeq}`}
-        postId={post.id}
+        key={`${postId}:${openSeq}`}
+        postId={postId}
         active={open}
       />
     </BottomSheet>
@@ -87,16 +88,11 @@ function CommentSheetBody({ postId, active }: CommentSheetBodyProps) {
   } = useFeedComments(postId, active);
   const createComment = useCreateFeedComment();
 
-  const comments = useMemo<FeedComment[]>(() => {
-    const all = data?.pages.flatMap((page) => page.items) ?? [];
-    // 커서 페이지네이션 중 새 댓글이 끼어들면 같은 댓글이 두 페이지에 걸쳐 올 수 있어 id로 중복 제거한다
-    const seen = new Set<string>();
-    return all.filter((c) => {
-      if (seen.has(c.id)) return false;
-      seen.add(c.id);
-      return true;
-    });
-  }, [data]);
+  // 커서 페이지네이션 중 새 댓글이 끼어들면 같은 댓글이 두 페이지에 걸쳐 올 수 있어 id로 중복 제거한다
+  const comments = useMemo<FeedComment[]>(
+    () => dedupeById(data?.pages.flatMap((page) => page.items) ?? []),
+    [data],
+  );
 
   const listRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useInfiniteScroll({
@@ -157,11 +153,11 @@ function CommentSheetBody({ postId, active }: CommentSheetBodyProps) {
           postId,
           content: trimmed,
         });
-        // 대기 중 스토어의 post가 다른 게시글로 바뀌었을 수 있다 — 그때 이 카운트로
+        // 대기 중 스토어의 postId가 다른 게시글로 바뀌었을 수 있다 — 그때 이 카운트로
         // (이미 다른 게시글을 보여주는) 시트 제목을 덮어쓰지 않는다. 언마운트 후에도 스킵.
         if (
           !cancelledRef.current &&
-          useCommentSheetStore.getState().post?.id === postId
+          useCommentSheetStore.getState().postId === postId
         ) {
           setCommentCount(created.commentCount);
         }
