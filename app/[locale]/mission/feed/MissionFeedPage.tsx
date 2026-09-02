@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
+import { dedupeById } from "@/app/_lib/dedupeById";
 import { SearchIcon } from "@/app/_components/icons";
 import {
   fadeSwap,
@@ -27,7 +28,7 @@ import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
 import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import { useCommentSheetStore } from "../_store/useCommentSheetStore";
 import FeedCard from "../_components/FeedCard";
-import type { FeedPost, FeedTab } from "@/app/_api/feed";
+import type { FeedPost, FeedTab, FeedMissionSummary } from "@/app/_api/feed";
 
 export default function MissionFeedPage() {
   const t = useTranslations("mission");
@@ -50,7 +51,7 @@ export default function MissionFeedPage() {
   } = useFeed(tab);
 
   const posts = useMemo<FeedPost[]>(
-    () => data?.pages.flatMap((page) => page.items) ?? [],
+    () => dedupeById(data?.pages.flatMap((page) => page.items) ?? []),
     [data],
   );
 
@@ -90,6 +91,23 @@ export default function MissionFeedPage() {
       toggleLike(post.id);
     },
     [toggleLike],
+  );
+
+  const handleCommentClick = useCallback(
+    (post: FeedPost) => {
+      openComments(post.id, post.commentCount);
+    },
+    [openComments],
+  );
+
+  const handleAddClick = useCallback(
+    (m: FeedMissionSummary) =>
+      openAddMission(m.id, {
+        title: m.title,
+        difficulty: m.difficulty,
+        imageUrl: null,
+      }),
+    [openAddMission],
   );
 
   return (
@@ -200,8 +218,8 @@ export default function MissionFeedPage() {
                   <FeedCard
                     post={post}
                     onLikeToggle={handleLikeToggle}
-                    onCommentClick={openComments}
-                    onAddClick={openAddMission}
+                    onCommentClick={handleCommentClick}
+                    onAddClick={handleAddClick}
                   />
                 </motion.div>
               ))}

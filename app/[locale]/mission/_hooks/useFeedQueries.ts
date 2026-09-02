@@ -1,8 +1,6 @@
 /**
  * @module useFeedQueries
  * 미션 인증 피드 쿼리 키 팩토리 + 훅. 피드 목록 / 좋아요 토글 / 댓글 목록 / 댓글 생성.
- * useMissionQueries의 useCreateMission·useSetMissionPlans가 feedKeys.all로 피드 캐시를 무효화/패치하므로
- * feedKeys는 여기서 export하고 그쪽이 import한다.
  */
 "use client";
 
@@ -20,7 +18,7 @@ import {
   toggleFeedLike,
 } from "@/app/_api/feed";
 import type { FeedPost, FeedTab } from "@/app/_api/feed";
-import type { Paginated } from "@/app/_api/missions";
+import type { Paginated } from "@/app/_api/shared";
 
 export const feedKeys = {
   all: ["missionFeed"] as const,
@@ -111,11 +109,11 @@ export function useToggleFeedLike(tab: FeedTab) {
         })),
       );
     },
-    // onSuccess가 이미 모든 탭 캐시를 서버 진실로 재확정했지만, 활성 탭은 추가로 invalidate해
-    // 좋아요 수 변동에 따른 popular/weeklyHot 정렬 변화까지 반영한다. 로드된 페이지 전부가
-    // refetch되는 비용(mock 기준 페이지당 400ms)을 감수하는 선택이다.
+    // onSuccess가 이미 모든 탭 캐시를 서버 진실로 재확정했다. latest/completed는 정렬이 좋아요 수와
+    // 무관해 onSuccess의 서버 응답 패치로 충분하고 재조회할 필요가 없다. popular/weeklyHot은 정렬
+    // 기준이 좋아요 수라 활성 탭만 추가로 invalidate해 순서 변화까지 반영한다.
     onSettled: (_data, _err, _postId, context) => {
-      if (context) {
+      if (context && (tab === "popular" || tab === "weeklyHot")) {
         queryClient.invalidateQueries({ queryKey: context.queryKey });
       }
     },
