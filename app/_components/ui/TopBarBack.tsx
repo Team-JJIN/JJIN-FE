@@ -18,13 +18,13 @@ export default function TopBarBack({ onBack, rightText, onRightClick }: TopBarBa
       <button
         type="button"
         onClick={onBack}
-        className="flex h-10 w-10 items-center justify-center -ml-2 text-dark"
+        className="flex h-10 w-10 items-center justify-center -ml-2 text-[#9B9B9B]"
         aria-label="Go back"
       >
         <ArrowBackIcon size={24} />
       </button>
       {rightText && (
-        <button type="button" onClick={onRightClick} className="text-[13px] text-[#737373]">
+        <button type="button" onClick={onRightClick} className="text-[14px] font-medium text-[#737373]">
           {rightText}
         </button>
       )}

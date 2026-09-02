@@ -1,10 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import CheckBox from "@/app/_components/ui/CheckBox";
 import SelectChip from "@/app/_components/ui/SelectChip";
-import { LocationIcon, CalendarIcon } from "@/app/_components/icons";
+import { LocationIcon, CalendarIcon, PencilIcon } from "@/app/_components/icons";
 import { TRANSPORTS } from "../_constants";
+import { useRegionLabel } from "../_useRegionLabel";
 import type { OnboardingData, Transport } from "../_types";
+
+// 이 페이지 입력 필드 아이콘 색상
+const ICON_COLOR = "text-[#9B9B9B]";
+// 아이콘이 왼쪽에서 기존보다 12px 더 들어가도록 하는 여백
+const FIELD_PADDING = "pl-3";
 
 type Step1ContentProps = {
   data: OnboardingData;
@@ -17,7 +24,6 @@ type Step1ContentProps = {
   minuteStart: string;
   minuteEnd: string;
   timeSheet: "start" | "end" | null;
-  t: (key: string) => string;
 };
 
 export default function Step1Content({
@@ -31,24 +37,40 @@ export default function Step1Content({
   minuteStart,
   minuteEnd,
   timeSheet,
-  t,
 }: Step1ContentProps) {
+  const t = useTranslations("onboarding");
+  const regionLabel = useRegionLabel();
+
   return (
     <>
       <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step1Title")}</h1>
 
+      {/* 여행 이름 */}
+      <p className="mt-[14px] text-[14px] font-medium text-[#737373]">{t("tripName")}</p>
+      <div className={`mt-[10px] flex w-full items-center gap-2 ${FIELD_PADDING}`}>
+        <PencilIcon size={24} className={ICON_COLOR} />
+        <input
+          type="text"
+          value={data.tripName}
+          onChange={(e) => setData((d) => ({ ...d, tripName: e.target.value }))}
+          placeholder={t("tripNamePlaceholder")}
+          aria-label={t("tripName")}
+          className="flex-1 bg-transparent text-[16px] font-medium text-dark outline-none placeholder:text-[#C4C4C4]"
+        />
+      </div>
+
       {/* 방문 지역 */}
-      <p className="mt-[14px] text-[14px] font-medium text-[#737373]">{t("region")}</p>
+      <p className="mt-[24px] text-[14px] font-medium text-[#737373]">{t("region")}</p>
       <button
         type="button"
         onClick={openRegionSheet}
         disabled={data.regionUndecided}
         aria-label={t("region")}
-        className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200 disabled:opacity-40"
+        className={`mt-[10px] flex w-full items-center gap-2 ${FIELD_PADDING} disabled:opacity-40`}
       >
-        <LocationIcon className="text-[#C4C4C4]" />
+        <LocationIcon className={ICON_COLOR} />
         <span className={`text-[16px] font-medium ${data.region ? "text-dark" : "text-[#C4C4C4]"}`}>
-          {data.region ? t(`regions.${data.region}`) : t("regionPlaceholder")}
+          {data.region ? regionLabel(data.region) : t("regionPlaceholder")}
         </span>
       </button>
       <div className="flex justify-end mt-2">
@@ -60,16 +82,16 @@ export default function Step1Content({
       </div>
 
       {/* 방문 날짜 */}
-      <p className="mt-[12px] text-[14px] font-medium text-[#737373]">{t("dateRange")}</p>
+      <p className="mt-[24px] text-[14px] font-medium text-[#737373]">{t("dateRange")}</p>
       <button
         type="button"
         onClick={openDateSheet}
         aria-label={t("dateRange")}
-        className="mt-[10px] flex w-full items-center gap-2 pb-2 border-b border-neutral-200"
+        className={`mt-[10px] flex w-full items-center gap-2 ${FIELD_PADDING}`}
       >
-        <CalendarIcon className="text-[#C4C4C4]" />
+        <CalendarIcon className={ICON_COLOR} />
         <span className={`text-[16px] font-medium ${data.dateStart ? "text-dark" : "text-[#C4C4C4]"}`}>
-          {data.dateStart ? `${formatDate(data.dateStart)} ~ ${formatDate(data.dateEnd)}` : t("datePlaceholder")}
+          {data.dateStart ? `${formatDate(data.dateStart)} - ${formatDate(data.dateEnd)}` : t("datePlaceholder")}
         </span>
       </button>
 

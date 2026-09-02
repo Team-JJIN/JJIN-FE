@@ -1,70 +1,86 @@
-/**
- * Auth API 함수들. 현재 mock 데이터 반환.
- * 추후 apiPost로 교체하면 백엔드 연결 완료.
- */
+import { apiPost, apiGet, apiPatch } from "./client";
+import { clearTokens, saveTokens } from "./token";
 
-// import { apiPost } from "./client";
+export type Role = "ONBOARDING" | "MEMBER" | "ADMIN";
 
-interface AuthTokens {
+/** 인증 관련 API가 공통으로 반환하는 토큰 쌍 + 역할 */
+export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
-  role: "ONBOARDING" | "MEMBER";
+  role: Role;
 }
 
-// 일반 로그인
-export async function loginWithEmail(email: string, password: string): Promise<AuthTokens> {
-  // 추후: return (await apiPost<AuthTokens>("/api/auth/login", { email, password })).data;
-  await delay(500);
-  return mockTokens("ONBOARDING");
+export interface TermsItem {
+  id: number;
+  type: "SERVICE" | "MARKETING";
+  title: string;
+  required: boolean;
 }
 
-// 구글 소셜 로그인
+/** 구글 소셜 로그인 / 회원가입 */
 export async function loginWithGoogle(code: string): Promise<AuthTokens> {
-  // 추후: return (await apiPost<AuthTokens>("/api/auth/google", { code })).data;
-  await delay(500);
-  return mockTokens("ONBOARDING");
+  const res = await apiPost<AuthTokens>("/api/auth/login/google", { code });
+  return res.data;
 }
 
-// 회원가입
+/** 일반 이메일 로그인 */
+export async function loginWithEmail(email: string, password: string): Promise<AuthTokens> {
+  const res = await apiPost<AuthTokens>("/api/auth/login", { email, password });
+  return res.data;
+}
+
+/** 회원가입 */
 export async function signUp(
   email: string,
   password: string,
-  termsAgreements: { type: "SERVICE" | "MARKETING"; agreed: boolean }[]
+  termsAgreements: { type: string; agreed: boolean }[]
 ): Promise<AuthTokens> {
-  // 추후: return (await apiPost<AuthTokens>("/api/auth/signup", { email, password, termsAgreements })).data;
-  await delay(500);
-  return mockTokens("ONBOARDING");
+  const res = await apiPost<AuthTokens>("/api/auth/signup", { email, password, termsAgreements });
+  return res.data;
 }
 
-// 인증 코드 발송
+/** 인증코드 발송 */
 export async function sendVerificationCode(email: string): Promise<void> {
-  // 추후: await apiPost("/api/auth/email/send", { email });
-  await delay(300);
+  await apiPost("/api/auth/email/code", { email });
 }
 
-// 인증 코드 검증
-export async function verifyCode(email: string, code: string): Promise<boolean> {
-  // 추후: const res = await apiPost("/api/auth/email/verify", { email, code }); return res.status === 200;
-  await delay(500);
-  return code.length === 6; // mock: 6자리면 성공
+/** 인증코드 검증 */
+export async function verifyCode(email: string, code: string): Promise<void> {
+  await apiPost("/api/auth/email/verify", { email, code });
 }
 
-// 토큰 재발급
-export async function refreshAccessToken(refreshToken: string): Promise<string> {
-  // 추후: return (await apiPost<{ accessToken: string }>("/api/auth/refresh", { refreshToken })).data.accessToken;
-  await delay(200);
-  return "mock-new-access-token";
+/** 약관 목록 조회 */
+export async function getTerms(): Promise<TermsItem[]> {
+  const res = await apiGet<TermsItem[]>("/api/terms");
+  return res.data;
 }
 
-// --- 유틸 ---
-function delay(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
+/** role을 MEMBER로 변경 (온보딩 건너뛰기 시 호출) */
+export async function updateRoleToMember(): Promise<AuthTokens> {
+  const res = await apiPatch<AuthTokens>("/api/auth/role");
+  return res.data;
 }
 
-function mockTokens(role: "ONBOARDING" | "MEMBER"): AuthTokens {
-  return {
-    accessToken: "mock-access-token",
-    refreshToken: "mock-refresh-token",
-    role,
-  };
+/** 로그아웃 */
+export async function logout(): Promise<void> {
+  await apiPost("/api/auth/logout", {});
+  clearTokens();
+}
+
+/** role에 따라 이동할 경로. ONBOARDING이면 온보딩, 그 외(MEMBER/ADMIN)는 mission. */
+export function authDestination(role: Role, locale: string): string {
+  return role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/mission`;
+}
+
+/**
+ * 인증 성공 공통 처리: 토큰 저장 후 role에 맞는 경로로 라우팅.
+ * @param navigate router.push 또는 router.replace를 넘긴다 (콜백 화면은 replace 권장).
+ */
+export function handleAuthSuccess(
+  tokens: AuthTokens,
+  locale: string,
+  navigate: (path: string) => void
+): void {
+  saveTokens(tokens.accessToken, tokens.refreshToken);
+  navigate(authDestination(tokens.role, locale));
 }

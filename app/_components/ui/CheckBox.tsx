@@ -14,17 +14,17 @@ export default function Checkbox({ checked, onChange, label }: CheckboxProps) {
   return (
     <label className="flex items-center gap-2 cursor-pointer" onClick={onChange}>
       <span
-        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors ${
+        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full transition-colors ${
           checked ? "bg-lime" : "bg-[#F0F0F0]"
         }`}
       >
         <svg
-          width="12"
-          height="12"
+          width="10"
+          height="10"
           viewBox="0 0 12 12"
           fill="none"
           stroke={checked ? "#171717" : "#9B9B9B"}
-          strokeWidth="2"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         >

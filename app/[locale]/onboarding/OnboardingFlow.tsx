@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
+import { updateRoleToMember, handleAuthSuccess, type AuthTokens } from "@/app/_api/auth";
+import { getApiErrorMessage, ApiError } from "@/app/_api/client";
+import { submitOnboarding, buildOnboardingRequest } from "@/app/_api/onboarding";
 
 import { SUB_CATEGORIES } from "./_constants";
 import type { OnboardingData, Category } from "./_types";
@@ -25,7 +28,9 @@ export default function OnboardingFlow() {
   const locale = useLocale();
 
   const [step, setStep] = useState(1);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [data, setData] = useState<OnboardingData>({
+    tripName: "",
     region: "",
     regionUndecided: false,
     dateStart: null,
@@ -79,10 +84,62 @@ export default function OnboardingFlow() {
     }
   }, [step, data]);
 
-  const handleNext = useCallback(() => {
-    if (step < 4) setStep((s) => s + 1);
-    else alert("온보딩 완료!"); // TODO: API 제출 후 메인 이동
-  }, [step]);
+  // 온보딩 완료 공통 러너: 토큰을 반환하는 API를 호출하고, 성공 시 토큰 저장 + role 라우팅,
+  // 실패 시 로딩 해제 + 안내. fetchTokens와 errorKey만 다른 두 흐름(건너뛰기/시작하기)을 통합한다.
+  const runCompletion = useCallback(
+    async (fetchTokens: () => Promise<AuthTokens>, errorKey: string) => {
+      if (isCompleting) return;
+      setIsCompleting(true);
+      try {
+        const tokens = await fetchTokens();
+        handleAuthSuccess(tokens, locale, (path) => router.push(path));
+      } catch (err) {
+        setIsCompleting(false);
+        if (process.env.NODE_ENV !== "production" && err instanceof ApiError) {
+          console.error("[onboarding] API error:", {
+            status: err.status,
+            message: err.message,
+            detail: err.detail,
+          });
+        }
+        // 서버가 detail(구체 사유)을 주면 그대로, 없으면 로케일 fallback 메시지 표시
+        alert(getApiErrorMessage(err, t(errorKey)));
+      }
+    },
+    [isCompleting, locale, router, t]
+  );
+
+  // 건너뛰기: 입력 없이 role만 MEMBER로 변경하고 토큰 갱신 후 이동
+  const completeOnboarding = useCallback(
+    () => runCompletion(updateRoleToMember, "errorRoleUpdateFailed"),
+    [runCompletion]
+  );
+
+  // S4 "시작하기": S1~S4 입력을 온보딩 저장 API로 한 번에 전송하고, 새 토큰으로 갱신 후 이동.
+  // (여행 이름 tripName은 현재 백엔드 미지원이라 전송하지 않고 클라이언트 상태로만 유지)
+  //
+  // ⚠️ 주의: 현재 백엔드가 온보딩 요청 DTO에 '여행 이름' 필드를 새로 추가하면서
+  //   해당 필드가 required로 검증되어, 이름을 보내지 않는 지금은 온보딩 저장 시 400 에러가 발생한다.
+  //   백엔드가 여행 이름 필드를 nullable로 바꾸거나 프론트가 tripName을 함께 전송하도록 합의되면 해소된다.
+  const submitAndComplete = useCallback(
+    () =>
+      runCompletion(() => {
+        const body = buildOnboardingRequest(data, minuteStart, minuteEnd);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[onboarding] POST /api/onboarding body:", JSON.stringify(body, null, 2));
+        }
+        return submitOnboarding(body);
+      }, "errorSubmitFailed"),
+    [runCompletion, data, minuteStart, minuteEnd]
+  );
+
+  const handleNext = useCallback(async () => {
+    if (step < 4) {
+      setStep((s) => s + 1);
+    } else {
+      await submitAndComplete();
+    }
+  }, [step, submitAndComplete]);
 
   const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
@@ -113,9 +170,13 @@ export default function OnboardingFlow() {
     }));
   }, []);
 
+  // "2025-07-22" → "07.22.(수)" 형식. 요일은 locale별 weekdays i18n 사용.
   const formatDate = useCallback((d: string | null) => {
-    return d ? d.replace(/-/g, ".") : "";
-  }, []);
+    if (!d) return "";
+    const [, month, day] = d.split("-");
+    const weekday = t("weekdays").split(",")[new Date(d).getDay()];
+    return `${month}.${day}.(${weekday})`;
+  }, [t]);
 
   const handleDayClick = useCallback((d: string) => {
     if (dateSelecting === "start") {
@@ -180,7 +241,7 @@ export default function OnboardingFlow() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <TopBarBack onBack={handlePrev} rightText={t("skip")} />
+      <TopBarBack onBack={handlePrev} rightText={t("skip")} onRightClick={completeOnboarding} />
 
       {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
@@ -204,12 +265,11 @@ export default function OnboardingFlow() {
             minuteStart={minuteStart}
             minuteEnd={minuteEnd}
             timeSheet={timeSheet}
-            t={t}
           />
         )}
 
         {step === 2 && (
-          <Step2Content data={data} toggleCategory={toggleCategory} t={t} />
+          <Step2Content data={data} toggleCategory={toggleCategory} />
         )}
 
         {step === 3 && (
@@ -217,12 +277,11 @@ export default function OnboardingFlow() {
             categories={data.categories}
             subCategories={data.subCategories}
             toggleSubCategory={toggleSubCategory}
-            t={t}
           />
         )}
 
         {step === 4 && (
-          <Step4Content data={data} setData={setData} t={t} />
+          <Step4Content data={data} setData={setData} />
         )}
       </div>
 
@@ -241,13 +300,19 @@ export default function OnboardingFlow() {
           <button
             type="button"
             onClick={handlePrev}
-            className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark"
+            disabled={isCompleting}
+            className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark disabled:opacity-50"
           >
             {t("prev")}
           </button>
         )}
         <div className="flex-1">
-          <BigButton fullWidth disabled={!canProceed} onClick={handleNext}>
+          <BigButton
+            fullWidth
+            disabled={!canProceed || isCompleting}
+            isLoading={step === 4 && isCompleting}
+            onClick={handleNext}
+          >
             {step === 4 ? t("start") : t("next")}
           </BigButton>
         </div>
