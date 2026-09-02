@@ -12,8 +12,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
 import MissionCreateForm from "../../_components/MissionCreateForm";
+import type { CreatedMissionResult } from "../../_components/MissionCreateForm";
 import { useMissionSheetStore } from "../../_store/useMissionSheetStore";
-import type { Mission } from "@/app/_api/missions";
 
 export default function InterceptedMissionCreatePage() {
   const router = useRouter();
@@ -25,20 +25,23 @@ export default function InterceptedMissionCreatePage() {
   // 모션이 끝난 뒤(onExitComplete)에 실제로 이전 화면으로 돌아간다.
   const [open, setOpen] = useState(true);
   // 생성 성공 시 전달된 미션을 잠시 보관한다. exit 모션이 끝난 뒤 store.open에 사용된다.
-  const createdMissionRef = useRef<Mission | undefined>(undefined);
+  const createdMissionRef = useRef<CreatedMissionResult | undefined>(undefined);
 
   const handleClose = useCallback(() => {
     setOpen(false);
   }, []);
 
-  const handleDone = useCallback((created?: Mission) => {
+  const handleDone = useCallback((created?: CreatedMissionResult) => {
     createdMissionRef.current = created;
     setOpen(false);
   }, []);
 
   const handleExitComplete = useCallback(() => {
     if (createdMissionRef.current) {
-      openAddMission(createdMissionRef.current);
+      openAddMission(
+        createdMissionRef.current.id,
+        createdMissionRef.current.preview,
+      );
     }
     router.back();
   }, [router, openAddMission]);

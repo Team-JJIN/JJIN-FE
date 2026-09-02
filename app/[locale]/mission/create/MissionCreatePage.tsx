@@ -14,9 +14,9 @@ import { motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import TopBarClose from "@/app/_components/ui/TopBarClose";
 import MissionCreateForm from "../_components/MissionCreateForm";
+import type { CreatedMissionResult } from "../_components/MissionCreateForm";
 import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import { sectionEnter } from "@/app/_components/motion/tokens";
-import type { Mission } from "@/app/_api/missions";
 
 export default function MissionCreatePage() {
   const router = useRouter();
@@ -30,8 +30,8 @@ export default function MissionCreatePage() {
   }, [router, locale]);
 
   const handleDone = useCallback(
-    (created?: Mission) => {
-      if (created) openAddMission(created);
+    (created?: CreatedMissionResult) => {
+      if (created) openAddMission(created.id, created.preview);
       router.push(`/${locale}/mission`);
     },
     [openAddMission, router, locale],
