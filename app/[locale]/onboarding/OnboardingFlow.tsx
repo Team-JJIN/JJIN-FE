@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
+import { updateRoleToMember } from "@/app/_api/auth";
+import { getApiErrorMessage } from "@/app/_api/client";
+import { saveTokens } from "@/app/_api/token";
 
 import { SUB_CATEGORIES } from "./_constants";
 import type { OnboardingData, Category } from "./_types";
@@ -25,7 +28,9 @@ export default function OnboardingFlow() {
   const locale = useLocale();
 
   const [step, setStep] = useState(1);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [data, setData] = useState<OnboardingData>({
+    tripName: "",
     region: "",
     regionUndecided: false,
     dateStart: null,
@@ -79,19 +84,27 @@ export default function OnboardingFlow() {
     }
   }, [step, data]);
 
+  // role을 MEMBER로 변경하고 토큰 갱신 후 mission 페이지로 이동
+  const completeOnboarding = useCallback(async () => {
+    if (isCompleting) return;
+    setIsCompleting(true);
+    try {
+      const { accessToken, refreshToken } = await updateRoleToMember();
+      saveTokens(accessToken, refreshToken);
+      router.push(`/${locale}/mission`);
+    } catch (err) {
+      setIsCompleting(false);
+      alert(getApiErrorMessage(err, t("errorRoleUpdateFailed")));
+    }
+  }, [isCompleting, router, locale, t]);
+
   const handleNext = useCallback(async () => {
     if (step < 4) {
       setStep((s) => s + 1);
     } else {
-      // TODO: 온보딩 API 연결 (홈 페이지 구현 후 활성화)
-      // try {
-      //   const res = await submitOnboarding({ ... });
-      //   saveTokens(res.accessToken, res.refreshToken);
-      //   router.push(`/${locale}/home`);
-      // } catch { ... }
-      alert("온보딩 완료!");
+      await completeOnboarding();
     }
-  }, [step]);
+  }, [step, completeOnboarding]);
 
   const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
@@ -122,9 +135,13 @@ export default function OnboardingFlow() {
     }));
   }, []);
 
+  // "2025-07-22" → "07.22.(수)" 형식. 요일은 locale별 weekdays i18n 사용.
   const formatDate = useCallback((d: string | null) => {
-    return d ? d.replace(/-/g, ".") : "";
-  }, []);
+    if (!d) return "";
+    const [, month, day] = d.split("-");
+    const weekday = t("weekdays").split(",")[new Date(d).getDay()];
+    return `${month}.${day}.(${weekday})`;
+  }, [t]);
 
   const handleDayClick = useCallback((d: string) => {
     if (dateSelecting === "start") {
@@ -189,7 +206,7 @@ export default function OnboardingFlow() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <TopBarBack onBack={handlePrev} rightText={t("skip")} />
+      <TopBarBack onBack={handlePrev} rightText={t("skip")} onRightClick={completeOnboarding} />
 
       {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
@@ -213,12 +230,11 @@ export default function OnboardingFlow() {
             minuteStart={minuteStart}
             minuteEnd={minuteEnd}
             timeSheet={timeSheet}
-            t={t}
           />
         )}
 
         {step === 2 && (
-          <Step2Content data={data} toggleCategory={toggleCategory} t={t} />
+          <Step2Content data={data} toggleCategory={toggleCategory} />
         )}
 
         {step === 3 && (
@@ -226,12 +242,11 @@ export default function OnboardingFlow() {
             categories={data.categories}
             subCategories={data.subCategories}
             toggleSubCategory={toggleSubCategory}
-            t={t}
           />
         )}
 
         {step === 4 && (
-          <Step4Content data={data} setData={setData} t={t} />
+          <Step4Content data={data} setData={setData} />
         )}
       </div>
 
@@ -250,13 +265,19 @@ export default function OnboardingFlow() {
           <button
             type="button"
             onClick={handlePrev}
-            className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark"
+            disabled={isCompleting}
+            className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark disabled:opacity-50"
           >
             {t("prev")}
           </button>
         )}
         <div className="flex-1">
-          <BigButton fullWidth disabled={!canProceed} onClick={handleNext}>
+          <BigButton
+            fullWidth
+            disabled={!canProceed || isCompleting}
+            isLoading={step === 4 && isCompleting}
+            onClick={handleNext}
+          >
             {step === 4 ? t("start") : t("next")}
           </BigButton>
         </div>

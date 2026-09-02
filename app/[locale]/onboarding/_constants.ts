@@ -1,9 +1,9 @@
 import type { Transport, Category, Level } from "./_types";
 
-// 지역 키 (i18n 키와 매핑)
-export const REGIONS = [
-  "seoul", "busan", "incheon", "jeju", "jeonju", "gyeongju",
-  "gangneung", "sokcho", "daegu", "gwangju", "yeosu", "chuncheon",
+// 인기 여행지 (검색어가 없을 때 노출). 값은 서버 지역 검색 displayName과 동일한 한국어 표시명.
+export const POPULAR_REGIONS = [
+  "서울", "부산", "인천", "제주", "전주", "경주",
+  "강릉", "속초", "대구", "광주", "여수", "춘천",
 ] as const;
 
 // 이동 수단

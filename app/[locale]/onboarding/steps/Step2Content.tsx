@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import SelectChip from "@/app/_components/ui/SelectChip";
 import { CATEGORIES } from "../_constants";
 import type { OnboardingData, Category } from "../_types";
@@ -7,10 +8,11 @@ import type { OnboardingData, Category } from "../_types";
 type Step2ContentProps = {
   data: OnboardingData;
   toggleCategory: (cat: Category) => void;
-  t: (key: string) => string;
 };
 
-export default function Step2Content({ data, toggleCategory, t }: Step2ContentProps) {
+export default function Step2Content({ data, toggleCategory }: Step2ContentProps) {
+  const t = useTranslations("onboarding");
+
   return (
     <>
       <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step2Title")}</h1>
