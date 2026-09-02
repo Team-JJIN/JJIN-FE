@@ -17,6 +17,17 @@ const ERROR_TITLES: Record<number, string> = {
   404: "요청한 정보를 찾을 수 없습니다.",
   500: "서버 오류가 발생했습니다.",
 };
+const DEFAULT_ERROR_TITLE = "오류가 발생했습니다.";
+const NETWORK_ERROR_MESSAGE = "서버에 연결할 수 없습니다.";
+
+const LOADING_TEXT: Record<string, string> = {
+  ko: "로그인 중...",
+  en: "Logging in...",
+  ja: "ログイン中...",
+  zh: "登录中...",
+};
+
+const loadingText = (locale: string) => LOADING_TEXT[locale] ?? LOADING_TEXT.en;
 
 /**
  * Google OAuth callback 처리 페이지 (locale 밖 고정 경로).
@@ -49,12 +60,12 @@ export default function GoogleCallbackPage() {
       try {
         const { accessToken, refreshToken, role } = await loginWithGoogle(code);
         saveTokens(accessToken, refreshToken);
-        router.replace(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/home`);
+        router.replace(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/mission`);
       } catch (err) {
         if (err instanceof ApiError) {
           setError({ status: err.status, message: err.message });
         } else {
-          setError({ status: 0, message: "서버에 연결할 수 없습니다." });
+          setError({ status: 0, message: NETWORK_ERROR_MESSAGE });
         }
       }
     })();
@@ -64,7 +75,7 @@ export default function GoogleCallbackPage() {
     return (
       <div className="flex h-dvh flex-col items-center justify-center bg-white px-[20px]">
         <p className="text-[15px] font-semibold text-dark mb-[8px]">
-          {ERROR_TITLES[error.status] ?? "오류가 발생했습니다."}
+          {ERROR_TITLES[error.status] ?? DEFAULT_ERROR_TITLE}
         </p>
         <p className="text-[12px] text-muted mb-[4px]">{error.message}</p>
         <p className="text-[11px] text-neutral-400 mb-[24px]">
@@ -81,12 +92,17 @@ export default function GoogleCallbackPage() {
     );
   }
 
+  // 화면 정중앙에 JJIN 브랜드(lime) 스피너 + 로그인 중 안내
   return (
-    <div className="flex h-dvh items-center justify-center bg-white">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-neutral-200 border-t-lime" />
-        <p className="text-[13px] text-muted">로그인 중...</p>
-      </div>
+    <div className="flex h-dvh flex-col items-center justify-center gap-[16px] bg-white">
+      <span
+        className="h-[40px] w-[40px] animate-spin rounded-full border-[3px] border-[#EEF0F2] border-t-lime"
+        role="status"
+        aria-label={loadingText(locale)}
+      />
+      <p className="text-[14px] font-medium tracking-[-0.01em] text-[#8A8F96]">
+        {loadingText(locale)}
+      </p>
     </div>
   );
 }

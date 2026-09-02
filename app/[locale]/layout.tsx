@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import QueryProvider from "@/app/_components/providers/QueryProvider";
 import MotionProvider from "@/app/_components/providers/MotionProvider";
+import { MOBILE_FRAME_CLASS } from "@/lib/utils";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
@@ -46,7 +47,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <link rel="apple-touch-icon" href="/image/icon-192.png" />
       </head>
       <body className="bg-neutral-100">
-        <div className="mx-auto w-full max-w-[430px] min-h-dvh max-h-dvh bg-white relative shadow-xl overflow-x-hidden overflow-y-auto scrollbar-hide">
+        <div className={MOBILE_FRAME_CLASS}>
           <NextIntlClientProvider messages={messages}>
             <MotionProvider>
               <QueryProvider>{children}</QueryProvider>

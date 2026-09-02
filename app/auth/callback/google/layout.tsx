@@ -1,3 +1,6 @@
+import { MOBILE_FRAME_CLASS } from "@/lib/utils";
+import "@/app/globals.css";
+
 export default function GoogleCallbackLayout({
   children,
 }: {
@@ -5,7 +8,9 @@ export default function GoogleCallbackLayout({
 }) {
   return (
     <html>
-      <body>{children}</body>
+      <body className="bg-neutral-100">
+        <div className={MOBILE_FRAME_CLASS}>{children}</div>
+      </body>
     </html>
   );
 }
