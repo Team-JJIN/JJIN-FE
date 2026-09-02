@@ -13,7 +13,8 @@ interface WheelPickerProps {
 }
 
 const ITEM_H = 40;
-const VISIBLE = 7;
+const VISIBLE = 5; // 화면에 보이는 행 수 (홀수)
+const PAD = Math.floor(VISIBLE / 2); // 중앙 정렬용 상/하 패딩 행 수
 
 export default function WheelPicker({ items, value, onChange }: WheelPickerProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -58,7 +59,7 @@ export default function WheelPicker({ items, value, onChange }: WheelPickerProps
       }}
     >
       {/* 상단 패딩 */}
-      <div style={{ height: ITEM_H * 3 }} />
+      <div style={{ height: ITEM_H * PAD }} />
 
       {items.map((item, i) => {
         const dist = Math.abs(i - idx);
@@ -79,7 +80,7 @@ export default function WheelPicker({ items, value, onChange }: WheelPickerProps
       })}
 
       {/* 하단 패딩 */}
-      <div style={{ height: ITEM_H * 3 }} />
+      <div style={{ height: ITEM_H * PAD }} />
     </div>
   );
 }
