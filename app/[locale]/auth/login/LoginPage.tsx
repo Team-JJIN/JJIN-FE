@@ -10,9 +10,8 @@ import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
 import { buildGoogleOAuthUrl } from "@/app/_api/google-oauth";
-import { loginWithEmail } from "@/app/_api/auth";
+import { loginWithEmail, handleAuthSuccess } from "@/app/_api/auth";
 import { ApiError, getApiErrorMessage } from "@/app/_api/client";
-import { saveTokens } from "@/app/_api/token";
 
 type LoginForm = { email: string; password: string };
 
@@ -39,11 +38,12 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setLoginError("");
     try {
-      const { accessToken, refreshToken, role } = await loginWithEmail(data.email, data.password);
-      saveTokens(accessToken, refreshToken);
-      // 성공 후 화면 전환까지 스피너 유지 (스피너가 먼저 사라지는 어색함 방지)
-      setIsNavigating(true);
-      router.push(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/mission`);
+      const tokens = await loginWithEmail(data.email, data.password);
+      handleAuthSuccess(tokens, locale, (path) => {
+        // 성공 후 화면 전환까지 스피너 유지 (스피너가 먼저 사라지는 어색함 방지)
+        setIsNavigating(true);
+        router.push(path);
+      });
     } catch (err: unknown) {
       if (err instanceof ApiError && err.status === 408) {
         setLoginError(t("errorTimeout"));

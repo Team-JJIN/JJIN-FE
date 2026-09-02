@@ -9,9 +9,8 @@ import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import CheckBox from "@/app/_components/ui/CheckBox";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
-import { signUp, getTerms, type TermsItem } from "@/app/_api/auth";
+import { signUp, getTerms, handleAuthSuccess, type TermsItem } from "@/app/_api/auth";
 import { getApiErrorMessage } from "@/app/_api/client";
-import { saveTokens } from "@/app/_api/token";
 
 type SignUpForm = {
   email: string;
@@ -102,8 +101,7 @@ export default function SignUpPage() {
         agreed: agreedTermIds.has(term.id),
       }));
       const tokens = await signUp(email, password, termsAgreements);
-      saveTokens(tokens.accessToken, tokens.refreshToken);
-      router.push(`/${locale}/onboarding`);
+      handleAuthSuccess(tokens, locale, (path) => router.push(path));
     } catch (err: unknown) {
       setSubmitError(getApiErrorMessage(err, t("errorSignUpFailed")));
     }

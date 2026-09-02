@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { loginWithGoogle } from "@/app/_api/auth";
-import { saveTokens } from "@/app/_api/token";
+import { loginWithGoogle, handleAuthSuccess } from "@/app/_api/auth";
 import { ApiError } from "@/app/_api/client";
 
 type ErrorState = {
@@ -58,9 +57,8 @@ export default function GoogleCallbackPage() {
 
     (async () => {
       try {
-        const { accessToken, refreshToken, role } = await loginWithGoogle(code);
-        saveTokens(accessToken, refreshToken);
-        router.replace(role === "ONBOARDING" ? `/${locale}/onboarding` : `/${locale}/mission`);
+        const tokens = await loginWithGoogle(code);
+        handleAuthSuccess(tokens, locale, (path) => router.replace(path));
       } catch (err) {
         if (err instanceof ApiError) {
           setError({ status: err.status, message: err.message });

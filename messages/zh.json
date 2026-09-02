@@ -86,6 +86,7 @@
     "start": "开始",
     "skip": "跳过",
     "errorRoleUpdateFailed": "处理失败，请重试",
+    "errorSubmitFailed": "保存引导信息失败，请重试",
     "reset": "重置",
     "prev": "上一步",
     "categories": {

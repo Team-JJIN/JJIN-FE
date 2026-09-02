@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
-import { updateRoleToMember } from "@/app/_api/auth";
-import { getApiErrorMessage } from "@/app/_api/client";
-import { saveTokens } from "@/app/_api/token";
+import { updateRoleToMember, handleAuthSuccess, type AuthTokens } from "@/app/_api/auth";
+import { getApiErrorMessage, ApiError } from "@/app/_api/client";
+import { submitOnboarding, buildOnboardingRequest } from "@/app/_api/onboarding";
 
 import { SUB_CATEGORIES } from "./_constants";
 import type { OnboardingData, Category } from "./_types";
@@ -84,27 +84,62 @@ export default function OnboardingFlow() {
     }
   }, [step, data]);
 
-  // role을 MEMBER로 변경하고 토큰 갱신 후 mission 페이지로 이동
-  const completeOnboarding = useCallback(async () => {
-    if (isCompleting) return;
-    setIsCompleting(true);
-    try {
-      const { accessToken, refreshToken } = await updateRoleToMember();
-      saveTokens(accessToken, refreshToken);
-      router.push(`/${locale}/mission`);
-    } catch (err) {
-      setIsCompleting(false);
-      alert(getApiErrorMessage(err, t("errorRoleUpdateFailed")));
-    }
-  }, [isCompleting, router, locale, t]);
+  // 온보딩 완료 공통 러너: 토큰을 반환하는 API를 호출하고, 성공 시 토큰 저장 + role 라우팅,
+  // 실패 시 로딩 해제 + 안내. fetchTokens와 errorKey만 다른 두 흐름(건너뛰기/시작하기)을 통합한다.
+  const runCompletion = useCallback(
+    async (fetchTokens: () => Promise<AuthTokens>, errorKey: string) => {
+      if (isCompleting) return;
+      setIsCompleting(true);
+      try {
+        const tokens = await fetchTokens();
+        handleAuthSuccess(tokens, locale, (path) => router.push(path));
+      } catch (err) {
+        setIsCompleting(false);
+        if (process.env.NODE_ENV !== "production" && err instanceof ApiError) {
+          console.error("[onboarding] API error:", {
+            status: err.status,
+            message: err.message,
+            detail: err.detail,
+          });
+        }
+        // 서버가 detail(구체 사유)을 주면 그대로, 없으면 로케일 fallback 메시지 표시
+        alert(getApiErrorMessage(err, t(errorKey)));
+      }
+    },
+    [isCompleting, locale, router, t]
+  );
+
+  // 건너뛰기: 입력 없이 role만 MEMBER로 변경하고 토큰 갱신 후 이동
+  const completeOnboarding = useCallback(
+    () => runCompletion(updateRoleToMember, "errorRoleUpdateFailed"),
+    [runCompletion]
+  );
+
+  // S4 "시작하기": S1~S4 입력을 온보딩 저장 API로 한 번에 전송하고, 새 토큰으로 갱신 후 이동.
+  // (여행 이름 tripName은 현재 백엔드 미지원이라 전송하지 않고 클라이언트 상태로만 유지)
+  //
+  // ⚠️ 주의: 현재 백엔드가 온보딩 요청 DTO에 '여행 이름' 필드를 새로 추가하면서
+  //   해당 필드가 required로 검증되어, 이름을 보내지 않는 지금은 온보딩 저장 시 400 에러가 발생한다.
+  //   백엔드가 여행 이름 필드를 nullable로 바꾸거나 프론트가 tripName을 함께 전송하도록 합의되면 해소된다.
+  const submitAndComplete = useCallback(
+    () =>
+      runCompletion(() => {
+        const body = buildOnboardingRequest(data, minuteStart, minuteEnd);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[onboarding] POST /api/onboarding body:", JSON.stringify(body, null, 2));
+        }
+        return submitOnboarding(body);
+      }, "errorSubmitFailed"),
+    [runCompletion, data, minuteStart, minuteEnd]
+  );
 
   const handleNext = useCallback(async () => {
     if (step < 4) {
       setStep((s) => s + 1);
     } else {
-      await completeOnboarding();
+      await submitAndComplete();
     }
-  }, [step, completeOnboarding]);
+  }, [step, submitAndComplete]);
 
   const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
