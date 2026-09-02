@@ -1,6 +1,6 @@
 /**
  * @component SelectChip
- * 선택 가능한 칩. 비활성: #F7F7F7 배경. 활성: #F4FFD6 배경 + #CCFF00 1.5px 테두리.
+ * 선택 가능한 칩. 비활성: #F7F7F7 배경. 활성: #F4FFD6 배경 + #CCFF00 1.5px 테두리. 글자색 #737373.
  */
 "use client";
 

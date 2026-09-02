@@ -35,6 +35,8 @@ interface BottomSheetProps {
   contentMode?: "scroll" | "fill";
   /** 헤더 스타일: "default"(px-20 pt-32 pb-16) | "compact"(p-16 + 하단 구분선, 제목 15px — 댓글 시트) */
   headerVariant?: "default" | "compact";
+  /** default 헤더 제목 스타일 덮어쓰기 (TopBarClose로 전달) */
+  titleClassName?: string;
 }
 
 const SCROLL_CONTENT_CLASS =
@@ -56,6 +58,7 @@ export default function BottomSheet({
   backLabel,
   contentMode = "scroll",
   headerVariant = "default",
+  titleClassName,
 }: BottomSheetProps) {
   const contentClass =
     contentMode === "fill" ? FILL_CONTENT_CLASS : SCROLL_CONTENT_CLASS;
@@ -75,6 +78,7 @@ export default function BottomSheet({
         onBack={onBack}
         backLabel={backLabel}
         compact={headerVariant === "compact"}
+        titleClassName={titleClassName}
       />
     </div>
   );

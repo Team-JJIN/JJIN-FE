@@ -23,6 +23,8 @@ interface TopBarCloseProps {
   backLabel?: string;
   /** 댓글 시트처럼 낮은 헤더용: 제목 15px, 행 최소 높이 24px */
   compact?: boolean;
+  /** 기본 제목 스타일을 덮어쓸 클래스 (default 헤더에서만 적용) */
+  titleClassName?: string;
 }
 
 export default function TopBarClose({
@@ -32,6 +34,7 @@ export default function TopBarClose({
   onBack,
   backLabel,
   compact = false,
+  titleClassName,
 }: TopBarCloseProps) {
   return (
     // min-h: h2(27px, compact는 15px 타이틀 기준 24px)와 ✕(22px)의 높이 차 때문에 ←/제목이 교체될 때 행 높이가 흔들리는 것을 막는다
@@ -58,7 +61,7 @@ export default function TopBarClose({
             className={
               compact
                 ? "text-[15px] font-semibold tracking-[-0.045px] text-ink"
-                : "text-[18px] font-semibold text-[#171717]"
+                : titleClassName ?? "text-[18px] font-semibold text-[#171717]"
             }
           >
             {title}
