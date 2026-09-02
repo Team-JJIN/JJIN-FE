@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import SelectChip from "@/app/_components/ui/SelectChip";
 import { SUB_CATEGORIES } from "../_constants";
 
@@ -9,15 +10,14 @@ type Step3ContentProps = {
   categories: string[];
   subCategories: string[];
   toggleSubCategory: (sub: string) => void;
-  t: (key: string) => string;
 };
 
 export default function Step3Content({
   categories,
   subCategories,
   toggleSubCategory,
-  t,
 }: Step3ContentProps) {
+  const t = useTranslations("onboarding");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const toggle = (cat: string) => {
@@ -33,15 +33,15 @@ export default function Step3Content({
         {categories.map((cat) => (
           <div
             key={cat}
-            className="rounded-[12px] bg-white px-[12px] py-[10px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
+            className="w-full rounded-[12px] bg-white px-[16px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
           >
             <button
               type="button"
               onClick={() => toggle(cat)}
               aria-expanded={!collapsed[cat]}
-              className="flex w-full items-center justify-between"
+              className="flex w-full items-center justify-between py-[20px]"
             >
-              <span className="text-[13px] font-semibold text-dark">{t(`categories.${cat}`)}</span>
+              <span className="text-[15px] font-semibold text-dark">{t(`categories.${cat}`)}</span>
               <span className={`text-[12px] text-[#C4C4C4] transition-transform ${collapsed[cat] ? "rotate-180" : ""}`}>▼</span>
             </button>
             {!collapsed[cat] && (
@@ -52,7 +52,7 @@ export default function Step3Content({
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="flex flex-wrap gap-[8px] mt-[8px]" role="group" aria-label={t(`categories.${cat}`)}>
+                <div className="flex flex-wrap gap-[8px] pb-[16px]" role="group" aria-label={t(`categories.${cat}`)}>
                   {(SUB_CATEGORIES[cat] ?? []).map((sub) => (
                     <SelectChip
                       key={sub}

@@ -39,6 +39,14 @@ export default function SplashPage() {
           priority
           className="w-[120px] h-[120px] object-contain"
         />
+        <Image
+          src="/image/JJIN.png"
+          alt="JJIN"
+          width={167}
+          height={75}
+          priority
+          className="mt-[6px] w-[167px] h-[75.15px] object-contain"
+        />
         <p className="mt-[10px] text-[13px] font-normal text-[#C4C4C4]">
           Living life for real
         </p>

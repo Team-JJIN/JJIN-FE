@@ -13,23 +13,31 @@ const MSG_FAILED = "요청에 실패했습니다.";
 export interface ApiResponse<T = null> {
   status: number;
   message: string;
+  /** 실패 응답의 구체적 사유. 성공 응답에는 없을 수 있음. */
+  detail?: string;
   data: T;
 }
 
 export class ApiError extends Error {
   status: number;
   message: string;
+  /** 서버가 내려주는 구체적 실패 사유 (예: "startDate: 반드시 값이 있어야 합니다."). 없을 수 있음. */
+  detail?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, detail?: string) {
     super(message);
     this.status = status;
     this.message = message;
+    this.detail = detail;
   }
 }
 
-/** UI에서 catch한 에러를 사용자 메시지로 변환. ApiError면 서버 메시지, 아니면 fallback. */
+/**
+ * UI에서 catch한 에러를 사용자 메시지로 변환.
+ * ApiError면 detail(구체 사유) > message > fallback 순으로 사용, 아니면 fallback.
+ */
 export function getApiErrorMessage(err: unknown, fallback: string): string {
-  if (err instanceof ApiError && err.message) return err.message;
+  if (err instanceof ApiError) return err.detail || err.message || fallback;
   if (err instanceof Error && err.message) return err.message;
   return fallback;
 }
@@ -79,7 +87,7 @@ async function parseResponse<T>(res: Response): Promise<ApiResponse<T>> {
   } catch {
     throw new ApiError(res.status, MSG_PARSE);
   }
-  if (!res.ok) throw new ApiError(data.status ?? res.status, data.message ?? MSG_FAILED);
+  if (!res.ok) throw new ApiError(data.status ?? res.status, data.message ?? MSG_FAILED, data.detail);
   return data;
 }
 

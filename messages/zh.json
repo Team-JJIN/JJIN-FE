@@ -3,11 +3,13 @@
     "email": "电子邮件",
     "password": "密码",
     "loginButton": "登录",
+    "errorTimeout": "响应时间过长，请重试",
     "forgotPassword": "忘记密码",
     "signUp": "注册",
     "orContinueWith": "或者",
     "errorEmailRequired": "请输入电子邮件",
-    "errorPasswordRequired": "请输入密码"
+    "errorPasswordRequired": "请输入密码",
+    "errorLoginFailed": "登录失败"
   },
   "signUp": {
     "title": "注册",
@@ -22,7 +24,8 @@
     "sendVerificationEmail": "注册",
     "errorEmailInvalid": "请输入有效的电子邮件",
     "errorPasswordInvalid": "需要8位以上，包含字母和数字",
-    "errorPasswordMismatch": "密码不一致"
+    "errorPasswordMismatch": "密码不一致",
+    "errorSignUpFailed": "注册失败"
   },
   "emailVerification": {
     "title": "邮件验证",
@@ -40,7 +43,7 @@
   "onboarding": {
     "step1Title": "旅行日程与交通方式",
     "step1Subtitle": "",
-    "dateRange": "选择日期范围",
+    "dateRange": "访问日期",
     "activityTime": "每日活动时间段",
     "timeStart": "开始",
     "timeEnd": "结束",
@@ -48,6 +51,8 @@
     "walking": "步行",
     "publicTransit": "公共交通",
     "car": "车辆",
+    "tripName": "旅行名称",
+    "tripNamePlaceholder": "请设置旅行名称。",
     "region": "访问地区",
     "regionPlaceholder": "去哪里？",
     "regionUndecided": "还没决定",
@@ -57,7 +62,9 @@
     "timeSheetStart": "开始时间",
     "timeSheetEnd": "结束时间",
     "searchPlaceholder": "去哪里？",
-    "popularDestinations": "热门旅游地",
+    "popularDestinations": "热门旅行地",
+    "noRegionResults": "没有搜索结果",
+    "errorRegionSearchFailed": "地区搜索失败，请重试",
     "maxOneRegion": "最多可以选择1个",
     "maxFourCategories": "最多可以选择4个",
     "selectComplete": "选择完成",
@@ -70,14 +77,16 @@
     "step3Subtitle": "每个分类至少选1个",
     "step4Title": "想要多深入地体验？",
     "step4Subtitle": "选择的等级会影响任务L1~L4的配比",
-    "light": "LIGHT",
-    "lightDesc": "第一次来韩国·以便利店饭团等轻松任务为主",
-    "normal": "NORMAL",
-    "normalDesc": "更深入一些·混合社区餐厅、传统市场任务",
-    "deep": "DEEP",
-    "deepDesc": "像真正的韩国人一样·胡同小吃店、社区澡堂任务",
+    "light": "Light",
+    "lightDesc": "我第一次来韩国。以便利店饭团等轻松任务为主",
+    "normal": "Normal",
+    "normalDesc": "我想更深入地体验。社区餐厅、传统市场任务",
+    "deep": "Deep",
+    "deepDesc": "我想像真正的韩国人一样体验。胡同小吃店、社区澡堂任务",
     "start": "开始",
     "skip": "跳过",
+    "errorRoleUpdateFailed": "处理失败，请重试",
+    "errorSubmitFailed": "保存引导信息失败，请重试",
     "reset": "重置",
     "prev": "上一步",
     "categories": {
@@ -126,18 +135,18 @@
       "waterSports": "水上运动"
     },
     "regions": {
-      "seoul": "首尔",
-      "busan": "釜山",
-      "incheon": "仁川",
-      "jeju": "济州",
-      "jeonju": "全州",
-      "gyeongju": "庆州",
-      "gangneung": "江陵",
-      "sokcho": "束草",
-      "daegu": "大邱",
-      "gwangju": "光州",
-      "yeosu": "丽水",
-      "chuncheon": "春川"
+      "서울": "首尔",
+      "부산": "釜山",
+      "인천": "仁川",
+      "제주": "济州",
+      "전주": "全州",
+      "경주": "庆州",
+      "강릉": "江陵",
+      "속초": "束草",
+      "대구": "大邱",
+      "광주": "光州",
+      "여수": "丽水",
+      "춘천": "春川"
     }
   },
   "mission": {

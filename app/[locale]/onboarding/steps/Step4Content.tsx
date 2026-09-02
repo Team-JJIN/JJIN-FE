@@ -1,15 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { LEVELS } from "../_constants";
 import type { OnboardingData, Level } from "../_types";
 
 type Step4ContentProps = {
   data: OnboardingData;
   setData: React.Dispatch<React.SetStateAction<OnboardingData>>;
-  t: (key: string) => string;
 };
 
-export default function Step4Content({ data, setData, t }: Step4ContentProps) {
+export default function Step4Content({ data, setData }: Step4ContentProps) {
+  const t = useTranslations("onboarding");
+
   return (
     <>
       <h1 className="text-[22px] font-bold tracking-[-0.5px] text-dark">{t("step4Title")}</h1>
