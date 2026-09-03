@@ -184,8 +184,7 @@ export function useUpdateMissionPlans() {
       removePlanIds: string[];
       nextIsAdded: boolean;
     }) => {
-      // 순서 고정: 해제(DELETE)는 client-ext 경유라 401 재발급이 없어, 앞선 POST(add)가
-      // 토큰을 갱신하게 둔다(병렬 금지). 부분 실패(add 성공·remove 실패)는 onError 롤백 뒤
+      // add → remove 순차 호출. 부분 실패(add 성공·remove 실패)는 onError 롤백 뒤
       // onSettled invalidate가 서버 진실로 수렴시키고, 실패 자체는 AddMissionPanel이
       // isError로 표시한다.
       if (addPlanIds.length > 0) {

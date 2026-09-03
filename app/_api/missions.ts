@@ -5,10 +5,8 @@
  * 규칙: docs/API-RULE.md. 기준 구현: app/_api/feed.ts
  */
 
-import { apiGet, apiPost, ApiError } from "./client";
-import { apiDelete } from "./client-ext";
+import { apiGet, apiPost, apiDelete, ApiError } from "./client";
 import {
-  buildQuery,
   toDifficulty,
   toDifficultyDto,
   toPaginated,
@@ -265,13 +263,11 @@ export async function fetchMissions({
   filter: MissionFilter;
   cursor: number;
 }): Promise<Paginated<Mission>> {
-  const { data } = await apiGet<MissionListDto>(
-    `/api/missions${buildQuery({
-      source: FILTER_TO_SOURCE[filter],
-      page: cursor,
-      size: MISSION_PAGE_SIZE,
-    })}`,
-  );
+  const { data } = await apiGet<MissionListDto>("/api/missions", {
+    source: FILTER_TO_SOURCE[filter],
+    page: cursor,
+    size: MISSION_PAGE_SIZE,
+  });
   return toPaginated(data, (data.missions ?? []).map(toMission));
 }
 
@@ -283,16 +279,14 @@ export async function searchMissions({
   sort,
   cursor,
 }: SearchMissionsParams): Promise<Paginated<Mission> & { totalCount: number }> {
-  const { data } = await apiGet<MissionListDto>(
-    `/api/missions${buildQuery({
-      keyword: query || undefined,
-      categories,
-      difficulties: difficulty ? [toDifficultyDto(difficulty)] : undefined,
-      sort,
-      page: cursor,
-      size: SEARCH_PAGE_SIZE,
-    })}`,
-  );
+  const { data } = await apiGet<MissionListDto>("/api/missions", {
+    keyword: query || undefined,
+    categories,
+    difficulties: difficulty ? [toDifficultyDto(difficulty)] : undefined,
+    sort,
+    page: cursor,
+    size: SEARCH_PAGE_SIZE,
+  });
   return {
     ...toPaginated(data, (data.missions ?? []).map(toMission)),
     totalCount: data.totalMissionCount,
@@ -303,7 +297,9 @@ export async function searchMissions({
 export async function fetchMissionDetail(
   missionId: string,
 ): Promise<MissionDetail> {
-  const { data } = await apiGet<MissionDetailDto>(`/api/missions/${Number(missionId)}`);
+  const { data } = await apiGet<MissionDetailDto>(
+    `/api/missions/${Number(missionId)}`,
+  );
   return toMissionDetail(data);
 }
 

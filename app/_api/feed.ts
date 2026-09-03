@@ -8,7 +8,6 @@
 
 import { apiGet, apiPost } from "./client";
 import {
-  buildQuery,
   toDifficulty,
   toPaginated,
   normalizeServerDate,
@@ -228,13 +227,11 @@ export async function fetchFeed({
   cursor: number;
 }): Promise<Paginated<FeedPost>> {
   const page = (
-    await apiGet<FeedPageDto>(
-      `/api/missions/proofs/feed${buildQuery({
-        tab: FEED_TAB_TO_DTO[tab],
-        page: cursor,
-        size: FEED_PAGE_SIZE,
-      })}`,
-    )
+    await apiGet<FeedPageDto>("/api/missions/proofs/feed", {
+      tab: FEED_TAB_TO_DTO[tab],
+      page: cursor,
+      size: FEED_PAGE_SIZE,
+    })
   ).data;
   return toPaginated(page, page.items.map(toFeedPost));
 }
@@ -244,7 +241,6 @@ export async function toggleFeedLike(postId: string): Promise<FeedLikeResult> {
   const result = (
     await apiPost<FeedLikeToggleDto>(
       `/api/missions/proofs/${Number(postId)}/likes/toggle`,
-      {}, // 바디 없는 엔드포인트 — client.ts(apiPost)가 body를 필수로 받아 빈 객체를 보낸다
     )
   ).data;
   return toFeedLikeResult(result);
@@ -260,10 +256,8 @@ export async function fetchFeedComments({
 }): Promise<Paginated<FeedComment>> {
   const page = (
     await apiGet<FeedCommentPageDto>(
-      `/api/missions/proofs/${Number(postId)}/comments${buildQuery({
-        page: cursor,
-        size: COMMENT_PAGE_SIZE,
-      })}`,
+      `/api/missions/proofs/${Number(postId)}/comments`,
+      { page: cursor, size: COMMENT_PAGE_SIZE },
     )
   ).data;
   return toPaginated(page, page.comments.map(toFeedComment));

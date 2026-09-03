@@ -21,7 +21,7 @@ import {
   TITLE_MAX,
   DESC_MAX,
 } from "../_constants";
-import { ApiError } from "@/app/_api/client";
+import { getApiErrorMessage } from "@/app/_api/client";
 import type { MissionDifficulty } from "@/app/_api/missions";
 import type { MissionPreview } from "../_store/useMissionSheetStore";
 
@@ -206,9 +206,7 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
       });
     } catch (err) {
       setSubmitError(true);
-      setSubmitErrorDetail(
-        err instanceof ApiError && err.message ? err.message : null,
-      );
+      setSubmitErrorDetail(getApiErrorMessage(err, "") || null);
     }
   }, [
     isFormValid,
