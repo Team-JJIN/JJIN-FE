@@ -163,10 +163,13 @@ export default function MissionCreateForm({ onDone }: MissionCreateFormProps) {
 
   const handleTagInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        commitTagInput(false);
-      }
+      if (e.key !== "Enter") return;
+      // 한글 IME 조합 중 Enter는 조합 확정용 keydown(Chromium은 조합 종료 후 keydown을 한 번 더 보낸다).
+      // 여기서 태그를 확정하면 마지막 음절이 빈 입력창에 남아 두 번째 태그로 만들어진다.
+      // keyCode 229는 isComposing이 false로 오는 Safari 대응.
+      if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+      e.preventDefault();
+      commitTagInput(false);
     },
     [commitTagInput],
   );
