@@ -49,6 +49,19 @@ export const REGION_ENUM: Record<string, string> = {
   "춘천": "CHUNCHEON",
 };
 
+/**
+ * 지역 표시명(displayName)을 REGION enum으로 변환한다.
+ * 1) 정확 매칭 우선 (인기 여행지 "서울" 등)
+ * 2) 검색 결과 displayName이 "서울특별시"처럼 다를 수 있어, 표시명에 키가 포함되면 매칭
+ * 매칭 실패 시 null (호출부에서 처리).
+ */
+export function toRegionEnum(displayName: string): string | null {
+  if (!displayName) return null;
+  if (REGION_ENUM[displayName]) return REGION_ENUM[displayName];
+  const hit = Object.keys(REGION_ENUM).find((key) => displayName.includes(key));
+  return hit ? REGION_ENUM[hit] : null;
+}
+
 // 이동 수단: 프론트 키 → TRANSPORT MODE enum
 export const TRANSPORT_ENUM: Record<Transport, string> = {
   walking: "WALKING",
@@ -63,54 +76,50 @@ export const LEVEL_ENUM: Record<Level, string> = {
   deep: "DEEP",
 };
 
-// 중분류(프론트 SUB_CATEGORIES 값) → { 백엔드 대분류 contentType, 백엔드 중분류 subcategory }
-// 백엔드 TRAVEL TYPE 명세 기준. 서버는 preferences[].contentType(TRAVEL TYPE enum)을 요구하며,
-// 프론트 대분류와 백엔드 대분류 구조가 다르므로 중분류 단위로 실제 소속 대분류를 지정한다.
-// 전송 시 contentType 기준으로 다시 그룹핑한다.
+// 중분류(프론트 SUB_CATEGORIES 값) → { 백엔드 관광타입 contentType, 백엔드 중분류 subcategory }
+// 서버는 preferences[].contentType(TourApiContentType enum)을 필수로 요구한다.
+// 프론트 대분류와 TourAPI 관광타입 구조가 다르므로, 각 중분류가 실제 속한 관광타입을 지정하고
+// 전송 시 contentType 기준으로 다시 그룹핑한다. (TourAPI 관광타입 표 기준)
 export const SUBCATEGORY_ENUM: Record<string, { contentType: string; subcategory: string }> = {
-  // food (음식) → RESTAURANT(음식점)
+  // 음식점(RESTAURANT, 39)
   korean: { contentType: "RESTAURANT", subcategory: "KOREAN_FOOD" },
   cafe: { contentType: "RESTAURANT", subcategory: "CAFE_TEAHOUSE" },
   bar: { contentType: "RESTAURANT", subcategory: "PUB" },
   allFood: { contentType: "RESTAURANT", subcategory: "LIKE_ALL_FOOD" },
 
-  // experience (체험관광) → TOURIST_ATTRACTION(관광지)
+  // 관광지(TOURIST_ATTRACTION, 12) — 체험/자연/역사 상당수가 여기 속함
   traditional: { contentType: "TOURIST_ATTRACTION", subcategory: "TRADITIONAL_EXPERIENCE" },
   temple: { contentType: "TOURIST_ATTRACTION", subcategory: "TEMPLE_STAY" },
   unique: { contentType: "TOURIST_ATTRACTION", subcategory: "UNIQUE_EXPERIENCE" },
-
-  // nature (자연관광) → TOURIST_ATTRACTION(관광지)
   mountain: { contentType: "TOURIST_ATTRACTION", subcategory: "MOUNTAIN_FOREST" },
   beach: { contentType: "TOURIST_ATTRACTION", subcategory: "SEA_BEACH" },
   lake: { contentType: "TOURIST_ATTRACTION", subcategory: "LAKE_RIVER" },
   island: { contentType: "TOURIST_ATTRACTION", subcategory: "ISLAND" },
   park: { contentType: "TOURIST_ATTRACTION", subcategory: "PARK" },
-
-  // history (역사관광) → 궁궐/유적지/전통마을은 TOURIST_ATTRACTION, 박물관은 CULTURAL_FACILITY
   palace: { contentType: "TOURIST_ATTRACTION", subcategory: "PALACE" },
   ruins: { contentType: "TOURIST_ATTRACTION", subcategory: "HISTORIC_SITE" },
   village: { contentType: "TOURIST_ATTRACTION", subcategory: "TRADITIONAL_VILLAGE" },
-  museum: { contentType: "CULTURAL_FACILITY", subcategory: "MUSEUM" },
-
-  // culture (문화관광) → 미술관은 CULTURAL_FACILITY, 공연은 FESTIVAL_EVENT, 거리예술/사찰은 TOURIST_ATTRACTION
-  gallery: { contentType: "CULTURAL_FACILITY", subcategory: "GALLERY" },
-  performance: { contentType: "FESTIVAL_EVENT", subcategory: "PERFORMANCE_MUSICAL" },
   streetArt: { contentType: "TOURIST_ATTRACTION", subcategory: "STREET_ART" },
   buddhistTemple: { contentType: "TOURIST_ATTRACTION", subcategory: "TEMPLE" },
 
-  // shopping (쇼핑) → SHOPPING(쇼핑)
-  traditionalMarket: { contentType: "SHOPPING", subcategory: "TRADITIONAL_MARKET" },
-  localShop: { contentType: "SHOPPING", subcategory: "LOCAL_SHOP" },
-  dutyFree: { contentType: "SHOPPING", subcategory: "DUTY_FREE" },
-  vintage: { contentType: "SHOPPING", subcategory: "VINTAGE" },
+  // 문화시설(CULTURAL_FACILITY, 14)
+  museum: { contentType: "CULTURAL_FACILITY", subcategory: "MUSEUM" },
+  gallery: { contentType: "CULTURAL_FACILITY", subcategory: "GALLERY" },
 
-  // festival (축제·공연·행사) → FESTIVAL_EVENT(축제/공연/행사)
+  // 축제/공연/행사(FESTIVAL_EVENT, 15)
+  performance: { contentType: "FESTIVAL_EVENT", subcategory: "PERFORMANCE_MUSICAL" },
   festival: { contentType: "FESTIVAL_EVENT", subcategory: "FESTIVAL_EVENT" },
   event: { contentType: "FESTIVAL_EVENT", subcategory: "PERFORMANCE_EVENT" },
   fireworks: { contentType: "FESTIVAL_EVENT", subcategory: "FIREWORKS" },
   nightMarket: { contentType: "FESTIVAL_EVENT", subcategory: "NIGHT_MARKET" },
 
-  // leisure (레저스포츠) → LEISURE_SPORTS(레포츠)
+  // 쇼핑(SHOPPING, 38)
+  traditionalMarket: { contentType: "SHOPPING", subcategory: "TRADITIONAL_MARKET" },
+  localShop: { contentType: "SHOPPING", subcategory: "LOCAL_SHOP" },
+  dutyFree: { contentType: "SHOPPING", subcategory: "DUTY_FREE" },
+  vintage: { contentType: "SHOPPING", subcategory: "VINTAGE" },
+
+  // 레포츠(LEISURE_SPORTS, 28)
   surfing: { contentType: "LEISURE_SPORTS", subcategory: "SURFING" },
   skiing: { contentType: "LEISURE_SPORTS", subcategory: "SKIING" },
   hiking: { contentType: "LEISURE_SPORTS", subcategory: "HIKING" },

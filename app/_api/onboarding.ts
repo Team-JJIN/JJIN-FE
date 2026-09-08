@@ -1,7 +1,7 @@
 import { apiGet, apiPost } from "./client";
 import type { AuthTokens } from "./auth";
 import {
-  REGION_ENUM,
+  toRegionEnum,
   TRANSPORT_ENUM,
   LEVEL_ENUM,
   SUBCATEGORY_ENUM,
@@ -31,7 +31,7 @@ export async function searchRegions(keyword: string): Promise<Region[]> {
 // 온보딩 저장 (POST /api/onboarding)
 // ─────────────────────────────────────────────────────────────
 
-/** 온보딩 저장 요청 바디의 취향 항목 (대분류 contentType + 중분류 목록) */
+/** 온보딩 저장 요청 바디의 취향 항목 (TourAPI 관광타입 contentType + 중분류 목록) */
 export interface OnboardingPreference {
   contentType: string;
   subcategories: string[];
@@ -39,14 +39,15 @@ export interface OnboardingPreference {
 
 /** 온보딩 저장 요청 바디 */
 export interface OnboardingRequest {
-  region: string | null;
+  name: string; // 여행 이름 (필수)
+  region: string | null; // regionUndecided=false이면 필수
   regionUndecided: boolean;
   startDate: string; // yyyy-MM-dd
   endDate: string; // yyyy-MM-dd
   activityStartTime: string; // HH:mm
   activityEndTime: string; // HH:mm
   transportMode: string;
-  preferences: OnboardingPreference[];
+  preferences: OnboardingPreference[]; // 대분류별 취향 2~4개
   experienceLevel: string;
 }
 
@@ -61,8 +62,8 @@ function toTimeString(hour: number, minute: string): string {
 }
 
 /**
- * 프론트 중분류 키 배열을 백엔드 대분류(contentType)별 preferences로 그룹핑한다.
- * 서버는 preferences[].contentType(TRAVEL TYPE enum) + subcategories 형태를 기대한다.
+ * 프론트 중분류 키 배열을 TourAPI 관광타입(contentType)별 preferences로 그룹핑한다.
+ * 서버는 preferences[].contentType(TourApiContentType enum) + subcategories 형태를 기대한다.
  */
 function buildPreferences(subCategories: string[]): OnboardingPreference[] {
   const grouped = new Map<string, string[]>();
@@ -78,10 +79,11 @@ function buildPreferences(subCategories: string[]): OnboardingPreference[] {
 
 /**
  * OnboardingData(프론트 상태)를 온보딩 저장 요청 바디로 변환한다.
+ * - name: 여행 이름 (필수)
  * - region: 지역 미정이면 null, 아니면 한국어 표시명을 REGION enum으로 변환
  * - transportMode: 복수 선택 중 첫 번째를 단일 값으로 전송
  * - activityStart/EndTime: 시(정수) + 분(문자열) → HH:mm
- * - preferences: 중분류 키를 백엔드 대분류별로 그룹핑
+ * - preferences: 중분류 키를 TourAPI 관광타입(contentType)별로 그룹핑
  */
 export function buildOnboardingRequest(
   data: OnboardingData,
@@ -89,8 +91,15 @@ export function buildOnboardingRequest(
   minuteEnd: string
 ): OnboardingRequest {
   const firstTransport = data.transport[0];
+  // 지역 미정이면 region은 null, 아니면 표시명을 REGION enum으로 변환.
+  // 서버 규칙: regionUndecided=false이면 region은 반드시 값이 있어야 한다.
+  const region = data.regionUndecided ? null : toRegionEnum(data.region);
+  if (process.env.NODE_ENV !== "production" && !data.regionUndecided && !region) {
+    console.warn("[onboarding] region enum 매칭 실패 - displayName:", data.region);
+  }
   return {
-    region: data.regionUndecided ? null : (REGION_ENUM[data.region] ?? null),
+    name: data.tripName,
+    region,
     regionUndecided: data.regionUndecided,
     startDate: data.dateStart ?? "",
     endDate: data.dateEnd ?? "",
@@ -105,11 +114,7 @@ export function buildOnboardingRequest(
 /**
  * 온보딩 정보 저장.
  * S1~S4에서 모은 데이터를 한 번에 전송하고, 저장 후 MEMBER 역할이 반영된
- * 새 access/refresh token과 변경된 role을 응답으로 받는다.
- *
- * ⚠️ 주의: 백엔드가 온보딩 요청에 '여행 이름' 필드를 required로 추가하면서,
- *   현재는 이름을 함께 보내지 않아 저장 시 400(요청 필드 값 유효하지 않음)이 발생한다.
- *   백엔드에서 여행 이름을 nullable로 변경하거나 필드 스펙이 확정되면 OnboardingRequest에 추가할 것.
+ * 새 access/refresh token과 변경된 role을 응답으로 받는다. (201 CREATED)
  */
 export async function submitOnboarding(body: OnboardingRequest): Promise<OnboardingResult> {
   const res = await apiPost<OnboardingResult>("/api/onboarding", body);

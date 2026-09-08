@@ -115,12 +115,8 @@ export default function OnboardingFlow() {
     [runCompletion]
   );
 
-  // S4 "시작하기": S1~S4 입력을 온보딩 저장 API로 한 번에 전송하고, 새 토큰으로 갱신 후 이동.
-  // (여행 이름 tripName은 현재 백엔드 미지원이라 전송하지 않고 클라이언트 상태로만 유지)
-  //
-  // ⚠️ 주의: 현재 백엔드가 온보딩 요청 DTO에 '여행 이름' 필드를 새로 추가하면서
-  //   해당 필드가 required로 검증되어, 이름을 보내지 않는 지금은 온보딩 저장 시 400 에러가 발생한다.
-  //   백엔드가 여행 이름 필드를 nullable로 바꾸거나 프론트가 tripName을 함께 전송하도록 합의되면 해소된다.
+  // S4 "시작하기": S1~S4 입력(여행 이름 tripName 포함)을 온보딩 저장 API로 한 번에 전송하고,
+  // 새 토큰으로 갱신 후 이동. (현재 인증 흐름에서는 진입하지 않지만, 추후 '일정 생성'에서 재사용)
   const submitAndComplete = useCallback(
     () =>
       runCompletion(() => {
