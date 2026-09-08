@@ -29,6 +29,7 @@ export default function MissionHomePage() {
   const router = useRouter();
   const locale = useLocale();
   const openAddMission = useMissionSheetStore((s) => s.openAdd);
+  const openDetail = useMissionSheetStore((s) => s.openDetail);
 
   const [filter, setFilter] = useState<MissionFilter>("all");
 
@@ -56,6 +57,16 @@ export default function MissionHomePage() {
         imageUrl: m.imageUrl,
       }),
     [openAddMission],
+  );
+
+  const handleSelect = useCallback(
+    (m: Mission) =>
+      openDetail(m.id, {
+        title: m.title,
+        difficulty: m.difficulty,
+        imageUrl: m.imageUrl,
+      }),
+    [openDetail],
   );
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -200,10 +211,15 @@ export default function MissionHomePage() {
               className="flex flex-col gap-[22px]"
             >
               {missions.map((mission, index) => (
-                <motion.div key={mission.id} {...listItemEnter(index)}>
+                <motion.div
+                  key={mission.id}
+                  {...listItemEnter(index)}
+                  whileTap={TAP.card}
+                >
                   <MissionCardBig
                     mission={mission}
                     onAddClick={handleAddClick}
+                    onSelect={handleSelect}
                   />
                 </motion.div>
               ))}
