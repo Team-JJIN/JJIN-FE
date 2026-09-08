@@ -34,6 +34,9 @@ export default function MissionCardSmall({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      // 내부 추가 버튼(button)에 포커스한 채 Enter/Space를 누르면 keydown이 여기까지 버블링된다.
+      // 카드 자신이 대상일 때만 처리해야 추가 버튼 활성화가 상세 시트로 바뀌지 않는다.
+      if (e.target !== e.currentTarget) return;
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         handleSelect();
