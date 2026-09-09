@@ -231,5 +231,42 @@
     "search": {
       "counting": "확인 중…"
     }
+  },
+  "plan": {
+    "close": "닫기",
+    "dayChip": "{n}일차",
+    "course": "코스",
+    "edit": "편집",
+    "editDone": "편집 종료",
+    "delete": "삭제",
+    "addPlace": "장소 추가",
+    "directions": "길찾기",
+    "courseOption": "{n}번 코스",
+    "courseSelect": "코스 선택",
+    "open": "운영중",
+    "closed": "준비중",
+    "tabSchedule": "일정",
+    "tabMission": "미션",
+    "missionEmpty": "일정 미션은 준비 중이에요",
+    "loadError": "일정을 불러오지 못했어요",
+    "saveError": "저장하지 못했어요",
+    "retry": "다시 시도",
+    "reorder": "순서 변경",
+    "search": {
+      "title": "장소 추가",
+      "placeholder": "장소 이름, 주소 검색",
+      "recent": "최근 검색",
+      "emptyLine1": "주소, 장소 이름으로",
+      "emptyLine2": "장소를 검색해보세요",
+      "resultCount": "검색 결과",
+      "add": "추가",
+      "error": "검색에 실패했어요",
+      "sortLabel": "정렬",
+      "sort": {
+        "recent": "최근순",
+        "distance": "거리순",
+        "rating": "평점순"
+      }
+    }
   }
 }

@@ -245,5 +245,42 @@
     "search": {
       "counting": "確認中…"
     }
+  },
+  "plan": {
+    "close": "閉じる",
+    "dayChip": "{n}日目",
+    "course": "コース",
+    "edit": "編集",
+    "editDone": "編集終了",
+    "delete": "削除",
+    "addPlace": "場所を追加",
+    "directions": "経路案内",
+    "courseOption": "コース{n}",
+    "courseSelect": "コース選択",
+    "open": "営業中",
+    "closed": "準備中",
+    "tabSchedule": "日程",
+    "tabMission": "ミッション",
+    "missionEmpty": "日程ミッションは準備中です",
+    "loadError": "日程を読み込めませんでした",
+    "saveError": "保存できませんでした",
+    "retry": "再試行",
+    "reorder": "並べ替え",
+    "search": {
+      "title": "場所を追加",
+      "placeholder": "場所名・住所で検索",
+      "recent": "最近の検索",
+      "emptyLine1": "住所や場所名で",
+      "emptyLine2": "検索してみてください",
+      "resultCount": "検索結果",
+      "add": "追加",
+      "error": "検索に失敗しました",
+      "sortLabel": "並び替え",
+      "sort": {
+        "recent": "最新順",
+        "distance": "距離順",
+        "rating": "評価順"
+      }
+    }
   }
 }

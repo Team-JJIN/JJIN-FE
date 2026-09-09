@@ -245,5 +245,42 @@
     "search": {
       "counting": "Counting…"
     }
+  },
+  "plan": {
+    "close": "Close",
+    "dayChip": "Day {n}",
+    "course": "Course",
+    "edit": "Edit",
+    "editDone": "Done editing",
+    "delete": "Delete",
+    "addPlace": "Add place",
+    "directions": "Directions",
+    "courseOption": "Course {n}",
+    "courseSelect": "Select course",
+    "open": "Open now",
+    "closed": "Closed",
+    "tabSchedule": "Schedule",
+    "tabMission": "Missions",
+    "missionEmpty": "Plan missions are coming soon",
+    "loadError": "Couldn't load the plan",
+    "saveError": "Couldn't save",
+    "retry": "Retry",
+    "reorder": "Reorder",
+    "search": {
+      "title": "Add place",
+      "placeholder": "Search by name or address",
+      "recent": "Recent searches",
+      "emptyLine1": "Search by address",
+      "emptyLine2": "or place name",
+      "resultCount": "Results",
+      "add": "Add",
+      "error": "Search failed",
+      "sortLabel": "Sort",
+      "sort": {
+        "recent": "Recent",
+        "distance": "Distance",
+        "rating": "Rating"
+      }
+    }
   }
 }

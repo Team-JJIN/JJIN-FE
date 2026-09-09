@@ -245,5 +245,42 @@
     "search": {
       "counting": "统计中…"
     }
+  },
+  "plan": {
+    "close": "关闭",
+    "dayChip": "第{n}天",
+    "course": "路线",
+    "edit": "编辑",
+    "editDone": "结束编辑",
+    "delete": "删除",
+    "addPlace": "添加地点",
+    "directions": "导航",
+    "courseOption": "路线{n}",
+    "courseSelect": "选择路线",
+    "open": "营业中",
+    "closed": "未营业",
+    "tabSchedule": "行程",
+    "tabMission": "任务",
+    "missionEmpty": "行程任务正在准备中",
+    "loadError": "无法加载行程",
+    "saveError": "保存失败",
+    "retry": "重试",
+    "reorder": "调整顺序",
+    "search": {
+      "title": "添加地点",
+      "placeholder": "搜索地点名称、地址",
+      "recent": "最近搜索",
+      "emptyLine1": "试试用地址、地点名称",
+      "emptyLine2": "搜索一下吧",
+      "resultCount": "搜索结果",
+      "add": "添加",
+      "error": "搜索失败",
+      "sortLabel": "排序",
+      "sort": {
+        "recent": "最新",
+        "distance": "距离",
+        "rating": "评分"
+      }
+    }
   }
 }
