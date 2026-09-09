@@ -94,10 +94,16 @@ export default function PlanDetailPage() {
   );
 
   // 카드 탭으로 selected 토글(같은 카드 재탭 시 해제). CourseDropdown은 같은 selectedOrder
-  // 상태를 비추는 보조 컨트롤로 남는다.
-  const handleToggleSelect = useCallback((order: number) => {
-    setSelectedOrder((prev) => (prev === order ? null : order));
-  }, []);
+  // 상태를 비추는 보조 컨트롤로 남는다. 편집 중에는 카드가 탭 불가(variant="edit")이므로
+  // 지도 마커도 같은 규칙을 따른다 — 편집 중 선택이 남아 있으면 삭제·재정렬의 order 재부여로
+  // selectedOrder가 엉뚱한 장소를 가리켜 지도가 튄다.
+  const handleToggleSelect = useCallback(
+    (order: number) => {
+      if (isEditing) return;
+      setSelectedOrder((prev) => (prev === order ? null : order));
+    },
+    [isEditing],
+  );
 
   // 브리프의 핸들러 목록에는 명시돼 있지 않지만, PlaceCard(selected)의 길찾기 버튼이
   // onDirections를 요구하므로 P1이 제공한 buildKakaoRouteUrl로 카카오맵 길찾기 링크를 새 탭에 연다.
@@ -155,6 +161,7 @@ export default function PlanDetailPage() {
                 places={places}
                 selectedOrder={selectedOrder}
                 onSelectOrder={setSelectedOrder}
+                onToggleOrder={handleToggleSelect}
                 showDropdown={!isEditing && places.length > 0}
               />
               <div className="flex min-h-0 flex-1 flex-col gap-[14px]">
