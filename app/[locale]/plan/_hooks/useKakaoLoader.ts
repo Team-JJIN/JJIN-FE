@@ -25,12 +25,13 @@ export function useKakaoLoader(): KakaoStatus {
     }
   }, [status, setStatus]);
 
+  // 복구에 실패해도 "error"로 내리지 않는다 — "error"는 나가는 간선이 없는 종착 상태라
+  // (KakaoMapsScript는 "idle"에서만 복귀하고 next/script는 같은 src를 재삽입하지 않는다)
+  // 느린 회선에서 8초를 넘긴 정상 로드를 영구 실패로 굳혀 버린다. 진짜 실패는 onError가 잡는다.
   useEffect(() => {
     if (status !== "loading") return;
     const id = setTimeout(() => {
-      if (window.kakao?.maps?.load)
-        window.kakao.maps.load(() => setStatus("ready"));
-      else setStatus("error");
+      window.kakao?.maps?.load(() => setStatus("ready"));
     }, LOAD_TIMEOUT_MS);
     return () => clearTimeout(id);
   }, [status, setStatus]);

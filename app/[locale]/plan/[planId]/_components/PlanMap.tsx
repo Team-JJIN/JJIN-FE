@@ -220,7 +220,7 @@ export default function PlanMap({
       <div
         ref={containerRef}
         className="absolute inset-0"
-        role="application"
+        role="group"
         aria-label={t("mapLabel")}
       />
       {showDropdown && (
