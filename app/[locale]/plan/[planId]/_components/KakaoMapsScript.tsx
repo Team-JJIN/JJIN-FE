@@ -1,6 +1,6 @@
 /**
  * @component KakaoMapsScript
- * Kakao Maps SDK(JS) 스크립트 태그. plan 레이아웃에서 한 번만 마운트해 전역 로드 상태
+ * Kakao Maps SDK(JS) 스크립트 태그. 일정 상세 화면에서 마운트해 전역 로드 상태
  * (useKakaoStore)를 갱신한다. NEXT_PUBLIC_KAKAO_MAP_KEY가 없으면 스크립트를 렌더하지 않고
  * status를 "nokey"로 남긴다.
  */

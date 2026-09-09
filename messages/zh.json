@@ -256,6 +256,8 @@
     "addPlace": "添加地点",
     "directions": "导航",
     "courseOption": "路线{n}",
+    "mapLabel": "路线地图",
+    "markerLabel": "路线{n} {name}",
     "courseSelect": "选择路线",
     "open": "营业中",
     "closed": "未营业",

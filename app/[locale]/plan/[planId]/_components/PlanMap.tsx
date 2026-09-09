@@ -10,6 +10,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { sectionEnter } from "@/app/_components/motion/tokens";
 import { useKakaoLoader } from "../../_hooks/useKakaoLoader";
 import CourseDropdown from "./CourseDropdown";
@@ -50,6 +51,7 @@ export default function PlanMap({
   onToggleOrder,
   showDropdown,
 }: PlanMapProps) {
+  const t = useTranslations("plan");
   const status = useKakaoLoader();
   const reduceMotion = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,6 +62,7 @@ export default function PlanMap({
 
   const onToggleOrderRef = useRef(onToggleOrder);
   const selectedOrderRef = useRef(selectedOrder);
+  const tRef = useRef(t);
 
   const placesKey = places.map((p) => `${p.id}:${p.lat},${p.lng}`).join("|");
 
@@ -68,6 +71,7 @@ export default function PlanMap({
   useEffect(() => {
     onToggleOrderRef.current = onToggleOrder;
     selectedOrderRef.current = selectedOrder;
+    tRef.current = t;
   });
 
   // 효과 (a): 지도 인스턴스 생성. StrictMode 이중 마운트에서도 언마운트 시 컨테이너를
@@ -117,7 +121,10 @@ export default function PlanMap({
       const content = document.createElement("button");
       content.type = "button";
       content.dataset.order = String(place.order);
-      content.setAttribute("aria-label", `${place.order}. ${place.name}`);
+      content.setAttribute(
+        "aria-label",
+        tRef.current("markerLabel", { n: place.order, name: place.name }),
+      );
       content.textContent = String(place.order);
       applyMarkerState(content, isSelected);
       content.addEventListener("click", () =>
@@ -210,7 +217,12 @@ export default function PlanMap({
       {...sectionEnter(2, true)}
       className="relative h-[196px] w-full shrink-0 overflow-hidden rounded-2xl bg-surface"
     >
-      <div ref={containerRef} className="absolute inset-0" />
+      <div
+        ref={containerRef}
+        className="absolute inset-0"
+        role="application"
+        aria-label={t("mapLabel")}
+      />
       {showDropdown && (
         <CourseDropdown
           count={places.length}

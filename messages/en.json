@@ -256,6 +256,8 @@
     "addPlace": "Add place",
     "directions": "Directions",
     "courseOption": "Course {n}",
+    "mapLabel": "Course map",
+    "markerLabel": "Course {n}, {name}",
     "courseSelect": "Select course",
     "open": "Open now",
     "closed": "Closed",

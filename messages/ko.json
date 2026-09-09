@@ -242,6 +242,8 @@
     "addPlace": "장소 추가",
     "directions": "길찾기",
     "courseOption": "{n}번 코스",
+    "mapLabel": "코스 지도",
+    "markerLabel": "{n}번 코스 {name}",
     "courseSelect": "코스 선택",
     "open": "운영중",
     "closed": "준비중",

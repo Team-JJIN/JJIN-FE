@@ -22,7 +22,10 @@ import DayChips from "./_components/DayChips";
 import PlanMap from "./_components/PlanMap";
 import CourseHeader from "./_components/CourseHeader";
 import PlaceList from "./_components/PlaceList";
+import KakaoMapsScript from "./_components/KakaoMapsScript";
 import type { PlanPlace } from "../_types";
+
+const EMPTY: PlanPlace[] = [];
 
 export default function PlanDetailPage() {
   const { planId } = useParams<{ planId: string }>();
@@ -50,7 +53,7 @@ export default function PlanDetailPage() {
 
   const isEditing = usePlanEditStore(selectIsEditing(planId, activeDay));
   const day = data?.days.find((d) => d.dayIndex === activeDay);
-  const places = isEditing ? draft : (day?.places ?? []);
+  const places = isEditing ? draft : (day?.places ?? EMPTY);
 
   const handleSelectDay = useCallback(
     (i: number) => {
@@ -122,6 +125,7 @@ export default function PlanDetailPage() {
   return (
     <div className="flex h-dvh flex-col">
       <PlanHeader title={data?.name ?? ""} />
+      <KakaoMapsScript />
       <AnimatePresence mode="wait" initial={false}>
         {isError ? (
           <motion.div

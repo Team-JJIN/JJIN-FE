@@ -256,6 +256,8 @@
     "addPlace": "場所を追加",
     "directions": "経路案内",
     "courseOption": "コース{n}",
+    "mapLabel": "コースマップ",
+    "markerLabel": "コース{n} {name}",
     "courseSelect": "コース選択",
     "open": "営業中",
     "closed": "準備中",

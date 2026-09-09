@@ -1,9 +1,7 @@
 /**
  * 일정 상세 레이아웃. 병렬 라우트 @modal(장소 검색 인터셉트) + 하단 일정|미션 토글.
- * Kakao SDK 스크립트를 추가한다.
  */
 import ScheduleToggle from "./_components/ScheduleToggle";
-import KakaoMapsScript from "./_components/KakaoMapsScript";
 
 export default function PlanLayout({
   children,
@@ -17,7 +15,6 @@ export default function PlanLayout({
       {children}
       {modal}
       <ScheduleToggle />
-      <KakaoMapsScript />
     </>
   );
 }
