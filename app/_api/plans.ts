@@ -2,13 +2,14 @@
  * @module api/plans
  * 일정(여행 플랜) 상세 API 모듈. 3층 구조:
  *   [DTO 타입: 서버 응답 그대로] → [mapper: 도메인 변환] → [fetch 함수: 훅이 호출]
- * 백엔드 명세 미확정 → 가정 계약, docs/plan_api_connect.md(커밋 ③에서 작성). 전부 mock. 규칙: docs/API-RULE.md
+ * `fetchPlans`(목록 GET)만 실연결, 상세는 목록 응답에서 파생, `savePlanDay`·`searchPlaces`는 mock.
+ * 나머지는 가정 계약. 연결 현황: docs/plan_api_connect.md. 규칙: docs/API-RULE.md
  */
 
+import { apiGet, ApiError } from "./client";
 import {
   delay,
-  mockFetchPlans,
-  mockFetchPlanDetail,
+  mockFindPlanDetail,
   mockSavePlanDay,
   mockSearchPlaces,
 } from "./mock/plans.mock";
@@ -22,6 +23,11 @@ export interface TravelPlanSummaryDto {
   endDate: string;
   days: number;
 } // GET /api/travel-plans 실제 필드 부분집합
+
+export interface TravelPlanListDto {
+  totalCount: number;
+  travelPlans: TravelPlanSummaryDto[];
+}
 
 export interface TravelPlanPlaceDto {
   planPlaceId: number;
@@ -175,6 +181,7 @@ export function toPlanDay(dto: TravelPlanDayDto): PlanDay {
   };
 }
 
+/** 상세 GET 연결 시 사용 — 지금은 상세 엔드포인트가 없어 fetchPlanDetail이 쓰지 않는다. */
 export function toPlanDetail(dto: TravelPlanDetailDto): PlanDetail {
   return {
     id: String(dto.travelPlanId),
@@ -213,15 +220,40 @@ export function savePlaceToDto(p: PlanPlace): {
 // ───────────── fetch 함수 ─────────────
 
 export async function fetchPlans(): Promise<Plan[]> {
-  // 추후: (await apiGet<{ totalCount: number; travelPlans: TravelPlanSummaryDto[] }>("/api/travel-plans")).data.travelPlans
-  await delay();
-  return mockFetchPlans().map(toPlan);
+  const data = (await apiGet<TravelPlanListDto>("/api/travel-plans")).data;
+  return (data?.travelPlans ?? []).map(toPlan);
 }
 
+// 상세 엔드포인트가 없어 목록을 다시 조회해 해당 요약을 찾고, 일차 배열을 붙여 만든다 (docs/plan_api_connect.md 5).
 export async function fetchPlanDetail(planId: string): Promise<PlanDetail> {
-  // 추후: apiGet<TravelPlanDetailDto>(`/api/travel-plans/${planId}`)
-  await delay();
-  return toPlanDetail(mockFetchPlanDetail(Number(planId)));
+  const data = (await apiGet<TravelPlanListDto>("/api/travel-plans")).data;
+  const summary = (data?.travelPlans ?? []).find(
+    (p) => p.travelPlanId === Number(planId),
+  );
+  if (!summary) throw new ApiError(404, "일정을 찾을 수 없어요");
+
+  // `|| 1`은 0·undefined·NaN을 한 번에 걷어낸다(필드 누락 시 Array.from이 빈 배열이 되는 것도 여기서 막힌다).
+  const dayCount = Math.max(1, summary.days || 1);
+  const mockDays = mockFindPlanDetail(Number(planId))?.days ?? [];
+
+  return {
+    ...toPlan(summary),
+    // dayCount는 toPlan이 넣은 원본 summary.days를 클램프한 값으로 덮는다 — 일차 칩은 days 배열이
+    // 아니라 dayCount로 그리므로(DayChips), 둘이 어긋나면 클램프가 화면에 닿지 않는다.
+    dayCount,
+    // 일차는 배열 위치가 아니라 dayIndex로 찾는다 — mock 일차 배열의 정렬은 우연한 성질이고,
+    // 화면(PlanDetailPage)과 저장(mockSavePlanDay)도 dayIndex로 일차를 지목한다.
+    // date는 mock 값이 있어도 버리고 항상 null로 둔다: 날짜의 출처는 서버 요약의 startDate
+    // 하나뿐이어야 하는데, DayChips는 date가 있으면 그것을 우선하므로 mock 날짜를 살리면
+    // 서버 startDate와 어긋난 날짜가 화면에 뜬다.
+    days: Array.from({ length: dayCount }, (_, i) =>
+      toPlanDay({
+        dayIndex: i,
+        date: null,
+        places: mockDays.find((d) => d.dayIndex === i)?.places ?? [],
+      }),
+    ),
+  };
 }
 
 export interface SavePlanDayInput {
@@ -233,11 +265,16 @@ export interface SavePlanDayInput {
 export async function savePlanDay(input: SavePlanDayInput): Promise<PlanDay> {
   // 추후: apiPost<TravelPlanDayDto>(`/api/travel-plans/${input.planId}/days/${input.dayIndex}/places`, body)
   // — PUT이면 client.ts에 apiPut 추가 필요
+  // mock은 travelPlanId 1만 알기 때문에 실 planId(fetchPlanDetail로 받은)에서는 저장이 404로 실패한다.
   await delay();
   const body: SavePlanDayRequestDto = {
     places: input.places.map(savePlaceToDto),
   };
-  return toPlanDay(mockSavePlanDay(Number(input.planId), input.dayIndex, body));
+  const day = mockSavePlanDay(Number(input.planId), input.dayIndex, body);
+  // date는 파생 상세와 같은 규칙으로 버린다 — 저장 응답이 캐시의 그 일차를 통째로 교체하므로
+  // (useSavePlanDay), mock 날짜를 흘리면 무효화 재조회 전까지 서버 startDate와 다른 날짜가 뜬다.
+  // 상세/저장 엔드포인트가 붙으면 이 한 줄만 지우고 toPlanDay(day)를 그대로 반환한다.
+  return { ...toPlanDay(day), date: null };
 }
 
 export interface SearchPlacesInput {

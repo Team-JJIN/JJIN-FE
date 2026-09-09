@@ -6,7 +6,6 @@
 
 import { ApiError } from "../client";
 import type {
-  TravelPlanSummaryDto,
   TravelPlanDetailDto,
   TravelPlanDayDto,
   TravelPlanPlaceDto,
@@ -217,42 +216,36 @@ let detailState: TravelPlanDetailDto = {
 
 let nextPlanPlaceId = 104;
 
-export function mockFetchPlans(): TravelPlanSummaryDto[] {
-  return structuredClone([
-    {
-      travelPlanId: detailState.travelPlanId,
-      name: detailState.name,
-      startDate: detailState.startDate,
-      endDate: detailState.endDate,
-      days: detailState.days.length,
-    },
-  ]);
-}
-
-export function mockFetchPlanDetail(travelPlanId: number): TravelPlanDetailDto {
-  if (travelPlanId !== detailState.travelPlanId) {
-    throw new ApiError(404, "일정을 찾을 수 없어요");
-  }
+/** 던지지 않는 조회 — 모르는 planId면 null. 실 planId 진입 시 빈 일차를 만들기 위해 fetchPlanDetail이 쓴다. */
+export function mockFindPlanDetail(
+  travelPlanId: number,
+): TravelPlanDetailDto | null {
+  if (travelPlanId !== detailState.travelPlanId) return null;
   return structuredClone(detailState);
 }
 
+/**
+ * 실 planId(목록에서 파생한 상세)로 저장하면 404다 — mock은 travelPlanId 1만 안다.
+ * 에러 문구를 비워 두는 건 의도다: `getApiErrorMessage`가 `message`를 fallback보다 우선하므로
+ * 여기에 한국어를 넣으면 en/ja/zh UI에도 그대로 뜬다. 사람이 읽을 문구는 화면의 `t("saveError")`가 맡는다.
+ */
 export function mockSavePlanDay(
   travelPlanId: number,
   dayIndex: number,
   body: SavePlanDayRequestDto,
 ): TravelPlanDayDto {
   if (travelPlanId !== detailState.travelPlanId) {
-    throw new ApiError(404, "일정을 찾을 수 없어요");
+    throw new ApiError(404, "");
   }
   for (const p of body.places) {
     if (!(p.placeId in PLACE_CATALOG)) {
-      throw new ApiError(400, "알 수 없는 장소예요");
+      throw new ApiError(400, "");
     }
   }
 
   const day = detailState.days.find((d) => d.dayIndex === dayIndex);
   if (!day) {
-    throw new ApiError(404, "일정을 찾을 수 없어요");
+    throw new ApiError(404, "");
   }
 
   // 기존에 그 일차에 있던 placeId는 planPlaceId를 유지하고, 새 placeId는 새로 발급한다.
