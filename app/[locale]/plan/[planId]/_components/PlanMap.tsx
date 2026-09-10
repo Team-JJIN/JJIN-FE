@@ -134,7 +134,8 @@ export default function PlanMap({
       const overlay = new kakaoMaps.CustomOverlay({
         position: new kakaoMaps.LatLng(place.lat, place.lng),
         content,
-        yAnchor: 1,
+        // 둥근 번호 배지라 좌표를 배지 중심에 둔다 — 바닥(1)에 걸면 동선 끝이 배지 아래로 삐져나온다.
+        yAnchor: 0.5,
         zIndex: isSelected ? 2 : 1,
         clickable: true,
       });
