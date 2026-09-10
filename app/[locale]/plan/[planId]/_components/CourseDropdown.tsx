@@ -72,7 +72,7 @@ export default function CourseDropdown({
           onClick={handleToggle}
           aria-haspopup="listbox"
           aria-expanded={open}
-          className="h-[27px] rounded-full border-[1.5px] border-lime-vivid bg-lime-pale px-3 py-1 text-[12px] font-medium leading-[1.6] text-ink transition duration-150 motion-safe:active:scale-[0.96]"
+          className="inline-flex h-[27px] items-center rounded-full border-[1.5px] border-lime-vivid bg-lime-pale px-3 text-[12px] font-medium leading-[1.6] text-ink transition duration-150 motion-safe:active:scale-[0.96]"
         >
           {selectedOrder
             ? t("courseOption", { n: selectedOrder })
