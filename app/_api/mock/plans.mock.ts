@@ -184,9 +184,11 @@ function toSearchResultDto(placeId: number): PlaceSearchResultDto {
   };
 }
 
-// ───────────── 일정 상세 mutable 상태 ─────────────
+// ───────────── 일정 상세 mutable 상태 (travelPlanId → 상세) ─────────────
 
-let detailState: TravelPlanDetailDto = {
+const detailStates = new Map<number, TravelPlanDetailDto>();
+
+detailStates.set(1, {
   travelPlanId: 1,
   name: "인천 주말 여행",
   startDate: "2026-03-06",
@@ -212,20 +214,45 @@ let detailState: TravelPlanDetailDto = {
       places: [],
     },
   ],
-};
+});
 
 let nextPlanPlaceId = 104;
+
+/**
+ * 일정 하나를 mock 상태에 등록한다. 같은 id가 이미 있으면 건드리지 않는다 — 저장(mockSavePlanDay)으로
+ * 바뀐 상태를 재조회가 덮어쓰면 안 되기 때문. 일정에 담긴 장소는 PLACE_CATALOG에도 넣어 저장 시
+ * 400(모르는 placeId)이 나지 않게 한다.
+ */
+export function mockRegisterPlan(plan: TravelPlanDetailDto): void {
+  if (detailStates.has(plan.travelPlanId)) return;
+  for (const day of plan.days) {
+    for (const p of day.places) {
+      PLACE_CATALOG[p.placeId] ??= {
+        placeId: p.placeId,
+        name: p.name,
+        address: p.address,
+        category: p.category,
+        isOpen: p.isOpen,
+        openTime: p.openTime,
+        closeTime: p.closeTime,
+        latitude: p.latitude,
+        longitude: p.longitude,
+      };
+    }
+  }
+  detailStates.set(plan.travelPlanId, structuredClone(plan));
+}
 
 /** 던지지 않는 조회 — 모르는 planId면 null. 실 planId 진입 시 빈 일차를 만들기 위해 fetchPlanDetail이 쓴다. */
 export function mockFindPlanDetail(
   travelPlanId: number,
 ): TravelPlanDetailDto | null {
-  if (travelPlanId !== detailState.travelPlanId) return null;
-  return structuredClone(detailState);
+  const plan = detailStates.get(travelPlanId);
+  return plan ? structuredClone(plan) : null;
 }
 
 /**
- * 실 planId(목록에서 파생한 상세)로 저장하면 404다 — mock은 travelPlanId 1만 안다.
+ * 실 planId(목록에서 파생한 상세)로 저장하면 404다 — mock은 detailStates에 등록된 id만 안다.
  * 에러 문구를 비워 두는 건 의도다: `getApiErrorMessage`가 `message`를 fallback보다 우선하므로
  * 여기에 한국어를 넣으면 en/ja/zh UI에도 그대로 뜬다. 사람이 읽을 문구는 화면의 `t("saveError")`가 맡는다.
  */
@@ -234,7 +261,8 @@ export function mockSavePlanDay(
   dayIndex: number,
   body: SavePlanDayRequestDto,
 ): TravelPlanDayDto {
-  if (travelPlanId !== detailState.travelPlanId) {
+  const plan = detailStates.get(travelPlanId);
+  if (!plan) {
     throw new ApiError(404, "");
   }
   for (const p of body.places) {
@@ -243,7 +271,7 @@ export function mockSavePlanDay(
     }
   }
 
-  const day = detailState.days.find((d) => d.dayIndex === dayIndex);
+  const day = plan.days.find((d) => d.dayIndex === dayIndex);
   if (!day) {
     throw new ApiError(404, "");
   }
