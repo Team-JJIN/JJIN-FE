@@ -1,7 +1,7 @@
 /**
  * @component PlanDetailPage
  * 일정 상세(S1 읽기 · S2 편집 · S3 선택) 메인 화면. 일차 전환은 크로스페이드(key=activeDay),
- * 편집 전환은 크로스페이드가 아니라 PlaceList가 마운트를 유지한 채 카드가 layout으로 늘어난다.
+ * 편집 전환은 크로스페이드가 아니라 PlaceList가 마운트를 유지한 채 카드가 height 트윈으로 늘어난다.
  * S3 선택은 카드 자체 탭이 주 수단(같은 카드 재탭 시 해제)이고, CourseDropdown은 같은
  * selectedOrder를 비추는 보조 컨트롤이다.
  */
@@ -160,16 +160,21 @@ export default function PlanDetailPage() {
               onSelect={handleSelectDay}
               disabled={isEditing}
             />
-            <div className="flex min-h-0 flex-1 flex-col gap-[21px] px-4">
-              <PlanMap
-                places={places}
-                selectedOrder={selectedOrder}
-                onSelectOrder={setSelectedOrder}
-                onToggleOrder={handleToggleSelect}
-                showDropdown={!isEditing && places.length > 0}
-              />
-              <div className="flex min-h-0 flex-1 flex-col gap-[14px]">
-                <motion.div {...sectionEnter(3)} className="shrink-0">
+            {/* 여백은 스크롤 컨테이너 안쪽에 둔다 — 바깥에 두면 드래그로 1.02배 커진 행의
+                왼쪽 끝(번호 원)과 첫 행의 위쪽 테두리·그림자가 overflow에 잘린다.
+                헤더-목록 간격 14px = gap 10 + 컨테이너 pt 4. */}
+            <div className="flex min-h-0 flex-1 flex-col gap-[21px]">
+              <div className="shrink-0 px-4">
+                <PlanMap
+                  places={places}
+                  selectedOrder={selectedOrder}
+                  onSelectOrder={setSelectedOrder}
+                  onToggleOrder={handleToggleSelect}
+                  showDropdown={!isEditing && places.length > 0}
+                />
+              </div>
+              <div className="flex min-h-0 flex-1 flex-col gap-[10px]">
+                <motion.div {...sectionEnter(3)} className="shrink-0 px-4">
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div key={`day-${activeDay}`} {...fadeSwap}>
                       <CourseHeader
@@ -185,7 +190,7 @@ export default function PlanDetailPage() {
                 <motion.div
                   {...sectionEnter(4, true)}
                   layoutScroll
-                  className="min-h-0 flex-1 overflow-y-auto pb-[82px]"
+                  className="min-h-0 flex-1 overflow-y-auto px-4 pb-[82px] pt-1 scroll-pt-1"
                 >
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div key={`day-${activeDay}`} {...fadeSwap}>
@@ -202,7 +207,7 @@ export default function PlanDetailPage() {
                       {saveError && (
                         <p
                           role="alert"
-                          className="px-4 pt-3 text-[12px] font-medium leading-[1.6] text-error"
+                          className="pt-3 text-[12px] font-medium leading-[1.6] text-error"
                         >
                           {saveError}
                         </p>

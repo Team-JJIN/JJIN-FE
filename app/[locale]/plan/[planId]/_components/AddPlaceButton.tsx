@@ -18,7 +18,7 @@ export default function AddPlaceButton({ onClick }: AddPlaceButtonProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-[294px] items-center justify-between rounded-[14px] border border-dashed border-[#e1e2e4] bg-white px-4 py-[13px] transition motion-safe:active:scale-[0.98]"
+      className="flex w-full items-center justify-between rounded-[14px] border border-dashed border-[#e1e2e4] bg-white px-4 py-[13px] transition motion-safe:active:scale-[0.98]"
     >
       <span className="flex items-center gap-3">
         <PlusIcon size={24} className="text-[#9b9b9b]" />

@@ -2,7 +2,7 @@
  * @component PlaceRow
  * 타임라인 셀 + 장소 카드 한 행. Reorder.Item으로 감싸 편집 모드에서 드래그 재정렬을 지원한다.
  * 읽기 모드에서도 Reorder.Item을 유지해야(dragListener false로 드래그만 막음) variant 전환 시
- * 카드가 리마운트되지 않고 layout 애니메이션으로 자연스럽게 늘어난다.
+ * 카드가 리마운트되지 않고 실제 height 트윈으로 자연스럽게 늘어난다(PlaceCard).
  */
 "use client";
 
@@ -53,7 +53,8 @@ export default function PlaceRow({
       onDragStart={() => setIsDragging(true)}
       onDragEnd={() => setIsDragging(false)}
       initial={enter.initial}
-      animate={enter.animate}
+      // scale: 1을 명시해 드래그 lift(1.02)가 끝나면 돌아갈 값을 고정한다.
+      animate={{ ...enter.animate, scale: 1 }}
       transition={{ ...enter.transition, layout: layoutShift }}
       exit={fadeSwap.exit}
       data-order={place.order}
