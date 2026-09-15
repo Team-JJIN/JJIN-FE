@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
-import { updateRoleToMember, handleAuthSuccess, type AuthTokens } from "@/app/_api/auth";
 import { getApiErrorMessage, ApiError } from "@/app/_api/client";
 import { submitOnboarding, buildOnboardingRequest } from "@/app/_api/onboarding";
 
@@ -32,6 +31,7 @@ export default function OnboardingFlow() {
   const [data, setData] = useState<OnboardingData>({
     tripName: "",
     region: "",
+    regionId: null,
     regionUndecided: false,
     dateStart: null,
     dateEnd: null,
@@ -53,6 +53,7 @@ export default function OnboardingFlow() {
 
   // 바텀시트 임시 값
   const [tempRegion, setTempRegion] = useState("");
+  const [tempRegionId, setTempRegionId] = useState<number | null>(null);
   const [tempDateStart, setTempDateStart] = useState<string | null>(null);
   const [tempDateEnd, setTempDateEnd] = useState<string | null>(null);
   const [dateSelecting, setDateSelecting] = useState<"start" | "end">("start");
@@ -84,50 +85,34 @@ export default function OnboardingFlow() {
     }
   }, [step, data]);
 
-  // 온보딩 완료 공통 러너: 토큰을 반환하는 API를 호출하고, 성공 시 토큰 저장 + role 라우팅,
-  // 실패 시 로딩 해제 + 안내. fetchTokens와 errorKey만 다른 두 흐름(건너뛰기/시작하기)을 통합한다.
-  const runCompletion = useCallback(
-    async (fetchTokens: () => Promise<AuthTokens>, errorKey: string) => {
-      if (isCompleting) return;
-      setIsCompleting(true);
-      try {
-        const tokens = await fetchTokens();
-        handleAuthSuccess(tokens, locale, (path) => router.push(path));
-      } catch (err) {
-        setIsCompleting(false);
-        if (process.env.NODE_ENV !== "production" && err instanceof ApiError) {
-          console.error("[onboarding] API error:", {
-            status: err.status,
-            message: err.message,
-            detail: err.detail,
-          });
-        }
-        // 서버가 detail(구체 사유)을 주면 그대로, 없으면 로케일 fallback 메시지 표시
-        alert(getApiErrorMessage(err, t(errorKey)));
+  // 홈으로 이동(일정 생성 완료 / 건너뛰기 공통). 이 화면은 여행 일정 생성 화면이라
+  // 토큰/역할 갱신 없이 홈으로 돌아간다.
+  const goHome = useCallback(() => router.push(`/${locale}/home`), [router, locale]);
+
+  // S4 "시작하기": S1~S4 입력을 여행 일정 생성 API로 전송한다.
+  // 이 API는 토큰/역할을 갱신하지 않고 travelPlanId만 반환하므로, 완료 후 홈으로 이동한다.
+  const submitAndComplete = useCallback(async () => {
+    if (isCompleting) return;
+    setIsCompleting(true);
+    try {
+      const body = buildOnboardingRequest(data, minuteStart, minuteEnd);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[travel-plans] POST /api/travel-plans body:", JSON.stringify(body, null, 2));
       }
-    },
-    [isCompleting, locale, router, t]
-  );
-
-  // 건너뛰기: 입력 없이 role만 MEMBER로 변경하고 토큰 갱신 후 이동
-  const completeOnboarding = useCallback(
-    () => runCompletion(updateRoleToMember, "errorRoleUpdateFailed"),
-    [runCompletion]
-  );
-
-  // S4 "시작하기": S1~S4 입력(여행 이름 tripName 포함)을 온보딩 저장 API로 한 번에 전송하고,
-  // 새 토큰으로 갱신 후 이동. (현재 인증 흐름에서는 진입하지 않지만, 추후 '일정 생성'에서 재사용)
-  const submitAndComplete = useCallback(
-    () =>
-      runCompletion(() => {
-        const body = buildOnboardingRequest(data, minuteStart, minuteEnd);
-        if (process.env.NODE_ENV !== "production") {
-          console.log("[onboarding] POST /api/onboarding body:", JSON.stringify(body, null, 2));
-        }
-        return submitOnboarding(body);
-      }, "errorSubmitFailed"),
-    [runCompletion, data, minuteStart, minuteEnd]
-  );
+      await submitOnboarding(body);
+      goHome();
+    } catch (err) {
+      setIsCompleting(false);
+      if (process.env.NODE_ENV !== "production" && err instanceof ApiError) {
+        console.error("[travel-plans] API error:", {
+          status: err.status,
+          message: err.message,
+          detail: err.detail,
+        });
+      }
+      alert(getApiErrorMessage(err, t("errorSubmitFailed")));
+    }
+  }, [isCompleting, data, minuteStart, minuteEnd, goHome, t]);
 
   const handleNext = useCallback(async () => {
     if (step < 4) {
@@ -193,9 +178,10 @@ export default function OnboardingFlow() {
   const openRegionSheet = useCallback(() => {
     if (!data.regionUndecided) {
       setTempRegion(data.region);
+      setTempRegionId(data.regionId);
       setRegionSheet(true);
     }
-  }, [data.regionUndecided, data.region]);
+  }, [data.regionUndecided, data.region, data.regionId]);
 
   const openDateSheet = useCallback(() => {
     setTempDateStart(data.dateStart);
@@ -214,9 +200,9 @@ export default function OnboardingFlow() {
   }, [minuteEnd]);
 
   const handleRegionConfirm = useCallback(() => {
-    setData((d) => ({ ...d, region: tempRegion }));
+    setData((d) => ({ ...d, region: tempRegion, regionId: tempRegionId }));
     setRegionSheet(false);
-  }, [tempRegion]);
+  }, [tempRegion, tempRegionId]);
 
   const handleDateReset = useCallback(() => {
     setTempDateStart(null);
@@ -237,7 +223,7 @@ export default function OnboardingFlow() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <TopBarBack onBack={handlePrev} rightText={t("skip")} onRightClick={completeOnboarding} />
+      <TopBarBack onBack={handlePrev} rightText={t("skip")} onRightClick={goHome} />
 
       {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
@@ -318,6 +304,7 @@ export default function OnboardingFlow() {
       <RegionSheet
         open={regionSheet}
         tempRegion={tempRegion}
+        setTempRegionId={setTempRegionId}
         setTempRegion={setTempRegion}
         onClose={() => setRegionSheet(false)}
         onConfirm={handleRegionConfirm}

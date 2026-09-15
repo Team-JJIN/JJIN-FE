@@ -16,6 +16,7 @@ type RegionSheetProps = {
   open: boolean;
   tempRegion: string;
   setTempRegion: (r: string) => void;
+  setTempRegionId: (id: number | null) => void;
   onClose: () => void;
   onConfirm: () => void;
 };
@@ -24,6 +25,7 @@ export default function RegionSheet({
   open,
   tempRegion,
   setTempRegion,
+  setTempRegionId,
   onClose,
   onConfirm,
 }: RegionSheetProps) {
@@ -59,8 +61,29 @@ export default function RegionSheet({
   const hasKeyword = debounced.length > 0;
   const showEmpty = hasKeyword && !isFetching && !isError && regions.length === 0;
 
-  const toggleRegion = (name: string) =>
-    setTempRegion(tempRegion === name ? "" : name);
+  const toggleRegion = (name: string, id: number | null) => {
+    const next = tempRegion === name ? "" : name;
+    setTempRegion(next);
+    setTempRegionId(next ? id : null);
+  };
+
+  // 인기 여행지는 하드코딩 표시명이라 id가 없다. 선택 시 해당 이름으로 검색해 첫 결과의 id를 확보한다.
+  const togglePopularRegion = async (name: string) => {
+    if (tempRegion === name) {
+      setTempRegion("");
+      setTempRegionId(null);
+      return;
+    }
+    setTempRegion(name);
+    setTempRegionId(null);
+    try {
+      const results = await searchRegions(name);
+      const match = results.find((r) => r.displayName === name) ?? results[0];
+      if (match) setTempRegionId(match.id);
+    } catch {
+      // 검색 실패 시 id 없음 (확인 버튼 단계에서 재선택 유도)
+    }
+  };
 
   return (
     <BottomSheet
@@ -75,7 +98,7 @@ export default function RegionSheet({
       }
       footer={
         <div className="flex items-center justify-between">
-          <ResetButton onClick={() => setTempRegion("")} label={t("reset")} />
+          <ResetButton onClick={() => { setTempRegion(""); setTempRegionId(null); }} label={t("reset")} />
           <BigButton
             disabled={!tempRegion}
             onClick={onConfirm}
@@ -112,7 +135,7 @@ export default function RegionSheet({
                   key={region.id}
                   label={regionLabel(region.displayName)}
                   selected={tempRegion === region.displayName}
-                  onToggle={() => toggleRegion(region.displayName)}
+                  onToggle={() => toggleRegion(region.displayName, region.id)}
                 />
               ))}
             </div>
@@ -130,7 +153,7 @@ export default function RegionSheet({
                 key={name}
                 label={regionLabel(name)}
                 selected={tempRegion === name}
-                onToggle={() => toggleRegion(name)}
+                onToggle={() => togglePopularRegion(name)}
               />
             ))}
           </div>

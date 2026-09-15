@@ -1,4 +1,4 @@
-import { apiPost, apiGet, apiPatch } from "./client";
+import { apiPost, apiGet } from "./client";
 import { clearTokens, saveTokens } from "./token";
 
 export type Role = "ONBOARDING" | "MEMBER" | "ADMIN";
@@ -53,12 +53,6 @@ export async function verifyCode(email: string, code: string): Promise<void> {
 /** 약관 목록 조회 */
 export async function getTerms(): Promise<TermsItem[]> {
   const res = await apiGet<TermsItem[]>("/api/terms");
-  return res.data;
-}
-
-/** role을 MEMBER로 변경 (온보딩 건너뛰기 시 호출) */
-export async function updateRoleToMember(): Promise<AuthTokens> {
-  const res = await apiPatch<AuthTokens>("/api/auth/role");
   return res.data;
 }
 
