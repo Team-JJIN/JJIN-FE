@@ -67,23 +67,7 @@ export default function RegionSheet({
     setTempRegionId(next ? id : null);
   };
 
-  // 인기 여행지는 하드코딩 표시명이라 id가 없다. 선택 시 해당 이름으로 검색해 첫 결과의 id를 확보한다.
-  const togglePopularRegion = async (name: string) => {
-    if (tempRegion === name) {
-      setTempRegion("");
-      setTempRegionId(null);
-      return;
-    }
-    setTempRegion(name);
-    setTempRegionId(null);
-    try {
-      const results = await searchRegions(name);
-      const match = results.find((r) => r.displayName === name) ?? results[0];
-      if (match) setTempRegionId(match.id);
-    } catch {
-      // 검색 실패 시 id 없음 (확인 버튼 단계에서 재선택 유도)
-    }
-  };
+
 
   return (
     <BottomSheet
@@ -148,12 +132,12 @@ export default function RegionSheet({
             {t("popularDestinations")}
           </p>
           <div className="flex flex-wrap gap-2" role="group" aria-label={t("popularDestinations")}>
-            {POPULAR_REGIONS.map((name) => (
+            {POPULAR_REGIONS.map(({ name, id }) => (
               <SelectChip
-                key={name}
+                key={id}
                 label={regionLabel(name)}
                 selected={tempRegion === name}
-                onToggle={() => togglePopularRegion(name)}
+                onToggle={() => toggleRegion(name, id)}
               />
             ))}
           </div>
