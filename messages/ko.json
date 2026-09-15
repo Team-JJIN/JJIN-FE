@@ -1,4 +1,21 @@
 {
+  "nav": {
+    "home": "홈",
+    "recommend": "미션 추천",
+    "feed": "미션 피드",
+    "mypage": "마이페이지",
+    "logoutTitle": "로그아웃",
+    "logoutDescription": "로그아웃 하시겠습니까?",
+    "cancel": "취소",
+    "confirm": "확인"
+  },
+  "home": {
+    "title": "일정",
+    "emptyTitle": "생성된 일정이 없어요",
+    "emptyDescription": "일정 추가버튼을 눌러\n첫 일정을 만들어보세요.",
+    "addPlan": "일정 추가",
+    "nights": "{nights}박 {days}일"
+  },
   "login": {
     "email": "이메일",
     "password": "비밀번호",

@@ -1,4 +1,21 @@
 {
+  "nav": {
+    "home": "Home",
+    "recommend": "Missions",
+    "feed": "Feed",
+    "mypage": "My Page",
+    "logoutTitle": "Log out",
+    "logoutDescription": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "home": {
+    "title": "Plans",
+    "emptyTitle": "No plans yet",
+    "emptyDescription": "Tap the add button\nto create your first plan.",
+    "addPlan": "Add plan",
+    "nights": "{nights} nights {days} days"
+  },
   "login": {
     "email": "Email",
     "password": "Password",

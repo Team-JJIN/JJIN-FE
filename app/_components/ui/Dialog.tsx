@@ -63,7 +63,8 @@ export default function Dialog({
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="relative w-[85%] rounded-[16px] bg-white p-[20px]"
+            className="relative flex w-[85%] flex-col rounded-[16px] bg-white p-[20px]"
+            style={{ height: 200 }}
             {...centerPanel}
           >
             <button
@@ -75,25 +76,27 @@ export default function Dialog({
               ✕
             </button>
 
-            <h2 className="text-[16px] font-semibold text-dark">{title}</h2>
-            {description && (
-              <p className="mt-2 text-[13px] font-medium text-neutral-500">
-                {description}
-              </p>
-            )}
+            <div className="flex flex-1 flex-col items-center justify-center text-center">
+              <h2 className="text-[19px] font-semibold text-ink">{title}</h2>
+              {description && (
+                <p className="mt-[15px] text-[14px] font-medium text-ink">
+                  {description}
+                </p>
+              )}
+            </div>
 
-            <div className="mt-[24px] flex items-center gap-2">
+            <div className="flex items-center gap-[16px]">
               <button
                 type="button"
                 onClick={onCancel}
-                className="h-[44px] flex-1 rounded-[14px] bg-surface text-[14px] font-semibold text-dark transition duration-150 motion-safe:active:scale-[0.98]"
+                className="h-[48px] flex-1 rounded-[16px] bg-surface text-[15px] font-semibold text-ink transition duration-150 motion-safe:active:scale-[0.98]"
               >
                 {cancelLabel}
               </button>
               <button
                 type="button"
                 onClick={onConfirm}
-                className="h-[44px] flex-1 rounded-[14px] bg-dark text-[14px] font-semibold text-lime-vivid transition duration-150 motion-safe:active:scale-[0.98]"
+                className="h-[48px] flex-1 rounded-[16px] bg-dark text-[15px] font-semibold text-lime-vivid transition duration-150 motion-safe:active:scale-[0.98]"
               >
                 {confirmLabel}
               </button>

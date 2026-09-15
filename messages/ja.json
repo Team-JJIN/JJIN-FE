@@ -1,4 +1,21 @@
 {
+  "nav": {
+    "home": "ホーム",
+    "recommend": "ミッション",
+    "feed": "フィード",
+    "mypage": "マイページ",
+    "logoutTitle": "ログアウト",
+    "logoutDescription": "ログアウトしますか？",
+    "cancel": "キャンセル",
+    "confirm": "確認"
+  },
+  "home": {
+    "title": "旅程",
+    "emptyTitle": "作成された旅程がありません",
+    "emptyDescription": "追加ボタンを押して\n最初の旅程を作成しましょう。",
+    "addPlan": "旅程を追加",
+    "nights": "{nights}泊{days}日"
+  },
   "login": {
     "email": "メールアドレス",
     "password": "パスワード",
