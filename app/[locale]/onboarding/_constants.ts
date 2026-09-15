@@ -1,10 +1,21 @@
 import type { Transport, Category, Level } from "./_types";
 
-// 인기 여행지 (검색어가 없을 때 노출). 값은 서버 지역 검색 displayName과 동일한 한국어 표시명.
-export const POPULAR_REGIONS = [
-  "서울", "부산", "인천", "제주", "전주", "경주",
-  "강릉", "속초", "대구", "광주", "여수", "춘천",
-] as const;
+// 인기 여행지 (검색어가 없을 때 노출). name은 지역 검색 displayName과 동일한 한국어 표시명,
+// id는 백엔드 REGION enum의 고정 regionId (서울=1 ~ 춘천=12).
+export const POPULAR_REGIONS: { name: string; id: number }[] = [
+  { name: "서울", id: 1 },
+  { name: "부산", id: 2 },
+  { name: "인천", id: 3 },
+  { name: "제주", id: 4 },
+  { name: "전주", id: 5 },
+  { name: "경주", id: 6 },
+  { name: "강릉", id: 7 },
+  { name: "속초", id: 8 },
+  { name: "대구", id: 9 },
+  { name: "광주", id: 10 },
+  { name: "여수", id: 11 },
+  { name: "춘천", id: 12 },
+];
 
 // 이동 수단
 export const TRANSPORTS: Transport[] = ["walking", "publicTransit", "car"];
@@ -32,35 +43,6 @@ export const LEVELS: Level[] = ["light", "normal", "deep"];
 // ─────────────────────────────────────────────────────────────
 // 프론트 키 → 백엔드 enum 매핑 (온보딩 저장 API 전송용)
 // ─────────────────────────────────────────────────────────────
-
-// 지역: RegionSheet가 저장하는 한국어 표시명(displayName) → REGION enum
-export const REGION_ENUM: Record<string, string> = {
-  "서울": "SEOUL",
-  "부산": "BUSAN",
-  "인천": "INCHEON",
-  "제주": "JEJU",
-  "전주": "JEONJU",
-  "경주": "GYEONGJU",
-  "강릉": "GANGNEUNG",
-  "속초": "SOKCHO",
-  "대구": "DAEGU",
-  "광주": "GWANGJU",
-  "여수": "YEOSU",
-  "춘천": "CHUNCHEON",
-};
-
-/**
- * 지역 표시명(displayName)을 REGION enum으로 변환한다.
- * 1) 정확 매칭 우선 (인기 여행지 "서울" 등)
- * 2) 검색 결과 displayName이 "서울특별시"처럼 다를 수 있어, 표시명에 키가 포함되면 매칭
- * 매칭 실패 시 null (호출부에서 처리).
- */
-export function toRegionEnum(displayName: string): string | null {
-  if (!displayName) return null;
-  if (REGION_ENUM[displayName]) return REGION_ENUM[displayName];
-  const hit = Object.keys(REGION_ENUM).find((key) => displayName.includes(key));
-  return hit ? REGION_ENUM[hit] : null;
-}
 
 // 이동 수단: 프론트 키 → TRANSPORT MODE enum
 export const TRANSPORT_ENUM: Record<Transport, string> = {

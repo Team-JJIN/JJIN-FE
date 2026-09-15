@@ -84,9 +84,7 @@
     "deep": "Deep",
     "deepDesc": "我想像真正的韩国人一样体验。胡同小吃店、社区澡堂任务",
     "start": "开始",
-    "skip": "跳过",
-    "errorRoleUpdateFailed": "处理失败，请重试",
-    "errorSubmitFailed": "保存引导信息失败，请重试",
+    "errorSubmitFailed": "创建行程失败，请重试",
     "reset": "重置",
     "prev": "上一步",
     "categories": {

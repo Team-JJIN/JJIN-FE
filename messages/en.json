@@ -1,4 +1,21 @@
 {
+  "nav": {
+    "home": "Home",
+    "recommend": "Missions",
+    "feed": "Feed",
+    "mypage": "My Page",
+    "logoutTitle": "Log out",
+    "logoutDescription": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "home": {
+    "title": "Plans",
+    "emptyTitle": "No plans yet",
+    "emptyDescription": "Tap the add button\nto create your first plan.",
+    "addPlan": "Add plan",
+    "nights": "{nights} nights {days} days"
+  },
   "login": {
     "email": "Email",
     "password": "Password",
@@ -14,8 +31,10 @@
   "signUp": {
     "title": "Sign Up",
     "subtitle": "Sign up with email verification",
+    "name": "Name",
     "email": "Email",
     "requestVerification": "Request",
+    "errorNameRequired": "Please enter your name",
     "resend": "Resend",
     "password": "Password (8+ chars, letters+numbers)",
     "confirmPassword": "Confirm password",
@@ -25,12 +44,15 @@
     "errorEmailInvalid": "Please enter a valid email",
     "errorPasswordInvalid": "8+ characters, letters and numbers required",
     "errorPasswordMismatch": "Passwords do not match",
-    "errorSignUpFailed": "Sign up failed"
+    "errorSignUpFailed": "Sign up failed",
+    "termRequired": "(Required)",
+    "termOptional": "(Optional)"
   },
   "emailVerification": {
     "title": "Email Verification",
     "subtitle": "We sent a 6-digit code to {email}. Please check your inbox.",
     "noCode": "Didn't receive a code?",
+    "checkSpam": "Please check your spam folder too.",
     "resendBtn": "Resend",
     "confirm": "Confirm"
   },
@@ -84,9 +106,7 @@
     "deep": "Deep",
     "deepDesc": "I want to live like a real local. Back-alley snack bars and neighborhood bathhouse missions",
     "start": "Get Started",
-    "skip": "Skip",
-    "errorRoleUpdateFailed": "Something went wrong. Please try again",
-    "errorSubmitFailed": "Failed to save onboarding. Please try again",
+    "errorSubmitFailed": "Failed to create the plan. Please try again",
     "reset": "Reset",
     "prev": "Previous",
     "categories": {

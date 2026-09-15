@@ -1,4 +1,21 @@
 {
+  "nav": {
+    "home": "홈",
+    "recommend": "미션 추천",
+    "feed": "미션 피드",
+    "mypage": "마이페이지",
+    "logoutTitle": "로그아웃",
+    "logoutDescription": "로그아웃 하시겠습니까?",
+    "cancel": "취소",
+    "confirm": "확인"
+  },
+  "home": {
+    "title": "일정",
+    "emptyTitle": "생성된 일정이 없어요",
+    "emptyDescription": "일정 추가버튼을 눌러\n첫 일정을 만들어보세요.",
+    "addPlan": "일정 추가",
+    "nights": "{nights}박 {days}일"
+  },
   "login": {
     "email": "이메일",
     "password": "비밀번호",
@@ -14,8 +31,10 @@
   "signUp": {
     "title": "회원가입",
     "subtitle": "이메일 인증으로 가입해요",
+    "name": "이름",
     "email": "이메일",
     "requestVerification": "인증 요청",
+    "errorNameRequired": "이름을 입력해주세요",
     "resend": "재요청",
     "password": "비밀번호 (8자 이상, 영문+숫자)",
     "confirmPassword": "비밀번호 확인",
@@ -25,12 +44,15 @@
     "errorEmailInvalid": "올바른 이메일을 입력해주세요",
     "errorPasswordInvalid": "8자 이상, 영문+숫자를 포함해야 합니다",
     "errorPasswordMismatch": "비밀번호가 일치하지 않습니다",
-    "errorSignUpFailed": "회원가입에 실패했습니다"
+    "errorSignUpFailed": "회원가입에 실패했습니다",
+    "termRequired": "(필수)",
+    "termOptional": "(선택)"
   },
   "emailVerification": {
     "title": "이메일 인증",
     "subtitle": "{email} 으로 6자리 인증 코드를 보냈어요. 메일함을 확인해 주세요.",
     "noCode": "코드가 안 왔나요?",
+    "checkSpam": "스팸함도 확인해 주세요.",
     "resendBtn": "재전송",
     "confirm": "확인"
   },
@@ -84,9 +106,7 @@
     "deep": "Deep",
     "deepDesc": "진짜 한국인처럼 체험하고 싶어요. 골목 분식집, 동네 목욕탕 미션",
     "start": "시작하기",
-    "skip": "건너뛰기",
-    "errorRoleUpdateFailed": "처리에 실패했습니다. 다시 시도해주세요",
-    "errorSubmitFailed": "온보딩 저장에 실패했습니다. 다시 시도해주세요",
+    "errorSubmitFailed": "일정 생성에 실패했습니다. 다시 시도해주세요",
     "reset": "초기화",
     "prev": "이전",
     "categories": {

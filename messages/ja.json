@@ -1,4 +1,21 @@
 {
+  "nav": {
+    "home": "ホーム",
+    "recommend": "ミッション",
+    "feed": "フィード",
+    "mypage": "マイページ",
+    "logoutTitle": "ログアウト",
+    "logoutDescription": "ログアウトしますか？",
+    "cancel": "キャンセル",
+    "confirm": "確認"
+  },
+  "home": {
+    "title": "旅程",
+    "emptyTitle": "作成された旅程がありません",
+    "emptyDescription": "追加ボタンを押して\n最初の旅程を作成しましょう。",
+    "addPlan": "旅程を追加",
+    "nights": "{nights}泊{days}日"
+  },
   "login": {
     "email": "メールアドレス",
     "password": "パスワード",
@@ -25,12 +42,15 @@
     "errorEmailInvalid": "有効なメールアドレスを入力してください",
     "errorPasswordInvalid": "8文字以上、英字と数字を含める必要があります",
     "errorPasswordMismatch": "パスワードが一致しません",
-    "errorSignUpFailed": "会員登録に失敗しました"
+    "errorSignUpFailed": "会員登録に失敗しました",
+    "termRequired": "(必須)",
+    "termOptional": "(任意)"
   },
   "emailVerification": {
     "title": "メール認証",
     "subtitle": "{email} に6桁の認証コードを送りました。メールをご確認ください。",
     "noCode": "コードが届いていませんか？",
+    "checkSpam": "迷惑メールフォルダもご確認ください。",
     "resendBtn": "再送信",
     "confirm": "確認"
   },
@@ -84,9 +104,7 @@
     "deep": "Deep",
     "deepDesc": "本物の韓国人のように体験したいです。路地裏の粉食店、銭湯ミッション",
     "start": "スタート",
-    "skip": "スキップ",
-    "errorRoleUpdateFailed": "処理に失敗しました。もう一度お試しください",
-    "errorSubmitFailed": "オンボーディングの保存に失敗しました。もう一度お試しください",
+    "errorSubmitFailed": "旅程の作成に失敗しました。もう一度お試しください",
     "reset": "リセット",
     "prev": "前へ",
     "categories": {

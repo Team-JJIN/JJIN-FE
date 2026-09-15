@@ -70,10 +70,10 @@ export default function EmailVerifyPage() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <h1 className="pt-[7vh] text-[22px] font-semibold tracking-[-1%] text-dark">
+      <h1 className="pt-[7vh] text-[22px] font-semibold text-ink">
         {t("title")}
       </h1>
-      <p className="mt-[7px] text-[12px] font-medium text-[#737373]">
+      <p className="mt-[7px] text-[12px] font-medium text-subtext">
         {t("subtitle", { email })}
       </p>
 
@@ -82,16 +82,17 @@ export default function EmailVerifyPage() {
       </div>
 
       <div className="mt-[12px] flex items-center justify-between">
-        <span className="text-[12px] text-[#737373]">{t("noCode")}</span>
+        <span className="text-[12px] text-subtext">{t("noCode")}</span>
         <button
           type="button"
           onClick={handleResend}
           disabled={cooldown > 0}
-          className="text-[12px] font-semibold text-dark disabled:text-muted"
+          className="text-[12px] font-semibold text-subtext disabled:text-muted"
         >
           {cooldown > 0 ? `${t("resendBtn")} (${cooldown}s)` : t("resendBtn")}
         </button>
       </div>
+      <p className="mt-[2px] text-[12px] text-muted">{t("checkSpam")}</p>
 
       <div className="flex-1" />
 

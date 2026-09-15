@@ -1,7 +1,5 @@
 import { apiGet, apiPost } from "./client";
-import type { AuthTokens } from "./auth";
 import {
-  toRegionEnum,
   TRANSPORT_ENUM,
   LEVEL_ENUM,
   SUBCATEGORY_ENUM,
@@ -28,32 +26,34 @@ export async function searchRegions(keyword: string): Promise<Region[]> {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 온보딩 저장 (POST /api/onboarding)
+// 여행 일정 생성 (POST /api/travel-plans)
+// 기존 온보딩 화면을 일정 생성 화면으로 재사용한다. 응답은 { travelPlanId }이며
+// 토큰/역할 갱신은 하지 않는다.
 // ─────────────────────────────────────────────────────────────
 
-/** 온보딩 저장 요청 바디의 취향 항목 (TourAPI 관광타입 contentType + 중분류 목록) */
+/** 요청 바디의 취향 항목 (TourAPI 관광타입 contentType + 세부 취향 목록) */
 export interface OnboardingPreference {
   contentType: string;
   subcategories: string[];
 }
 
-/** 온보딩 저장 요청 바디 */
+/** 여행 일정 생성 요청 바디 */
 export interface OnboardingRequest {
-  name: string; // 여행 이름 (필수)
-  region: string | null; // regionUndecided=false이면 필수
+  name: string; // 여행 일정명 (앞뒤 공백 제거, 공백 문자열 불가)
+  regionId: number | null; // 지역 ID. regionUndecided=false이면 필수, true이면 반드시 null
   regionUndecided: boolean;
   startDate: string; // yyyy-MM-dd
   endDate: string; // yyyy-MM-dd
   activityStartTime: string; // HH:mm
   activityEndTime: string; // HH:mm
   transportMode: string;
-  preferences: OnboardingPreference[]; // 대분류별 취향 2~4개
+  preferences: OnboardingPreference[]; // 서로 다른 관광타입 2~4개
   experienceLevel: string;
 }
 
-/** 온보딩 저장 응답 data (토큰/역할 + 생성된 온보딩 ID). role은 저장 후 "MEMBER" */
-export interface OnboardingResult extends AuthTokens {
-  onboardingId: number;
+/** 여행 일정 생성 응답 data */
+export interface OnboardingResult {
+  travelPlanId: number;
 }
 
 /** 시(정수) + 분(문자열)을 HH:mm 형식으로 합친다. */
@@ -78,9 +78,9 @@ function buildPreferences(subCategories: string[]): OnboardingPreference[] {
 }
 
 /**
- * OnboardingData(프론트 상태)를 온보딩 저장 요청 바디로 변환한다.
- * - name: 여행 이름 (필수)
- * - region: 지역 미정이면 null, 아니면 한국어 표시명을 REGION enum으로 변환
+ * OnboardingData(프론트 상태)를 여행 일정 생성 요청 바디로 변환한다.
+ * - name: 여행 이름 (앞뒤 공백 제거)
+ * - regionId: 지역 미정이면 null, 아니면 선택한 지역 ID
  * - transportMode: 복수 선택 중 첫 번째를 단일 값으로 전송
  * - activityStart/EndTime: 시(정수) + 분(문자열) → HH:mm
  * - preferences: 중분류 키를 TourAPI 관광타입(contentType)별로 그룹핑
@@ -91,15 +91,10 @@ export function buildOnboardingRequest(
   minuteEnd: string
 ): OnboardingRequest {
   const firstTransport = data.transport[0];
-  // 지역 미정이면 region은 null, 아니면 표시명을 REGION enum으로 변환.
-  // 서버 규칙: regionUndecided=false이면 region은 반드시 값이 있어야 한다.
-  const region = data.regionUndecided ? null : toRegionEnum(data.region);
-  if (process.env.NODE_ENV !== "production" && !data.regionUndecided && !region) {
-    console.warn("[onboarding] region enum 매칭 실패 - displayName:", data.region);
-  }
   return {
-    name: data.tripName,
-    region,
+    name: data.tripName.trim(),
+    // 서버 규칙: regionUndecided=true이면 regionId는 반드시 null, false이면 필수
+    regionId: data.regionUndecided ? null : data.regionId,
     regionUndecided: data.regionUndecided,
     startDate: data.dateStart ?? "",
     endDate: data.dateEnd ?? "",
@@ -112,11 +107,11 @@ export function buildOnboardingRequest(
 }
 
 /**
- * 온보딩 정보 저장.
- * S1~S4에서 모은 데이터를 한 번에 전송하고, 저장 후 MEMBER 역할이 반영된
- * 새 access/refresh token과 변경된 role을 응답으로 받는다. (201 CREATED)
+ * 여행 일정 생성.
+ * S1~S4에서 모은 데이터를 한 번에 전송하고, 생성된 travelPlanId를 응답으로 받는다. (201 CREATED)
+ * 토큰/역할 갱신은 없다.
  */
 export async function submitOnboarding(body: OnboardingRequest): Promise<OnboardingResult> {
-  const res = await apiPost<OnboardingResult>("/api/onboarding", body);
+  const res = await apiPost<OnboardingResult>("/api/travel-plans", body);
   return res.data;
 }

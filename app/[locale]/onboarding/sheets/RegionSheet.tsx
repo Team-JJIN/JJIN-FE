@@ -16,6 +16,7 @@ type RegionSheetProps = {
   open: boolean;
   tempRegion: string;
   setTempRegion: (r: string) => void;
+  setTempRegionId: (id: number | null) => void;
   onClose: () => void;
   onConfirm: () => void;
 };
@@ -24,6 +25,7 @@ export default function RegionSheet({
   open,
   tempRegion,
   setTempRegion,
+  setTempRegionId,
   onClose,
   onConfirm,
 }: RegionSheetProps) {
@@ -59,8 +61,13 @@ export default function RegionSheet({
   const hasKeyword = debounced.length > 0;
   const showEmpty = hasKeyword && !isFetching && !isError && regions.length === 0;
 
-  const toggleRegion = (name: string) =>
-    setTempRegion(tempRegion === name ? "" : name);
+  const toggleRegion = (name: string, id: number | null) => {
+    const next = tempRegion === name ? "" : name;
+    setTempRegion(next);
+    setTempRegionId(next ? id : null);
+  };
+
+
 
   return (
     <BottomSheet
@@ -75,7 +82,7 @@ export default function RegionSheet({
       }
       footer={
         <div className="flex items-center justify-between">
-          <ResetButton onClick={() => setTempRegion("")} label={t("reset")} />
+          <ResetButton onClick={() => { setTempRegion(""); setTempRegionId(null); }} label={t("reset")} />
           <BigButton
             disabled={!tempRegion}
             onClick={onConfirm}
@@ -112,7 +119,7 @@ export default function RegionSheet({
                   key={region.id}
                   label={regionLabel(region.displayName)}
                   selected={tempRegion === region.displayName}
-                  onToggle={() => toggleRegion(region.displayName)}
+                  onToggle={() => toggleRegion(region.displayName, region.id)}
                 />
               ))}
             </div>
@@ -125,12 +132,12 @@ export default function RegionSheet({
             {t("popularDestinations")}
           </p>
           <div className="flex flex-wrap gap-2" role="group" aria-label={t("popularDestinations")}>
-            {POPULAR_REGIONS.map((name) => (
+            {POPULAR_REGIONS.map(({ name, id }) => (
               <SelectChip
-                key={name}
+                key={id}
                 label={regionLabel(name)}
                 selected={tempRegion === name}
-                onToggle={() => toggleRegion(name)}
+                onToggle={() => toggleRegion(name, id)}
               />
             ))}
           </div>

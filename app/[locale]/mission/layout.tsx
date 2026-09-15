@@ -2,6 +2,7 @@
  * 미션 도메인 레이아웃. 병렬 라우트(@modal)와 전역 오버레이 호스트를 함께 렌더링한다.
  */
 import MissionOverlayHost from "./_components/MissionOverlayHost";
+import BottomNav from "@/app/_components/ui/BottomNav";
 
 export default function MissionLayout({
   children,
@@ -15,6 +16,7 @@ export default function MissionLayout({
       {children}
       {modal}
       <MissionOverlayHost />
+      <BottomNav />
     </>
   );
 }

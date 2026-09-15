@@ -163,7 +163,7 @@ export default function MissionHomePage() {
       <motion.div
         {...sectionEnter(3, true)}
         ref={scrollContainerRef}
-        className="-mx-[20px] flex-1 overflow-y-auto px-[20px] pt-[15px] pb-6"
+        className="-mx-[20px] flex-1 overflow-y-auto px-[20px] pt-[15px] pb-[96px]"
       >
         <AnimatePresence mode="wait" initial={false}>
           {isError ? (

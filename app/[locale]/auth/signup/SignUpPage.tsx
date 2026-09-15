@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -13,9 +13,16 @@ import { signUp, getTerms, handleAuthSuccess, type TermsItem } from "@/app/_api/
 import { getApiErrorMessage } from "@/app/_api/client";
 
 type SignUpForm = {
+  nickname: string;
   email: string;
   password: string;
   confirmPassword: string;
+};
+
+// 약관 type별 상세 페이지(노션) 링크. 라벨 클릭 시 새 탭으로 이동한다.
+const TERM_LINKS: Record<string, string> = {
+  SERVICE: "https://picayune-neon-796.notion.site/3dcd0ccedfad806a9ae8f1bb6ebeced2",
+  MARKETING: "https://picayune-neon-796.notion.site/3dcd0ccedfad80669620fca20ed5db98",
 };
 
 export default function SignUpPage() {
@@ -37,31 +44,38 @@ export default function SignUpPage() {
   const [terms, setTerms] = useState<TermsItem[]>([]);
   const [agreedTermIds, setAgreedTermIds] = useState<Set<number>>(new Set());
 
+  // 필수 약관을 위로 정렬 (required=true 우선)
+  const sortedTerms = useMemo(
+    () => [...terms].sort((a, b) => Number(b.required) - Number(a.required)),
+    [terms]
+  );
+
   const { register, watch } = useForm<SignUpForm>({
     defaultValues: {
+      nickname: "",
       email: verifiedEmail || "",
       password: "",
       confirmPassword: "",
     },
   });
 
+  const nickname = watch("nickname");
   const email = watch("email");
   const password = watch("password");
   const confirmPassword = watch("confirmPassword");
 
+  const isNameValid = nickname.trim().length > 0;
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isPasswordValid = password.length >= 8 && /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
   const isConfirmMatch = password === confirmPassword && confirmPassword.length > 0;
   const allRequiredTermsAgreed = terms
     .filter((term) => term.required)
     .every((term) => agreedTermIds.has(term.id));
-  const isFormValid = isEmailValid && isVerified && isPasswordValid && isConfirmMatch && allRequiredTermsAgreed;
+  const isFormValid = isNameValid && isEmailValid && isVerified && isPasswordValid && isConfirmMatch && allRequiredTermsAgreed;
 
   // 약관 목록 조회
   useEffect(() => {
-    getTerms()
-      .then(setTerms)
-      .catch(() => {});
+    getTerms().then(setTerms).catch(() => {});
   }, []);
 
   const toggleTerm = (id: number) => {
@@ -100,7 +114,7 @@ export default function SignUpPage() {
         type: term.type,
         agreed: agreedTermIds.has(term.id),
       }));
-      const tokens = await signUp(email, password, termsAgreements);
+      const tokens = await signUp(email, nickname.trim(), password, termsAgreements);
       handleAuthSuccess(tokens, locale, (path) => router.push(path));
     } catch (err: unknown) {
       setSubmitError(getApiErrorMessage(err, t("errorSignUpFailed")));
@@ -110,11 +124,18 @@ export default function SignUpPage() {
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       <div className="pt-[7vh]">
-        <h1 className="text-[22px] font-semibold tracking-[-1%] text-dark">{t("title")}</h1>
-        <p className="mt-1 text-[12px] font-medium text-[#737373]">{t("subtitle")}</p>
+        <h1 className="text-[22px] font-semibold text-ink">{t("title")}</h1>
+        <p className="mt-[7px] text-[12px] font-medium text-subtext">{t("subtitle")}</p>
       </div>
 
-      <div className="flex flex-col gap-[12px] pt-[3vh]">
+      <div className="mt-[11px] flex flex-col gap-[16px]">
+        {/* 이름 */}
+        <InputText
+          type="text"
+          placeholder={t("name")}
+          {...register("nickname")}
+        />
+
         {/* 이메일 + 인증 */}
         <div className="flex gap-2">
           <div className="flex-1">
@@ -167,12 +188,13 @@ export default function SignUpPage() {
 
         {/* 약관 동의 (API에서 가져온 목록) */}
         <div className="flex flex-col gap-[10px] mt-[4px]">
-          {terms.map((term) => (
+          {sortedTerms.map((term) => (
             <CheckBox
               key={term.id}
               checked={agreedTermIds.has(term.id)}
               onChange={() => toggleTerm(term.id)}
-              label={term.title}
+              label={`${term.title} ${term.required ? t("termRequired") : t("termOptional")}`}
+              labelHref={TERM_LINKS[term.type]}
             />
           ))}
         </div>

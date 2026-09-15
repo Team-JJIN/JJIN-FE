@@ -68,7 +68,7 @@ const CodeBox = forwardRef<CodeBoxHandle, CodeBoxProps>(({ length = 6, value, on
           onChange={(e) => handleChange(i, e.target.value)}
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
-          className={`h-[48px] w-full rounded-[12px] text-center text-[18px] font-semibold border-2 transition-colors duration-150 focus:outline-none ${
+          className={`h-[60px] w-full rounded-[12px] text-center text-[18px] font-semibold border-2 transition-colors duration-150 focus:outline-none ${
             error
               ? "border-red-400 bg-red-50"
               : value[i]

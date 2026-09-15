@@ -76,7 +76,7 @@ export default function Step1Content({
       <div className="flex justify-end mt-2">
         <CheckBox
           checked={data.regionUndecided}
-          onChange={() => setData((d) => ({ ...d, regionUndecided: !d.regionUndecided, region: "" }))}
+          onChange={() => setData((d) => ({ ...d, regionUndecided: !d.regionUndecided, region: "", regionId: null }))}
           label={t("regionUndecided")}
         />
       </div>
