@@ -42,7 +42,9 @@
     "errorEmailInvalid": "有効なメールアドレスを入力してください",
     "errorPasswordInvalid": "8文字以上、英字と数字を含める必要があります",
     "errorPasswordMismatch": "パスワードが一致しません",
-    "errorSignUpFailed": "会員登録に失敗しました"
+    "errorSignUpFailed": "会員登録に失敗しました",
+    "termRequired": "(必須)",
+    "termOptional": "(任意)"
   },
   "emailVerification": {
     "title": "メール認証",

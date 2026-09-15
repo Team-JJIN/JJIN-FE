@@ -44,7 +44,9 @@
     "errorEmailInvalid": "Please enter a valid email",
     "errorPasswordInvalid": "8+ characters, letters and numbers required",
     "errorPasswordMismatch": "Passwords do not match",
-    "errorSignUpFailed": "Sign up failed"
+    "errorSignUpFailed": "Sign up failed",
+    "termRequired": "(Required)",
+    "termOptional": "(Optional)"
   },
   "emailVerification": {
     "title": "Email Verification",
