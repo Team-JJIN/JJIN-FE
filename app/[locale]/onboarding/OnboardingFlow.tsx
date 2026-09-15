@@ -139,7 +139,7 @@ export default function OnboardingFlow() {
 
   const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
-    else router.push(`/${locale}/auth/login`);
+    else router.push(`/${locale}/home`);
   }, [step, router, locale]);
 
   const toggleCategory = useCallback((cat: Category) => {
