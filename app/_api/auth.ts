@@ -65,12 +65,12 @@ export async function logout(): Promise<void> {
 /**
  * 인증 성공 후 이동할 경로.
  *
- * NOTE: 여행 기본정보/취향 입력(온보딩 S1~S4)은 첫 로그인이 아니라 '일정 생성' 시점으로 이동할 예정이라,
- *   현재는 role과 무관하게 항상 mission(홈)으로 보낸다. 온보딩 화면(/onboarding)과 관련 코드는
- *   재사용을 위해 그대로 보존하며, 여기서 진입만 끊는다. (일정 생성 플로우 확정 시 라우팅 재정의)
+ * NOTE: 여행 기본정보/취향 입력(온보딩 S1~S4)은 첫 로그인이 아니라 '일정 생성' 시점으로 이동하므로,
+ *   role과 무관하게 항상 홈(/home)으로 보낸다. 온보딩 화면(/onboarding)과 관련 코드는
+ *   재사용을 위해 그대로 보존한다. (일정 생성 플로우 확정 시 라우팅 재정의)
  */
 export function authDestination(_role: Role, locale: string): string {
-  return `/${locale}/mission`;
+  return `/${locale}/home`;
 }
 
 /**
