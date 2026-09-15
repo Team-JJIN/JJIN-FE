@@ -223,7 +223,7 @@ export default function OnboardingFlow() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <TopBarBack onBack={handlePrev} rightText={t("skip")} onRightClick={goHome} />
+      <TopBarBack onBack={handlePrev} />
 
       {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">

@@ -102,9 +102,7 @@
     "deep": "Deep",
     "deepDesc": "本物の韓国人のように体験したいです。路地裏の粉食店、銭湯ミッション",
     "start": "スタート",
-    "skip": "スキップ",
-    "errorRoleUpdateFailed": "処理に失敗しました。もう一度お試しください",
-    "errorSubmitFailed": "オンボーディングの保存に失敗しました。もう一度お試しください",
+    "errorSubmitFailed": "旅程の作成に失敗しました。もう一度お試しください",
     "reset": "リセット",
     "prev": "前へ",
     "categories": {

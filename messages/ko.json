@@ -104,9 +104,7 @@
     "deep": "Deep",
     "deepDesc": "진짜 한국인처럼 체험하고 싶어요. 골목 분식집, 동네 목욕탕 미션",
     "start": "시작하기",
-    "skip": "건너뛰기",
-    "errorRoleUpdateFailed": "처리에 실패했습니다. 다시 시도해주세요",
-    "errorSubmitFailed": "온보딩 저장에 실패했습니다. 다시 시도해주세요",
+    "errorSubmitFailed": "일정 생성에 실패했습니다. 다시 시도해주세요",
     "reset": "초기화",
     "prev": "이전",
     "categories": {
