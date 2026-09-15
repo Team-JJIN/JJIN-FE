@@ -32,10 +32,11 @@ export async function loginWithEmail(email: string, password: string): Promise<A
 /** 회원가입 */
 export async function signUp(
   email: string,
+  nickname: string,
   password: string,
   termsAgreements: { type: string; agreed: boolean }[]
 ): Promise<AuthTokens> {
-  const res = await apiPost<AuthTokens>("/api/auth/signup", { email, password, termsAgreements });
+  const res = await apiPost<AuthTokens>("/api/auth/signup", { email, nickname, password, termsAgreements });
   return res.data;
 }
 

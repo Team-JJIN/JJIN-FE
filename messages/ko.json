@@ -14,8 +14,10 @@
   "signUp": {
     "title": "회원가입",
     "subtitle": "이메일 인증으로 가입해요",
+    "name": "이름",
     "email": "이메일",
     "requestVerification": "인증 요청",
+    "errorNameRequired": "이름을 입력해주세요",
     "resend": "재요청",
     "password": "비밀번호 (8자 이상, 영문+숫자)",
     "confirmPassword": "비밀번호 확인",
@@ -31,6 +33,7 @@
     "title": "이메일 인증",
     "subtitle": "{email} 으로 6자리 인증 코드를 보냈어요. 메일함을 확인해 주세요.",
     "noCode": "코드가 안 왔나요?",
+    "checkSpam": "스팸함도 확인해 주세요.",
     "resendBtn": "재전송",
     "confirm": "확인"
   },
