@@ -141,3 +141,28 @@ export const TAP = {
   card: { scale: 0.98 },
   icon: { scale: 0.9 },
 } as const;
+
+/** 우측에서 슬라이드 인 되는 전체 패널 (plan 장소 검색 인터셉트 라우트). exit는 들어온 방향으로 되돌아간다. opacity 동반 = reducedMotion에서 transform이 꺼져도 크로스페이드가 남도록 */
+export const slideOver = {
+  initial: { x: "100%", opacity: 0 },
+  animate: {
+    x: 0,
+    opacity: 1,
+    transition: { duration: DUR.md, ease: EASE.page },
+  },
+  exit: {
+    x: "100%",
+    opacity: 0,
+    transition: { duration: DUR.md, ease: EASE.page },
+  },
+} as const;
+
+/** layout 애니메이션 전용 (편집 모드 전환 시 카드 높이 변화, 삭제 후 형제 이동). `transition={{ layout: layoutShift }}` */
+export const layoutShift: Transition = {
+  type: "tween",
+  duration: DUR.md,
+  ease: EASE.out,
+};
+
+/** Reorder.Item whileDrag */
+export const dragLift = { scale: 1.02 } as const;

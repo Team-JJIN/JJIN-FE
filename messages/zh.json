@@ -243,5 +243,66 @@
     "search": {
       "counting": "统计中…"
     }
+  },
+  "plan": {
+    "close": "关闭",
+    "dayChip": "第{n}天",
+    "course": "路线",
+    "edit": "编辑",
+    "editDone": "结束编辑",
+    "delete": "删除",
+    "addPlace": "添加地点",
+    "directions": "导航",
+    "courseOption": "路线{n}",
+    "mapLabel": "路线地图",
+    "markerLabel": "路线{n} {name}",
+    "courseSelect": "选择路线",
+    "open": "营业中",
+    "closed": "未营业",
+    "openStatus": {
+      "OPEN": "营业中",
+      "BREAK": "休息中",
+      "CLOSED": "已打烊"
+    },
+    "category": {
+      "TOURIST_ATTRACTION": "景点",
+      "RESTAURANT": "餐厅",
+      "CULTURAL_FACILITY": "文化设施",
+      "FESTIVAL_EVENT": "节庆活动",
+      "LEISURE_SPORTS": "休闲运动",
+      "SHOPPING": "购物",
+      "LODGING": "住宿",
+      "TRAVEL_COURSE": "旅行路线"
+    },
+    "partialSaveError": "部分更改可能已保存。已重新加载当前路线。",
+    "recoveryLoadError": "部分更改可能已保存。请重新加载路线确认。",
+    "tabSchedule": "行程",
+    "tabMission": "任务",
+    "missionEmpty": "行程任务正在准备中",
+    "loadError": "无法加载行程",
+    "saveError": "保存失败",
+    "retry": "重试",
+    "reorder": "调整顺序",
+    "search": {
+      "title": "添加地点",
+      "placeholder": "搜索地点名称、地址",
+      "recent": "最近搜索",
+      "emptyLine1": "试试用地址、地点名称",
+      "emptyLine2": "搜索一下吧",
+      "resultCount": "搜索结果",
+      "add": "添加",
+      "alreadyAdded": "已添加到其他日期",
+      "loadMore": "加载更多",
+      "loading": "正在搜索",
+      "refreshing": "正在更新结果",
+      "loadingMore": "正在加载更多",
+      "error": "搜索失败",
+      "sortLabel": "排序",
+      "sort": {
+        "recent": "最新",
+        "distance": "距离",
+        "rating": "评分"
+      }
+    }
   }
 }

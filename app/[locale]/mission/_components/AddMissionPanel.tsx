@@ -17,18 +17,9 @@ import {
   useMissionPlanLikes,
   useUpdateMissionPlans,
 } from "../_hooks/useMissionQueries";
+import { parseIsoDate } from "@/lib/date";
 import type { MissionPlanLike } from "@/app/_api/missions";
 import type { MissionPreview } from "../_store/useMissionSheetStore";
-
-// ISO(YYYY-MM-DD) 날짜 문자열을 로컬 타임존 기준으로 파싱한다.
-// new Date(iso)는 UTC 자정으로 해석되어 음수 UTC 오프셋 지역에서 하루 밀리는 문제가 있어 직접 분해한다.
-// 형식이 깨진 값은 null — Invalid Date를 Intl.DateTimeFormat에 넘기면 RangeError로 패널 전체가 죽는다.
-function parseIsoDate(iso: string): Date | null {
-  const [year, month, day] = iso.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  const date = new Date(year, month - 1, day);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
 
 // 순서 무관하게 두 일정 id 목록이 같은 집합인지 비교한다 (추가하기 버튼의 dirty 여부 판단용).
 function sameSet(a: string[], b: string[]): boolean {
