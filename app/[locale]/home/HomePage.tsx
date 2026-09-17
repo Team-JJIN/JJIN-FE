@@ -2,32 +2,27 @@
  * @component HomePage
  * 홈(일정 목록) 페이지. 상단 "일정" 제목 + 추가 버튼, 일정 카드 목록.
  * 목록이 비어 있으면 빈 상태(JJ 로고 + 안내 문구)를 보여준다.
- *
- * NOTE: 일정 목록 조회 API가 아직 없어 현재는 빈 배열로 둔다(빈 상태 노출).
- *   조회 API 스펙 확정 시 plans를 서버 데이터로 교체한다.
+ * - 추가 버튼: 일정 생성(온보딩) 화면으로 이동
+ * - 카드 클릭: 일정 상세(/plan/[planId])로 이동, 삭제 아이콘: 확인 다이얼로그 후 DELETE
+ * - 등장 애니메이션은 미션 탭과 동일하게 sectionEnter/listItemEnter 사용
  */
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useLocale } from "@/app/_components/hooks/useLocale";
 import { PlusIcon } from "@/app/_components/icons";
+import { sectionEnter, listItemEnter, TAP } from "@/app/_components/motion/tokens";
+import Dialog from "@/app/_components/ui/Dialog";
+import { deleteTravelPlan, type Plan } from "@/app/_api/plans";
+import { usePlans, planKeys } from "@/app/[locale]/plan/_hooks/usePlanQueries";
+import { getApiErrorMessage } from "@/app/_api/client";
 
-/** 일정 카드에 필요한 최소 데이터 (조회 API 확정 시 교체) */
-type TravelPlanCard = {
-  id: number;
-  name: string;
-  startDate: string; // yyyy-MM-dd
-  endDate: string;
-  transportLabel: string;
-  preferenceLabels: string[];
-  level: "LIGHT" | "NORMAL" | "DEEP";
-  nights: number;
-  days: number;
-};
-
-const PLANS: TravelPlanCard[] = [];
-
-// "2026-03-08" -> "26.03.08"
+// "2026-07-22" -> "26.07.22"
 function formatDot(date: string) {
   const [y, m, d] = date.split("-");
   return `${y.slice(2)}.${m}.${d}`;
@@ -35,65 +30,146 @@ function formatDot(date: string) {
 
 export default function HomePage() {
   const t = useTranslations("home");
+  const router = useRouter();
+  const locale = useLocale();
+  const queryClient = useQueryClient();
+
+  const { data: plans = [], isLoading } = usePlans();
+  const [deleteTarget, setDeleteTarget] = useState<Plan | null>(null);
+
+  const goToCreate = () => router.push(`/${locale}/onboarding`);
+
+  const deleteMutation = useMutation({
+    mutationFn: (planId: string) => deleteTravelPlan(planId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: planKeys.list() }),
+    onError: (err) => alert(getApiErrorMessage(err, t("errorDeleteFailed"))),
+    onSettled: () => setDeleteTarget(null),
+  });
+
+  const isEmpty = !isLoading && plans.length === 0;
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 헤더: 제목 + 추가 버튼 */}
-      <div className="flex items-center justify-between pt-[32px] pb-4">
+      <motion.div {...sectionEnter(0)} className="flex items-center justify-between pt-[32px] pb-4">
         <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">{t("title")}</h1>
-        {/* TODO: 일정 생성 플로우 연결 전까지 비활성화 */}
         <button
           type="button"
-          disabled
+          onClick={goToCreate}
           aria-label={t("addPlan")}
-          className="cursor-default"
+          className="transition duration-150 motion-safe:active:scale-90"
         >
           <PlusIcon />
         </button>
-      </div>
+      </motion.div>
 
-      {PLANS.length === 0 ? (
+      {isEmpty ? (
         /* 빈 상태: JJ 로고 + 안내 문구 (화면 중앙) */
-        <div className="flex flex-1 flex-col items-center justify-center pb-[80px]">
+        <motion.div {...sectionEnter(1)} className="flex flex-1 flex-col items-center justify-center pb-[80px]">
           <Image src="/image/JJ.png" alt="" width={111} height={111} className="h-[111px] w-[111px] object-contain" />
           <p className="mt-[9px] text-[17px] font-semibold text-ink">{t("emptyTitle")}</p>
           <p className="mt-[9px] whitespace-pre-line text-center text-[14px] font-medium text-subtext">
             {t("emptyDescription")}
           </p>
-        </div>
+        </motion.div>
       ) : (
-        /* 일정 카드 목록 */
-        <div className="-mx-[20px] flex-1 overflow-y-auto px-[20px] pb-[96px]">
-          <div className="flex flex-col gap-[16px]">
-            {PLANS.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} nightsLabel={t("nights", { nights: plan.nights, days: plan.days })} />
+        /* 일정 카드 목록 — "일정" 제목에서 25px 아래(헤더 pb-16 + mt-9 = 25px) */
+        <div className="-mx-[20px] mt-[9px] flex-1 overflow-y-auto px-[20px] pb-[96px]">
+          <div className="flex flex-col gap-[14px]">
+            {plans.map((plan, i) => (
+              <PlanCard
+                key={plan.id}
+                index={i}
+                plan={plan}
+                dateRange={`${formatDot(plan.startDate)} – ${formatDot(plan.endDate)}`}
+                transport={t(`transportModes.${plan.transportMode}`)}
+                categories={plan.interestCategories.map((c) => t(`contentTypes.${c}`)).join(" · ")}
+                nightsLabel={t("nights", { nights: plan.nights, days: plan.dayCount })}
+                deleteLabel={t("deletePlan")}
+                onOpen={() => router.push(`/${locale}/plan/${plan.id}`)}
+                onDelete={() => setDeleteTarget(plan)}
+              />
             ))}
           </div>
         </div>
       )}
+
+      {/* 일정 삭제 확인 다이얼로그 */}
+      <Dialog
+        open={!!deleteTarget}
+        title={t("deleteTitle")}
+        description={t("deleteDescription")}
+        cancelLabel={t("deleteCancel")}
+        confirmLabel={t("deleteConfirm")}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+      />
     </div>
   );
 }
 
-function PlanCard({ plan, nightsLabel }: { plan: TravelPlanCard; nightsLabel: string }) {
+function PlanCard({
+  index,
+  plan,
+  dateRange,
+  transport,
+  categories,
+  nightsLabel,
+  deleteLabel,
+  onOpen,
+  onDelete,
+}: {
+  index: number;
+  plan: Plan;
+  dateRange: string;
+  transport: string;
+  categories: string;
+  nightsLabel: string;
+  deleteLabel: string;
+  onOpen: () => void;
+  onDelete: () => void;
+}) {
   return (
-    <div className="rounded-[16px] bg-white p-[20px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]">
-      <div className="flex items-start justify-between">
-        <h2 className="text-[16px] font-bold text-dark">{plan.name}</h2>
-        <button type="button" aria-label="delete" className="text-neutral-300">🗑</button>
+    <motion.div
+      {...listItemEnter(index)}
+      whileHover={{ scale: 1.01 }}
+      whileTap={TAP.card}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(); }}
+      className="cursor-pointer rounded-[16px] bg-white py-[14px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
+    >
+      {/* 제목 + 삭제 아이콘 */}
+      <div className="flex items-start justify-between px-[15px]">
+        <h2 className="text-[17px] font-semibold text-ink">{plan.name}</h2>
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          aria-label={deleteLabel}
+          className="shrink-0 transition duration-150 motion-safe:active:scale-90"
+        >
+          <Image src="/image/TrashIcon.png" alt="" width={16} height={18} className="h-[18px] w-[16px] object-contain" />
+        </button>
       </div>
-      <p className="mt-[10px] text-[13px] font-medium text-subtext">
-        {formatDot(plan.startDate)} – {formatDot(plan.endDate)}
-      </p>
-      <p className="mt-[4px] text-[13px] font-medium text-subtext">{plan.transportLabel}</p>
-      <p className="mt-[4px] text-[13px] font-medium text-subtext">{plan.preferenceLabels.join(" · ")}</p>
 
-      <div className="mt-[14px] flex items-center justify-between">
-        <span className="rounded-full border-[1.5px] border-lime-vivid bg-lime-pale px-3 py-[5px] text-[12px] font-semibold text-dark">
-          {plan.level}
+      {/* 날짜 / 이동수단 / 취향 */}
+      <p className="mt-[6px] px-[15px] text-[14px] font-medium text-subtext">{dateRange}</p>
+      <p className="mt-[2px] px-[15px] text-[14px] font-medium text-subtext">{transport}</p>
+      {categories && (
+        <p className="mt-[2px] px-[15px] text-[14px] font-medium text-subtext">{categories}</p>
+      )}
+
+      {/* 구분선 — 취향에서 9px 아래, 박스 내 좌우 15px 공백 */}
+      <div className="mt-[9px] mx-[15px] h-px bg-line" />
+
+      {/* 경험 밀도 뱃지 + 숙박 일수 */}
+      <div className="mt-[14px] flex items-center justify-between px-[15px]">
+        <span className="rounded-full border-[1.5px] border-lime-vivid bg-lime-pale px-3 py-[5px] text-[12px] font-medium text-[#8C8C8C]">
+          {plan.experienceLevel}
         </span>
-        <span className="text-[12px] font-medium text-subtext">{nightsLabel}</span>
+        <span className="text-[12px] font-normal text-[#8C8C8C]">{nightsLabel}</span>
       </div>
-    </div>
+    </motion.div>
   );
 }

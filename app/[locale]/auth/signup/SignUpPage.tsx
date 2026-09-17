@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useLocale } from "@/app/_components/hooks/useLocale";
+import { sectionEnter } from "@/app/_components/motion/tokens";
 import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import CheckBox from "@/app/_components/ui/CheckBox";
@@ -123,12 +125,12 @@ export default function SignUpPage() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <div className="pt-[7vh]">
+      <motion.div {...sectionEnter(0)} className="pt-[7vh]">
         <h1 className="text-[22px] font-semibold text-ink">{t("title")}</h1>
         <p className="mt-[7px] text-[12px] font-medium text-subtext">{t("subtitle")}</p>
-      </div>
+      </motion.div>
 
-      <div className="mt-[11px] flex flex-col gap-[16px]">
+      <motion.div {...sectionEnter(1)} className="mt-[11px] flex flex-col gap-[16px]">
         {/* 이름 */}
         <InputText
           type="text"
@@ -198,7 +200,7 @@ export default function SignUpPage() {
             />
           ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="flex-1" />
 

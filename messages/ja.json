@@ -14,7 +14,26 @@
     "emptyTitle": "作成された旅程がありません",
     "emptyDescription": "追加ボタンを押して\n最初の旅程を作成しましょう。",
     "addPlan": "旅程を追加",
-    "nights": "{nights}泊{days}日"
+    "nights": "{nights}泊{days}日",
+    "deletePlan": "旅程を削除",
+    "deleteTitle": "旅程の削除",
+    "deleteDescription": "旅程を削除しますか？",
+    "deleteCancel": "キャンセル",
+    "deleteConfirm": "削除する",
+    "errorDeleteFailed": "旅程の削除に失敗しました。もう一度お試しください",
+    "contentTypes": {
+      "RESTAURANT": "グルメ",
+      "TOURIST_ATTRACTION": "体験観光",
+      "CULTURAL_FACILITY": "文化施設",
+      "FESTIVAL_EVENT": "祭り・公演",
+      "SHOPPING": "ショッピング",
+      "LEISURE_SPORTS": "レジャー"
+    },
+    "transportModes": {
+      "WALKING": "徒歩",
+      "PUBLIC_TRANSIT": "公共交通",
+      "CAR": "車"
+    }
   },
   "login": {
     "email": "メールアドレス",
@@ -33,11 +52,8 @@
     "subtitle": "メール認証で登録",
     "email": "メールアドレス",
     "requestVerification": "認証依頼",
-    "resend": "再依頼",
     "password": "パスワード（8文字以上、英字+数字）",
     "confirmPassword": "パスワード確認",
-    "agreeTerms": "利用規約・個人情報保護方針に同意（必須）",
-    "agreeMarketing": "マーケティング情報の受信に同意（任意）",
     "sendVerificationEmail": "登録する",
     "errorEmailInvalid": "有効なメールアドレスを入力してください",
     "errorPasswordInvalid": "8文字以上、英字と数字を含める必要があります",
@@ -54,15 +70,8 @@
     "resendBtn": "再送信",
     "confirm": "確認"
   },
-  "languages": {
-    "en": "English",
-    "ja": "日本語",
-    "zh": "中文",
-    "ko": "한국어"
-  },
   "onboarding": {
     "step1Title": "旅行日程と移動方法",
-    "step1Subtitle": "",
     "dateRange": "訪問日",
     "activityTime": "1日の活動時間帯",
     "timeStart": "開始",

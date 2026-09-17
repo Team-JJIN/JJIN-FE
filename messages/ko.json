@@ -14,7 +14,26 @@
     "emptyTitle": "생성된 일정이 없어요",
     "emptyDescription": "일정 추가버튼을 눌러\n첫 일정을 만들어보세요.",
     "addPlan": "일정 추가",
-    "nights": "{nights}박 {days}일"
+    "nights": "{nights}박 {days}일",
+    "deletePlan": "일정 삭제",
+    "deleteTitle": "일정 삭제",
+    "deleteDescription": "일정을 삭제하시겠습니까?",
+    "deleteCancel": "취소",
+    "deleteConfirm": "삭제하기",
+    "errorDeleteFailed": "일정 삭제에 실패했습니다. 다시 시도해주세요",
+    "contentTypes": {
+      "RESTAURANT": "음식",
+      "TOURIST_ATTRACTION": "체험관광",
+      "CULTURAL_FACILITY": "문화시설",
+      "FESTIVAL_EVENT": "축제·공연",
+      "SHOPPING": "쇼핑",
+      "LEISURE_SPORTS": "레포츠"
+    },
+    "transportModes": {
+      "WALKING": "도보",
+      "PUBLIC_TRANSIT": "대중교통",
+      "CAR": "차량"
+    }
   },
   "login": {
     "email": "이메일",
@@ -34,12 +53,8 @@
     "name": "이름",
     "email": "이메일",
     "requestVerification": "인증 요청",
-    "errorNameRequired": "이름을 입력해주세요",
-    "resend": "재요청",
     "password": "비밀번호 (8자 이상, 영문+숫자)",
     "confirmPassword": "비밀번호 확인",
-    "agreeTerms": "이용약관 및 개인정보 처리방침 동의 (필수)",
-    "agreeMarketing": "마케팅 정보 수신 동의 (선택)",
     "sendVerificationEmail": "가입하기",
     "errorEmailInvalid": "올바른 이메일을 입력해주세요",
     "errorPasswordInvalid": "8자 이상, 영문+숫자를 포함해야 합니다",
@@ -56,15 +71,8 @@
     "resendBtn": "재전송",
     "confirm": "확인"
   },
-  "languages": {
-    "en": "English",
-    "ja": "日本語",
-    "zh": "中文",
-    "ko": "한국어"
-  },
   "onboarding": {
     "step1Title": "여행 일정과 이동 방식",
-    "step1Subtitle": "",
     "dateRange": "방문 날짜",
     "activityTime": "하루 활동 시간대",
     "timeStart": "시작",

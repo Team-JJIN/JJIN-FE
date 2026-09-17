@@ -18,7 +18,7 @@
 import {
   getAccessToken,
   getRefreshToken,
-  saveTokens,
+  setAccessToken,
   clearTokens,
 } from "./token";
 
@@ -216,11 +216,29 @@ async function tryReissue(refreshToken: string): Promise<string | null> {
       body: JSON.stringify({ refreshToken }),
     });
     const data = await parseResponse<{ accessToken: string }>(res);
-    saveTokens(data.data.accessToken, refreshToken);
+    // 재발급은 accessToken만 갱신한다 (refreshToken은 그대로 유지).
+    setAccessToken(data.data.accessToken);
     return data.data.accessToken;
   } catch {
     return null;
   }
+}
+
+/**
+ * 앱 시작/새로고침 시 세션 복구.
+ * accessToken은 메모리 보관이라 새로고침하면 사라진다. refreshToken(sessionStorage)이 있으면
+ * 재발급해 accessToken을 복구한다. 성공 시 true, 실패/토큰없음 시 false.
+ */
+export async function restoreSession(): Promise<boolean> {
+  if (getAccessToken()) return true; // 이미 메모리에 있으면 복구 불필요
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+  const reissued = await tryReissue(refreshToken);
+  if (!reissued) {
+    clearTokens();
+    return false;
+  }
+  return true;
 }
 
 export async function apiGet<T = null>(
