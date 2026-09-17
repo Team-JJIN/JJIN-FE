@@ -4,14 +4,20 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { restoreSession } from "@/app/_api/client";
 
 export default function QueryProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // accessToken은 메모리 보관이라 새로고침 시 사라진다. 앱 시작 시 refreshToken으로 1회 복구 시도.
+  useEffect(() => {
+    restoreSession();
+  }, []);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({
