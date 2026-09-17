@@ -265,5 +265,66 @@
     "search": {
       "counting": "Counting…"
     }
+  },
+  "plan": {
+    "close": "Close",
+    "dayChip": "Day {n}",
+    "course": "Course",
+    "edit": "Edit",
+    "editDone": "Done editing",
+    "delete": "Delete",
+    "addPlace": "Add place",
+    "directions": "Directions",
+    "courseOption": "Course {n}",
+    "mapLabel": "Course map",
+    "markerLabel": "Course {n}, {name}",
+    "courseSelect": "Select course",
+    "open": "Open now",
+    "closed": "Closed",
+    "openStatus": {
+      "OPEN": "Open",
+      "BREAK": "On break",
+      "CLOSED": "Closed"
+    },
+    "category": {
+      "TOURIST_ATTRACTION": "Attraction",
+      "RESTAURANT": "Restaurant",
+      "CULTURAL_FACILITY": "Cultural venue",
+      "FESTIVAL_EVENT": "Festival or event",
+      "LEISURE_SPORTS": "Leisure and sports",
+      "SHOPPING": "Shopping",
+      "LODGING": "Lodging",
+      "TRAVEL_COURSE": "Travel course"
+    },
+    "partialSaveError": "Some changes may have been saved. The current course has been reloaded.",
+    "recoveryLoadError": "Some changes may have been saved. Reload the course to check.",
+    "tabSchedule": "Schedule",
+    "tabMission": "Missions",
+    "missionEmpty": "Plan missions are coming soon",
+    "loadError": "Couldn't load the plan",
+    "saveError": "Couldn't save",
+    "retry": "Retry",
+    "reorder": "Reorder",
+    "search": {
+      "title": "Add place",
+      "placeholder": "Search by name or address",
+      "recent": "Recent searches",
+      "emptyLine1": "Search by address",
+      "emptyLine2": "or place name",
+      "resultCount": "Results",
+      "add": "Add",
+      "alreadyAdded": "Added to another day",
+      "loadMore": "Load more",
+      "loading": "Searching",
+      "refreshing": "Refreshing results",
+      "loadingMore": "Loading more",
+      "error": "Search failed",
+      "sortLabel": "Sort",
+      "sort": {
+        "recent": "Recent",
+        "distance": "Distance",
+        "rating": "Rating"
+      }
+    }
   }
 }

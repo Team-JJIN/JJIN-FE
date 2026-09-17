@@ -23,6 +23,7 @@ import {
   TAP,
 } from "@/app/_components/motion/tokens";
 import { dedupeById } from "@/app/_lib/dedupeById";
+import { useDebouncedValue } from "@/app/_components/hooks/useDebouncedValue";
 import { DIFFICULTIES } from "../_constants";
 import { useMissionSearch } from "../_hooks/useMissionQueries";
 import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
@@ -44,17 +45,13 @@ export default function MissionSearchPage() {
   const openAdd = useMissionSheetStore((s) => s.openAdd);
 
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [categories, setCategories] = useState<MissionCategory[]>([]);
   const [difficulty, setDifficulty] = useState<MissionDifficulty | null>(null);
   const [sort, setSort] = useState<MissionSort>("popular");
   const [categorySheetOpen, setCategorySheetOpen] = useState(false);
 
   // 실제 쿼리에는 디바운스된 값만 사용한다 (타이핑 중 매 글자마다 요청 방지)
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedQuery(searchInput), 300);
-    return () => clearTimeout(id);
-  }, [searchInput]);
+  const debouncedQuery = useDebouncedValue(searchInput, 300);
 
   const searchParams = useMemo(
     () => ({ query: debouncedQuery, categories, difficulty, sort }),
