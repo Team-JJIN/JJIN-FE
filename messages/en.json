@@ -289,6 +289,7 @@
       "error": "Failed to generate the course.",
       "errorHint": "Go back and add a new travel plan.",
       "errorInsufficient": "Not enough preference info to generate an AI recommendation.",
+      "failedTitle": "Course generation failed",
       "doneTitle": "Course ready",
       "doneMessage": "Your AI course has been created.",
       "doneHint": "Returning to the trip details"

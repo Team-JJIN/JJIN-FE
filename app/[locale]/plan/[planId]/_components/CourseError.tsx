@@ -45,7 +45,7 @@ export default function CourseError({ errorKind, onBack }: CourseErrorProps) {
           className="h-[111px] w-[111px] object-contain"
         />
         <p className="mt-[24px] text-center text-[22px] font-semibold text-ink">
-          {t("loadingTitle").replace(/\.+$/, "")}
+          {t("failedTitle")}
         </p>
       </div>
 

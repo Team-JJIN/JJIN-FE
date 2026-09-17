@@ -288,6 +288,7 @@
       "error": "コースの生成に失敗しました。",
       "errorHint": "前に戻って新しい旅行プランを追加してください。",
       "errorInsufficient": "好みの情報が不足しAI提案を生成できませんでした。",
+      "failedTitle": "コース生成失敗",
       "doneTitle": "コース生成完了",
       "doneMessage": "AIコースの生成が完了しました。",
       "doneHint": "旅行の詳細ページに戻ります"
