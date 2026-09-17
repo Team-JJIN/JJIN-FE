@@ -20,7 +20,8 @@ export default function ScheduleToggle() {
   const router = useRouter();
   const saving = usePlanEditStore((s) => s.saving);
 
-  if (pathname.endsWith("/search")) return null;
+  // 검색 인터셉트(/search)와 AI 코스 결과(/course)에서는 하단 일정|미션 토글을 숨긴다.
+  if (pathname.endsWith("/search") || pathname.endsWith("/course")) return null;
 
   const active: "schedule" | "mission" = pathname.endsWith("/mission")
     ? "mission"
