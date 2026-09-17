@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { sectionEnter } from "@/app/_components/motion/tokens";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
@@ -238,8 +240,10 @@ export default function OnboardingFlow() {
         />
       </div>
 
-      {/* 콘텐츠 */}
+      {/* 콘텐츠 — 스텝 전환 시 등장 애니메이션 */}
       <div className="flex-1 overflow-y-auto pb-4">
+        <AnimatePresence mode="wait">
+          <motion.div key={step} {...sectionEnter(0)}>
         {step === 1 && (
           <Step1Content
             data={data}
@@ -270,6 +274,8 @@ export default function OnboardingFlow() {
         {step === 4 && (
           <Step4Content data={data} setData={setData} />
         )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* 안내 칩 (step 2에서만) */}
