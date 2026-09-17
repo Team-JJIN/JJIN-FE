@@ -9,9 +9,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import CourseLogo from "./CourseLogo";
 import CourseToast from "./CourseToast";
 
 const MESSAGE_KEYS = ["loadingTitle", "loading1", "loading2", "loading3", "loading4"] as const;
@@ -65,14 +65,7 @@ export default function CourseLoading({ done = false }: CourseLoadingProps) {
             : { duration: 1.6, times: [0, 0.6, 1], ease: "easeInOut", repeat: Infinity }
         }
       >
-        <Image
-          src="/image/JJ.png"
-          alt=""
-          width={111}
-          height={111}
-          priority
-          className="h-[111px] w-[111px] object-contain"
-        />
+        <CourseLogo />
       </motion.div>
 
       {done ? (

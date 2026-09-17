@@ -7,9 +7,9 @@
  */
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ArrowBackIcon } from "@/app/_components/icons";
+import CourseLogo from "./CourseLogo";
 import CourseToast from "./CourseToast";
 import type { CourseErrorKind } from "../../_types";
 
@@ -40,14 +40,7 @@ export default function CourseError({ errorKind, onBack }: CourseErrorProps) {
       </button>
 
       <div className="flex flex-1 flex-col items-center justify-center px-[20px]">
-        <Image
-          src="/image/JJ.png"
-          alt=""
-          width={111}
-          height={111}
-          priority
-          className="h-[111px] w-[111px] object-contain"
-        />
+        <CourseLogo />
         <p className="mt-[24px] text-center text-[22px] font-semibold text-ink">
           {t("failedTitle")}
         </p>
