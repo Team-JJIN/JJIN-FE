@@ -281,6 +281,9 @@
       "add": "추가",
       "alreadyAdded": "다른 일차에 추가됨",
       "loadMore": "더 보기",
+      "loading": "검색 중이에요",
+      "refreshing": "결과를 새로 확인하는 중",
+      "loadingMore": "더 불러오는 중",
       "error": "검색에 실패했어요",
       "sortLabel": "정렬",
       "sort": {

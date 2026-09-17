@@ -295,6 +295,9 @@
       "add": "Add",
       "alreadyAdded": "Added to another day",
       "loadMore": "Load more",
+      "loading": "Searching",
+      "refreshing": "Refreshing results",
+      "loadingMore": "Loading more",
       "error": "Search failed",
       "sortLabel": "Sort",
       "sort": {

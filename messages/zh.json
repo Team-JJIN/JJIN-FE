@@ -295,6 +295,9 @@
       "add": "添加",
       "alreadyAdded": "已添加到其他日期",
       "loadMore": "加载更多",
+      "loading": "正在搜索",
+      "refreshing": "正在更新结果",
+      "loadingMore": "正在加载更多",
       "error": "搜索失败",
       "sortLabel": "排序",
       "sort": {

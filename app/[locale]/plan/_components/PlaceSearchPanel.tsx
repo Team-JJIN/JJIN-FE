@@ -31,6 +31,7 @@ export default function PlaceSearchPanel() {
     data,
     isPending,
     isError,
+    isFetching,
     refetch,
     fetchNextPage,
     hasNextPage,
@@ -77,8 +78,15 @@ export default function PlaceSearchPanel() {
   );
 
   const trimmedKeyword = keyword.trim();
-  const branch: "idle" | "error" | "results" =
-    trimmedKeyword === "" ? "idle" : isError ? "error" : "results";
+  const waitingForKeyword = trimmedKeyword !== debounced.trim();
+  const branch: "idle" | "loading" | "error" | "results" =
+    trimmedKeyword === ""
+      ? "idle"
+      : waitingForKeyword || (isPending && !data)
+        ? "loading"
+        : isError
+          ? "error"
+          : "results";
 
   return (
     <>
@@ -93,7 +101,7 @@ export default function PlaceSearchPanel() {
           enterKeyHint="search"
           autoFocus
           aria-label={t("search.placeholder")}
-          className="h-11 rounded-[14px] border-0 bg-surface px-3 text-[14px] font-medium leading-[1.6] placeholder:text-muted focus:ring-2 focus:ring-dark"
+          className="h-11 rounded-[14px] border-0 bg-surface pl-3 pr-12 text-[14px] font-medium leading-[1.6] placeholder:text-muted focus:ring-2 focus:ring-dark"
         />
       </div>
 
@@ -142,6 +150,24 @@ export default function PlaceSearchPanel() {
             </motion.div>
           )}
 
+          {branch === "loading" && (
+            <motion.div
+              key="loading"
+              {...fadeSwap}
+              role="status"
+              aria-live="polite"
+              className="flex flex-1 flex-col items-center justify-center gap-3 px-4"
+            >
+              <div
+                aria-hidden="true"
+                className="size-8 animate-spin rounded-full border-[3px] border-surface border-t-dark motion-reduce:animate-none"
+              />
+              <p className="text-[13px] font-medium text-subtext">
+                {t("search.loading")}
+              </p>
+            </motion.div>
+          )}
+
           {branch === "results" && (
             <motion.div
               key="results"
@@ -153,6 +179,15 @@ export default function PlaceSearchPanel() {
                   {t("search.resultCount")}{" "}
                   <span className="text-ink">{totalCount}</span>
                 </p>
+                {isFetching && !isFetchingNextPage && (
+                  <span
+                    role="status"
+                    aria-live="polite"
+                    className="text-[12px] text-subtext"
+                  >
+                    {t("search.refreshing")}
+                  </span>
+                )}
               </div>
 
               {!isPending && data && results.length === 0 && (
@@ -188,7 +223,21 @@ export default function PlaceSearchPanel() {
                         onClick={() => fetchNextPage()}
                         className="self-center rounded-full bg-dark px-5 py-2 text-[12px] font-semibold text-white disabled:opacity-50"
                       >
-                        {t("search.loadMore")}
+                        {isFetchingNextPage ? (
+                          <span
+                            role="status"
+                            aria-live="polite"
+                            className="flex items-center gap-2"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className="size-3 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none"
+                            />
+                            {t("search.loadingMore")}
+                          </span>
+                        ) : (
+                          t("search.loadMore")
+                        )}
                       </button>
                     )}
                   </div>
