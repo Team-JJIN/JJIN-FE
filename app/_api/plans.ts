@@ -17,6 +17,10 @@ interface TravelPlanSummaryDto {
   name: string;
   startDate: string;
   endDate: string;
+  transportMode: string;
+  interestCategories: string[];
+  experienceLevel: "LIGHT" | "NORMAL" | "DEEP";
+  nights: number;
   days: number;
 }
 interface TravelPlanListDto {
@@ -78,6 +82,10 @@ export interface Plan {
   startDate: string;
   endDate: string;
   dayCount: number;
+  transportMode: string;
+  interestCategories: string[];
+  experienceLevel: "LIGHT" | "NORMAL" | "DEEP";
+  nights: number;
 }
 export interface OpenHours {
   start: string;
@@ -141,6 +149,10 @@ export function toPlan(dto: TravelPlanSummaryDto): Plan {
     startDate: dto.startDate,
     endDate: dto.endDate,
     dayCount: dto.days,
+    transportMode: dto.transportMode,
+    interestCategories: dto.interestCategories ?? [],
+    experienceLevel: dto.experienceLevel,
+    nights: dto.nights,
   };
 }
 export function toPlanPlace(dto: CourseStopDto): PlanPlace {
@@ -192,6 +204,11 @@ export function toPlanApiLocale(locale: string): PlanApiLocale {
 export async function fetchPlans(): Promise<Plan[]> {
   const data = (await apiGet<TravelPlanListDto>("/api/travel-plans")).data;
   return (data?.travelPlans ?? []).map(toPlan);
+}
+
+/** 여행 일정 삭제. DELETE /api/travel-plans/{travelPlanId} */
+export async function deleteTravelPlan(planId: string): Promise<void> {
+  await apiDelete(`/api/travel-plans/${Number(planId)}`);
 }
 export async function fetchPlanCourse(
   planId: string,

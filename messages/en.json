@@ -14,7 +14,26 @@
     "emptyTitle": "No plans yet",
     "emptyDescription": "Tap the add button\nto create your first plan.",
     "addPlan": "Add plan",
-    "nights": "{nights} nights {days} days"
+    "nights": "{nights} nights {days} days",
+    "deletePlan": "Delete plan",
+    "deleteTitle": "Delete plan",
+    "deleteDescription": "Are you sure you want to delete this plan?",
+    "deleteCancel": "Cancel",
+    "deleteConfirm": "Delete",
+    "errorDeleteFailed": "Failed to delete the plan. Please try again",
+    "contentTypes": {
+      "RESTAURANT": "Food",
+      "TOURIST_ATTRACTION": "Attractions",
+      "CULTURAL_FACILITY": "Culture",
+      "FESTIVAL_EVENT": "Festival",
+      "SHOPPING": "Shopping",
+      "LEISURE_SPORTS": "Leisure"
+    },
+    "transportModes": {
+      "WALKING": "Walking",
+      "PUBLIC_TRANSIT": "Public transit",
+      "CAR": "Car"
+    }
   },
   "login": {
     "email": "Email",
@@ -34,12 +53,8 @@
     "name": "Name",
     "email": "Email",
     "requestVerification": "Request",
-    "errorNameRequired": "Please enter your name",
-    "resend": "Resend",
     "password": "Password (8+ chars, letters+numbers)",
     "confirmPassword": "Confirm password",
-    "agreeTerms": "Agree to Terms and Privacy Policy (Required)",
-    "agreeMarketing": "Agree to marketing info (Optional)",
     "sendVerificationEmail": "Sign Up",
     "errorEmailInvalid": "Please enter a valid email",
     "errorPasswordInvalid": "8+ characters, letters and numbers required",
@@ -56,15 +71,8 @@
     "resendBtn": "Resend",
     "confirm": "Confirm"
   },
-  "languages": {
-    "en": "English",
-    "ja": "日本語",
-    "zh": "中文",
-    "ko": "한국어"
-  },
   "onboarding": {
     "step1Title": "Travel Schedule & Transportation",
-    "step1Subtitle": "",
     "dateRange": "Travel dates",
     "activityTime": "Daily activity hours",
     "timeStart": "Start",
