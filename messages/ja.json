@@ -274,6 +274,25 @@
     }
   },
   "plan": {
+    "aiCourse": {
+      "generate": "AIでコース生成",
+      "sheetTitle": "AIがコースを作りましょうか？",
+      "optionTitle": "AI自動コースおすすめ",
+      "optionDesc": "好み・レベルに合ったコースを一度に受け取れます",
+      "confirm": "確認",
+      "loadingTitle": "コースを作成中...",
+      "loading1": "少々お待ちください",
+      "loading2": "旅行の好みに合わせてコースを生成します",
+      "loading3": "コース候補を選定中...",
+      "loading4": "コースを組み立て中...",
+      "error": "コースの生成に失敗しました。",
+      "errorHint": "前に戻って新しい旅行プランを追加してください。",
+      "errorInsufficient": "好みの情報が不足しAI提案を生成できませんでした。",
+      "failedTitle": "コース生成失敗",
+      "doneTitle": "コース生成完了",
+      "doneMessage": "AIコースの生成が完了しました。",
+      "doneHint": "旅行の詳細ページに戻ります"
+    },
     "close": "閉じる",
     "dayChip": "{n}日目",
     "course": "コース",

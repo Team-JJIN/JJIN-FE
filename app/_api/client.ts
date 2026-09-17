@@ -107,13 +107,14 @@ function isAbortError(err: unknown): boolean {
   return err instanceof DOMException && err.name === "AbortError";
 }
 
-/** timeout 초과 시 AbortController로 요청을 중단하는 fetch 래퍼. */
+/** timeout 초과 시 AbortController로 요청을 중단하는 fetch 래퍼. timeoutMs 미지정 시 기본값(10초) 사용. */
 async function fetchWithTimeout(
   url: string,
   init: RequestInit,
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<Response> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     return await fetch(url, { ...init, signal: controller.signal });
   } finally {
@@ -139,9 +140,13 @@ function buildInit(
 }
 
 /** fetchWithTimeout 호출을 감싸 네트워크/타임아웃 에러를 ApiError로 정규화. */
-async function sendRequest(path: string, init: RequestInit): Promise<Response> {
+async function sendRequest(
+  path: string,
+  init: RequestInit,
+  timeoutMs?: number,
+): Promise<Response> {
   try {
-    return await fetchWithTimeout(`${BASE_URL}${path}`, init);
+    return await fetchWithTimeout(`${BASE_URL}${path}`, init, timeoutMs);
   } catch (err) {
     throw new ApiError(
       isAbortError(err) ? 408 : 0,
@@ -178,12 +183,13 @@ async function parseResponse<T>(res: Response): Promise<ApiResponse<T>> {
 async function request<T>(
   method: HttpMethod,
   path: string,
-  { body, query }: { body?: object; query?: Query } = {},
+  { body, query, timeoutMs }: { body?: object; query?: Query; timeoutMs?: number } = {},
 ): Promise<ApiResponse<T>> {
   const pathWithQuery = `${path}${buildQuery(query ?? {})}`;
   const res = await sendRequest(
     pathWithQuery,
     buildInit(method, getAccessToken(), body),
+    timeoutMs,
   );
 
   // 401이고 refresh token이 있으면 재발급 후 1회 재시도
@@ -194,6 +200,7 @@ async function request<T>(
       const retryRes = await sendRequest(
         pathWithQuery,
         buildInit(method, reissued, body),
+        timeoutMs,
       );
       return parseResponse<T>(retryRes);
     }
@@ -251,8 +258,9 @@ export async function apiGet<T = null>(
 export async function apiPost<T = null>(
   path: string,
   body?: object,
+  options?: { timeoutMs?: number },
 ): Promise<ApiResponse<T>> {
-  return request<T>("POST", path, { body });
+  return request<T>("POST", path, { body, timeoutMs: options?.timeoutMs });
 }
 
 export async function apiPatch<T = null>(

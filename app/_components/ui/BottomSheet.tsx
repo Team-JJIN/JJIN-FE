@@ -37,6 +37,8 @@ interface BottomSheetProps {
   headerVariant?: "default" | "compact";
   /** default 헤더 제목 스타일 덮어쓰기 (TopBarClose로 전달) */
   titleClassName?: string;
+  /** 푸터 상단 그림자(구분선 느낌) 표시 여부. 기본 true. 시트별로 끌 수 있다. */
+  footerShadow?: boolean;
 }
 
 const SCROLL_CONTENT_CLASS =
@@ -59,9 +61,13 @@ export default function BottomSheet({
   contentMode = "scroll",
   headerVariant = "default",
   titleClassName,
+  footerShadow = true,
 }: BottomSheetProps) {
   const contentClass =
     contentMode === "fill" ? FILL_CONTENT_CLASS : SCROLL_CONTENT_CLASS;
+  const footerClass = `px-[20px] py-[29px] bg-white rounded-t-[16px]${
+    footerShadow ? " shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)]" : ""
+  }`;
 
   const header = (
     <div
@@ -135,11 +141,7 @@ export default function BottomSheet({
                 </div>
               )}
 
-              {footer && (
-                <div className="px-[20px] py-[29px] bg-white rounded-t-[16px] shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)]">
-                  {footer}
-                </div>
-              )}
+              {footer && <div className={footerClass}>{footer}</div>}
             </motion.div>
           </div>
         )}
@@ -173,11 +175,7 @@ export default function BottomSheet({
           <div className="flex justify-center pb-[30px]">{aboveFooter}</div>
         )}
 
-        {footer && (
-          <div className="px-[20px] py-[29px] bg-white rounded-t-[16px] shadow-[0px_0px_4px_0px_rgba(0,0,0,0.25)]">
-            {footer}
-          </div>
-        )}
+        {footer && <div className={footerClass}>{footer}</div>}
       </div>
     </div>
   );

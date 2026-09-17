@@ -24,6 +24,8 @@ import PlanMap from "./_components/PlanMap";
 import CourseHeader from "./_components/CourseHeader";
 import PlaceList from "./_components/PlaceList";
 import KakaoMapsScript from "./_components/KakaoMapsScript";
+import AiCourseButton from "./_components/AiCourseButton";
+import AiCourseSheet from "./_components/AiCourseSheet";
 import type { PlanPlace } from "../_types";
 
 const EMPTY: PlanPlace[] = [];
@@ -72,6 +74,7 @@ export default function PlanDetailPage() {
   // getState()로 한 번만 읽는다(구독하면 스토어가 바뀔 때마다 불필요한 리렌더가 생긴다).
   const [selectedOrder, setSelectedOrder] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [aiSheetOpen, setAiSheetOpen] = useState(false);
 
   const isEditing = usePlanEditStore(selectIsEditing(planId, activeDay));
   const day = data?.days.find((d) => d.dayIndex === activeDay);
@@ -293,6 +296,19 @@ export default function PlanDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* AI 코스 생성 버튼 (읽기 상태에서만) + 추천 바텀시트 */}
+      {!isEditing && !isError && !recovering && data && (
+        <AiCourseButton onClick={() => setAiSheetOpen(true)} />
+      )}
+      <AiCourseSheet
+        open={aiSheetOpen}
+        onClose={() => setAiSheetOpen(false)}
+        onConfirm={() => {
+          setAiSheetOpen(false);
+          router.push(`/${locale}/plan/${planId}/course`);
+        }}
+      />
     </div>
   );
 }

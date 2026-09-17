@@ -261,6 +261,25 @@
     }
   },
   "plan": {
+    "aiCourse": {
+      "generate": "AI로 코스 생성",
+      "sheetTitle": "AI가 코스를 만들어드릴까요?",
+      "optionTitle": "AI 자동 코스 추천",
+      "optionDesc": "취향, 레벨에 맞는 코스를 한번에 받아요",
+      "confirm": "확인",
+      "loadingTitle": "코스 짜는 중...",
+      "loading1": "잠시만 기다려주세요",
+      "loading2": "여행 취향에 맞춰 코스를 생성할게요",
+      "loading3": "코스 후보 고르는 중...",
+      "loading4": "코스 조립하는 중...",
+      "error": "코스 생성에 실패했어요.",
+      "errorHint": "이전으로 돌아가 새로운 여행계획은 추가하세요.",
+      "errorInsufficient": "선택한 취향 정보가 부족해 AI 추천을 생성하지 못했어요.",
+      "failedTitle": "코스 생성 실패",
+      "doneTitle": "코스 생성 완료",
+      "doneMessage": "AI 코스 생성이 완료되었습니다.",
+      "doneHint": "일정 상세페이지로 돌아갑니다"
+    },
     "close": "닫기",
     "dayChip": "{n}일차",
     "course": "코스",

@@ -25,6 +25,9 @@ import RegionSheet from "./sheets/RegionSheet";
 import DateSheet from "./sheets/DateSheet";
 import TimeSheet from "./sheets/TimeSheet";
 
+// "다 좋아요"(allFood)와 상호배타인 나머지 음식점 세부 취향 키.
+const OTHER_FOOD_SUBS = ["korean", "cafe", "bar"];
+
 export default function OnboardingFlow() {
   const t = useTranslations("onboarding");
   const router = useRouter();
@@ -33,6 +36,8 @@ export default function OnboardingFlow() {
 
   const [step, setStep] = useState(1);
   const [isCompleting, setIsCompleting] = useState(false);
+  // 앱 내부 알림(시스템 alert 대체). 제출 실패 등의 사유를 화면 안에 잠깐 띄운다.
+  const [toast, setToast] = useState<string | null>(null);
   const [data, setData] = useState<OnboardingData>({
     tripName: "",
     region: "",
@@ -94,6 +99,12 @@ export default function OnboardingFlow() {
   // 토큰/역할 갱신 없이 홈으로 돌아간다.
   const goHome = useCallback(() => router.push(`/${locale}/home`), [router, locale]);
 
+  // 앱 내부 알림을 띄우고 3초 뒤 자동으로 닫는다.
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 3000);
+  }, []);
+
   // S4 "시작하기": S1~S4 입력을 여행 일정 생성 API로 전송한다.
   // 이 API는 토큰/역할을 갱신하지 않고 travelPlanId만 반환하므로, 완료 후 홈으로 이동한다.
   const submitAndComplete = useCallback(async () => {
@@ -101,9 +112,6 @@ export default function OnboardingFlow() {
     setIsCompleting(true);
     try {
       const body = buildOnboardingRequest(data, minuteStart, minuteEnd);
-      if (process.env.NODE_ENV !== "production") {
-        console.log("[travel-plans] POST /api/travel-plans body:", JSON.stringify(body, null, 2));
-      }
       await submitOnboarding(body);
       // 새로 생성한 일정이 홈 목록에 즉시 반영되도록 목록 캐시를 무효화한다.
       await queryClient.invalidateQueries({ queryKey: planKeys.list() });
@@ -117,9 +125,9 @@ export default function OnboardingFlow() {
           detail: err.detail,
         });
       }
-      alert(getApiErrorMessage(err, t("errorSubmitFailed")));
+      showToast(getApiErrorMessage(err, t("errorSubmitFailed")));
     }
-  }, [isCompleting, data, minuteStart, minuteEnd, goHome, queryClient, t]);
+  }, [isCompleting, data, minuteStart, minuteEnd, goHome, queryClient, t, showToast]);
 
   const handleNext = useCallback(async () => {
     if (step < 4) {
@@ -150,12 +158,21 @@ export default function OnboardingFlow() {
   }, []);
 
   const toggleSubCategory = useCallback((sub: string) => {
-    setData((d) => ({
-      ...d,
-      subCategories: d.subCategories.includes(sub)
-        ? d.subCategories.filter((c) => c !== sub)
-        : [...d.subCategories, sub],
-    }));
+    setData((d) => {
+      const isRemoving = d.subCategories.includes(sub);
+      if (isRemoving) {
+        return { ...d, subCategories: d.subCategories.filter((c) => c !== sub) };
+      }
+      // "다 좋아요"(allFood, LIKE_ALL_FOOD)는 다른 음식점 세부 취향과 함께 선택할 수 없다(서버 제약).
+      // 상호배타로 처리: allFood 선택 시 다른 음식 취향 해제, 다른 음식 취향 선택 시 allFood 해제.
+      let next = d.subCategories;
+      if (sub === "allFood") {
+        next = next.filter((c) => !OTHER_FOOD_SUBS.includes(c));
+      } else if (OTHER_FOOD_SUBS.includes(sub)) {
+        next = next.filter((c) => c !== "allFood");
+      }
+      return { ...d, subCategories: [...next, sub] };
+    });
   }, []);
 
   // "2025-07-22" → "07.22.(수)" 형식. 요일은 locale별 weekdays i18n 사용.
@@ -310,6 +327,24 @@ export default function OnboardingFlow() {
           </BigButton>
         </div>
       </div>
+
+      {/* 앱 내부 알림(토스트) — 시스템 alert 대체 */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            role="alert"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="pointer-events-none absolute inset-x-0 bottom-[110px] z-50 flex justify-center px-[20px]"
+          >
+            <span className="max-w-full rounded-full bg-dark px-4 py-[10px] text-center text-[12px] font-medium text-white">
+              {toast}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 바텀시트: 지역 선택 */}
       <RegionSheet

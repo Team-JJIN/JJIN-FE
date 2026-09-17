@@ -30,7 +30,7 @@ export function usePlans() {
   return useQuery({ queryKey: planKeys.list(), queryFn: fetchPlans });
 }
 
-/** 활성 일차만 조회한다. zh UI는 EN API 데이터로 표시한다. */
+/** 활성 일차만 조회한다. */
 export function usePlanDetail(planId: string, dayIndex = 0) {
   const uiLocale = useLocale();
   const locale = toPlanApiLocale(uiLocale);

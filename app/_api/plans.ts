@@ -1,5 +1,5 @@
 /** 일정 API: DTO → mapper → fetch. docs/API-RULE.md */
-import { apiDelete, apiGet, apiPatch, apiPost, ApiError } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, ApiError, buildQuery } from "./client";
 
 export type PlanApiLocale = "KO" | "EN" | "JA";
 export type OpenStatus = "OPEN" | "BREAK" | "CLOSED" | "UNKNOWN";
@@ -210,6 +210,48 @@ export async function fetchPlans(): Promise<Plan[]> {
 export async function deleteTravelPlan(planId: string): Promise<void> {
   await apiDelete(`/api/travel-plans/${Number(planId)}`);
 }
+interface CourseGenerationDayDto {
+  dayNumber: number;
+  stopCount: number;
+}
+interface CourseGenerationResultDto {
+  planId: number;
+  totalDays: number;
+  totalStops: number;
+  days: CourseGenerationDayDto[];
+}
+export interface CourseGenerationResult {
+  planId: number;
+  totalDays: number;
+  totalStops: number;
+  days: { dayNumber: number; stopCount: number }[];
+}
+
+/**
+ * AI 코스 자동 생성. 추천 파이프라인으로 일자별 코스를 생성·저장한다.
+ * POST /api/travel-plans/{planId}/course/generate?locale=KO
+ * 상세 방문지는 이후 일자별 코스 조회(fetchPlanCourse)로 확인한다.
+ */
+export async function generateCourse(
+  planId: string,
+  locale: PlanApiLocale,
+): Promise<CourseGenerationResult> {
+  const path = `/api/travel-plans/${Number(planId)}/course/generate${buildQuery({ locale })}`;
+  // AI 코스 생성은 추천 파이프라인(TourAPI·카카오맵·동선 최적화)을 돌려 40~50초 이상 걸린다.
+  // 기본 10초 타임아웃으로는 중간에 abort되므로 이 요청만 넉넉히 90초를 준다.
+  const dto = (await apiPost<CourseGenerationResultDto>(path, undefined, { timeoutMs: 90_000 })).data;
+  // 응답 본문 구조가 스펙과 달라도(예: days 누락) 파싱 에러로 실패 처리되지 않도록 방어적으로 매핑한다.
+  // 실제 방문지 목록은 이후 fetchPlanCourse로 조회하므로, 여기서는 생성 성공 자체가 중요하다.
+  return {
+    planId: dto?.planId ?? Number(planId),
+    totalDays: dto?.totalDays ?? 0,
+    totalStops: dto?.totalStops ?? 0,
+    days: Array.isArray(dto?.days)
+      ? dto.days.map((d) => ({ dayNumber: d.dayNumber, stopCount: d.stopCount }))
+      : [],
+  };
+}
+
 export async function fetchPlanCourse(
   planId: string,
   dayIndex: number,

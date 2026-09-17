@@ -75,7 +75,7 @@ export default function TopBarClose({
         onClick={onClose}
         disabled={disabled}
         aria-label={closeLabel}
-        className="text-[22px] text-neutral-400 leading-none transition duration-150 motion-safe:active:scale-90"
+        className="text-[22px] text-[#9B9B9B] leading-none transition duration-150 motion-safe:active:scale-90"
       >
         ✕
       </button>
