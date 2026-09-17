@@ -297,8 +297,9 @@ export default function PlanDetailPage() {
         )}
       </AnimatePresence>
 
-      {/* AI 코스 생성 버튼 (읽기 상태에서만) + 추천 바텀시트 */}
-      {!isEditing && !isError && !recovering && data && (
+      {/* AI 코스 생성 버튼: 읽기 상태 + 해당 일차 코스가 비어 있을 때만 노출한다
+          (AI 자동 생성은 빈 일정을 처음 채우는 흐름이라, 이미 코스가 있으면 진입점을 숨긴다). */}
+      {!isEditing && !isError && !recovering && data && places.length === 0 && (
         <AiCourseButton onClick={() => setAiSheetOpen(true)} />
       )}
       <AiCourseSheet

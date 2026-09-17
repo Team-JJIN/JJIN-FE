@@ -237,9 +237,9 @@ export async function generateCourse(
   locale: PlanApiLocale,
 ): Promise<CourseGenerationResult> {
   const path = `/api/travel-plans/${Number(planId)}/course/generate${buildQuery({ locale })}`;
-  // AI 코스 생성은 추천 파이프라인(TourAPI·카카오맵·동선 최적화)을 돌려 40~50초 이상 걸린다.
-  // 기본 10초 타임아웃으로는 중간에 abort되므로 이 요청만 넉넉히 90초를 준다.
-  const dto = (await apiPost<CourseGenerationResultDto>(path, undefined, { timeoutMs: 90_000 })).data;
+  // AI 코스 생성은 추천 파이프라인(TourAPI·카카오맵·동선 최적화)을 돌려 수십 초~수 분 걸린다.
+  // 기본 10초 타임아웃으로는 중간에 abort되므로 이 요청만 넉넉히 3분(180초)을 준다.
+  const dto = (await apiPost<CourseGenerationResultDto>(path, undefined, { timeoutMs: 180_000 })).data;
   // 응답 본문 구조가 스펙과 달라도(예: days 누락) 파싱 에러로 실패 처리되지 않도록 방어적으로 매핑한다.
   // 실제 방문지 목록은 이후 fetchPlanCourse로 조회하므로, 여기서는 생성 성공 자체가 중요하다.
   return {
