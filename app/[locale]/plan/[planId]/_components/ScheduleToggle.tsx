@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { tabIndicator } from "@/app/_components/motion/tokens";
 import { useLocale } from "@/app/_components/hooks/useLocale";
+import { usePlanEditStore } from "../../_store/usePlanEditStore";
 
 export default function ScheduleToggle() {
   const t = useTranslations("plan");
@@ -17,6 +18,7 @@ export default function ScheduleToggle() {
   const { planId } = useParams<{ planId: string }>();
   const locale = useLocale();
   const router = useRouter();
+  const saving = usePlanEditStore((s) => s.saving);
 
   if (pathname.endsWith("/search")) return null;
 
@@ -25,7 +27,7 @@ export default function ScheduleToggle() {
     : "schedule";
 
   const goTo = (tab: "schedule" | "mission") => {
-    if (tab === active) return;
+    if (tab === active || usePlanEditStore.getState().saving) return;
     router.push(
       tab === "schedule"
         ? `/${locale}/plan/${planId}`
@@ -46,6 +48,7 @@ export default function ScheduleToggle() {
               key={tab}
               type="button"
               onClick={() => goTo(tab)}
+              disabled={saving}
               aria-current={isActive ? "page" : undefined}
               className={`relative flex-1 rounded-full text-[15px] font-semibold leading-[1.4] transition-colors ${
                 isActive ? "text-white" : "text-subtext"

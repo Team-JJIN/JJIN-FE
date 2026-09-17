@@ -261,6 +261,23 @@
     "courseSelect": "コース選択",
     "open": "営業中",
     "closed": "準備中",
+    "openStatus": {
+      "OPEN": "営業中",
+      "BREAK": "休憩中",
+      "CLOSED": "営業終了"
+    },
+    "category": {
+      "TOURIST_ATTRACTION": "観光スポット",
+      "RESTAURANT": "飲食店",
+      "CULTURAL_FACILITY": "文化施設",
+      "FESTIVAL_EVENT": "祭り・イベント",
+      "LEISURE_SPORTS": "レジャー・スポーツ",
+      "SHOPPING": "ショッピング",
+      "LODGING": "宿泊施設",
+      "TRAVEL_COURSE": "旅行コース"
+    },
+    "partialSaveError": "一部の変更が反映された可能性があります。現在のコースを再読み込みしました。",
+    "recoveryLoadError": "一部の変更が反映された可能性があります。コースを再読み込みして確認してください。",
     "tabSchedule": "日程",
     "tabMission": "ミッション",
     "missionEmpty": "日程ミッションは準備中です",
@@ -276,6 +293,8 @@
       "emptyLine2": "検索してみてください",
       "resultCount": "検索結果",
       "add": "追加",
+      "alreadyAdded": "別の日に追加済み",
+      "loadMore": "もっと見る",
       "error": "検索に失敗しました",
       "sortLabel": "並び替え",
       "sort": {

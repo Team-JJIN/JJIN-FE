@@ -247,6 +247,23 @@
     "courseSelect": "코스 선택",
     "open": "운영중",
     "closed": "준비중",
+    "openStatus": {
+      "OPEN": "운영 중",
+      "BREAK": "휴식 중",
+      "CLOSED": "영업 종료"
+    },
+    "category": {
+      "TOURIST_ATTRACTION": "관광지",
+      "RESTAURANT": "음식점",
+      "CULTURAL_FACILITY": "문화시설",
+      "FESTIVAL_EVENT": "축제·행사",
+      "LEISURE_SPORTS": "레저·스포츠",
+      "SHOPPING": "쇼핑",
+      "LODGING": "숙박",
+      "TRAVEL_COURSE": "여행 코스"
+    },
+    "partialSaveError": "일부 변경이 반영되었을 수 있어요. 서버의 현재 코스를 다시 불러왔어요.",
+    "recoveryLoadError": "일부 변경이 반영되었을 수 있어요. 코스를 다시 불러와 확인해주세요.",
     "tabSchedule": "일정",
     "tabMission": "미션",
     "missionEmpty": "일정 미션은 준비 중이에요",
@@ -262,6 +279,8 @@
       "emptyLine2": "장소를 검색해보세요",
       "resultCount": "검색 결과",
       "add": "추가",
+      "alreadyAdded": "다른 일차에 추가됨",
+      "loadMore": "더 보기",
       "error": "검색에 실패했어요",
       "sortLabel": "정렬",
       "sort": {

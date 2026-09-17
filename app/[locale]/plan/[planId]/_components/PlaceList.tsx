@@ -21,6 +21,7 @@ import type { PlanPlace } from "../../_types";
 interface PlaceListProps {
   places: PlanPlace[];
   isEditing: boolean;
+  saving: boolean;
   selectedOrder: number | null;
   onReorder: (next: PlanPlace[]) => void;
   onDelete: (id: string) => void;
@@ -32,6 +33,7 @@ interface PlaceListProps {
 export default function PlaceList({
   places,
   isEditing,
+  saving,
   selectedOrder,
   onReorder,
   onDelete,
@@ -56,6 +58,7 @@ export default function PlaceList({
   return (
     <Reorder.Group
       as="div"
+      inert={saving}
       ref={rootRef}
       axis="y"
       values={places}

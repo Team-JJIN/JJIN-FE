@@ -261,6 +261,23 @@
     "courseSelect": "Select course",
     "open": "Open now",
     "closed": "Closed",
+    "openStatus": {
+      "OPEN": "Open",
+      "BREAK": "On break",
+      "CLOSED": "Closed"
+    },
+    "category": {
+      "TOURIST_ATTRACTION": "Attraction",
+      "RESTAURANT": "Restaurant",
+      "CULTURAL_FACILITY": "Cultural venue",
+      "FESTIVAL_EVENT": "Festival or event",
+      "LEISURE_SPORTS": "Leisure and sports",
+      "SHOPPING": "Shopping",
+      "LODGING": "Lodging",
+      "TRAVEL_COURSE": "Travel course"
+    },
+    "partialSaveError": "Some changes may have been saved. The current course has been reloaded.",
+    "recoveryLoadError": "Some changes may have been saved. Reload the course to check.",
     "tabSchedule": "Schedule",
     "tabMission": "Missions",
     "missionEmpty": "Plan missions are coming soon",
@@ -276,6 +293,8 @@
       "emptyLine2": "or place name",
       "resultCount": "Results",
       "add": "Add",
+      "alreadyAdded": "Added to another day",
+      "loadMore": "Load more",
       "error": "Search failed",
       "sortLabel": "Sort",
       "sort": {

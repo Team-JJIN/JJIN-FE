@@ -16,6 +16,7 @@ import type { PlaceSearchResult } from "../_types";
 interface PlaceSearchResultCardProps {
   result: PlaceSearchResult;
   added: boolean;
+  unavailable: boolean;
   onToggle: () => void;
   index: number;
 }
@@ -23,14 +24,16 @@ interface PlaceSearchResultCardProps {
 export default function PlaceSearchResultCard({
   result,
   added,
+  unavailable,
   onToggle,
   index,
 }: PlaceSearchResultCardProps) {
   const t = useTranslations("plan");
 
-  // isOpen이 null이면 영업상태·시간 줄 자체를 생략한다. openHours가 없으면 상태 텍스트만 보여준다.
   const status =
-    result.isOpen === null ? null : result.isOpen ? t("open") : t("closed");
+    result.openStatus === "UNKNOWN"
+      ? null
+      : t(`openStatus.${result.openStatus}`);
 
   return (
     <motion.div
@@ -73,7 +76,9 @@ export default function PlaceSearchResultCard({
       <button
         type="button"
         aria-pressed={added}
+        disabled={unavailable}
         onClick={onToggle}
+        aria-label={unavailable ? t("search.alreadyAdded") : undefined}
         className={`ml-auto flex shrink-0 items-center gap-1 rounded-[24px] py-[3px] pr-[14px] pl-2 text-[12px] font-bold leading-[1.6] transition-colors motion-safe:active:scale-[0.96] ${
           added ? "bg-lime-vivid text-[#0f0f0f]" : "bg-dark text-white"
         }`}
@@ -87,7 +92,7 @@ export default function PlaceSearchResultCard({
             {added ? <CheckIcon size={24} /> : <PlusIcon size={24} />}
           </motion.span>
         </AnimatePresence>
-        <span>{t("search.add")}</span>
+        <span>{unavailable ? t("search.alreadyAdded") : t("search.add")}</span>
       </button>
     </motion.div>
   );

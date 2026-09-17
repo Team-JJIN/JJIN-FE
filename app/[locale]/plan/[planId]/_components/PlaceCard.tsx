@@ -103,8 +103,8 @@ export default function PlaceCard({
   const isSelected = variant === "selected";
 
   let hoursLine: string | null = null;
-  if (place.isOpen !== null) {
-    const status = place.isOpen ? t("open") : t("closed");
+  if (place.openStatus !== "UNKNOWN") {
+    const status = t(`openStatus.${place.openStatus}`);
     hoursLine = place.openHours
       ? `${status} | ${place.openHours.start} - ${place.openHours.end}`
       : status;
@@ -168,7 +168,7 @@ export default function PlaceCard({
                       {...fadeSwap}
                       className="shrink-0 text-[12px] font-medium leading-[1.6] text-muted"
                     >
-                      {place.category}
+                      {t(`category.${place.category}`)}
                     </motion.span>
                   )}
                 </AnimatePresence>

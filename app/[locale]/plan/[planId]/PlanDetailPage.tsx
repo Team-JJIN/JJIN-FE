@@ -7,13 +7,14 @@
  */
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import { fadeSwap, sectionEnter } from "@/app/_components/motion/tokens";
 import { getApiErrorMessage } from "@/app/_api/client";
+import { PlanSaveError, toPlanApiLocale } from "@/app/_api/plans";
 import { buildKakaoRouteUrl } from "../_lib/geo";
 import { usePlanDetail, useSavePlanDay } from "../_hooks/usePlanQueries";
 import { selectIsEditing, usePlanEditStore } from "../_store/usePlanEditStore";
@@ -33,10 +34,35 @@ export default function PlanDetailPage() {
   const router = useRouter();
   const t = useTranslations("plan");
 
-  const { data, isPending, isError, refetch } = usePlanDetail(planId);
-  const { mutateAsync, isPending: isSaving } = useSavePlanDay();
+  const saveLock = useRef(false);
+  const [activeDay, setActiveDay] = useState(() => {
+    const s = usePlanEditStore.getState();
+    if (
+      s.recoveryRequired &&
+      s.recoveryPlanId === planId &&
+      s.recoveryDayIndex !== null
+    )
+      return s.recoveryDayIndex;
+    return s.mode === "edit" && s.planId === planId ? s.dayIndex : 0;
+  });
+  const { data, isPending, isError, refetch } = usePlanDetail(
+    planId,
+    activeDay,
+  );
+  const { mutateAsync } = useSavePlanDay();
 
   const draft = usePlanEditStore((s) => s.draft);
+  const original = usePlanEditStore((s) => s.original);
+  const setSaving = usePlanEditStore((s) => s.setSaving);
+  const saving = usePlanEditStore((s) => s.saving);
+  const requireRecovery = usePlanEditStore((s) => s.requireRecovery);
+  const clearRecovery = usePlanEditStore((s) => s.clearRecovery);
+  const recovering = usePlanEditStore(
+    (s) =>
+      s.recoveryRequired &&
+      s.recoveryPlanId === planId &&
+      s.recoveryDayIndex === activeDay,
+  );
   const beginEdit = usePlanEditStore((s) => s.beginEdit);
   const removePlace = usePlanEditStore((s) => s.removePlace);
   const reorder = usePlanEditStore((s) => s.reorder);
@@ -44,10 +70,6 @@ export default function PlanDetailPage() {
 
   // mode/dayIndex는 초기 activeDay를 한 번만 시딩하는 데 쓰이므로 구독 대신
   // getState()로 한 번만 읽는다(구독하면 스토어가 바뀔 때마다 불필요한 리렌더가 생긴다).
-  const [activeDay, setActiveDay] = useState(() => {
-    const s = usePlanEditStore.getState();
-    return s.mode === "edit" ? s.dayIndex : 0;
-  });
   const [selectedOrder, setSelectedOrder] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -57,7 +79,7 @@ export default function PlanDetailPage() {
 
   const handleSelectDay = useCallback(
     (i: number) => {
-      if (isEditing) return;
+      if (isEditing || saveLock.current) return;
       setActiveDay(i);
       setSelectedOrder(null);
       setSaveError(null);
@@ -66,32 +88,74 @@ export default function PlanDetailPage() {
   );
 
   const handleEdit = useCallback(() => {
-    if (!day) return;
+    if (!day || saveLock.current || recovering) return;
     beginEdit(planId, activeDay, day.places);
     setSelectedOrder(null);
     setSaveError(null);
-  }, [beginEdit, planId, activeDay, day]);
+  }, [beginEdit, planId, activeDay, day, recovering]);
 
   const handleEditDone = useCallback(async () => {
+    if (saveLock.current) return;
+    saveLock.current = true;
+    setSaving(true);
     try {
-      await mutateAsync({ planId, dayIndex: activeDay, places: draft });
+      await mutateAsync({
+        planId,
+        dayIndex: activeDay,
+        locale: toPlanApiLocale(locale),
+        original,
+        draft,
+      });
+      setSaving(false);
       discard();
       setSaveError(null);
     } catch (err) {
-      setSaveError(getApiErrorMessage(err, t("saveError")));
+      // 쓰기가 하나라도 시작됐으면 draft로 재시도하지 않고 서버 코스를 다시 읽는다.
+      const partial = err instanceof PlanSaveError && err.writesStarted;
+      if (partial) {
+        requireRecovery(planId, activeDay);
+        const result = await refetch();
+        if (!result.isError) clearRecovery(planId, activeDay);
+        setSaveError(
+          result.isError ? t("recoveryLoadError") : t("partialSaveError"),
+        );
+      } else {
+        setSaveError(
+          getApiErrorMessage(
+            err instanceof PlanSaveError ? err.causeError : err,
+            t("saveError"),
+          ),
+        );
+      }
+    } finally {
+      setSaving(false);
+      saveLock.current = false;
     }
-  }, [mutateAsync, planId, activeDay, draft, discard, t]);
+  }, [
+    mutateAsync,
+    planId,
+    activeDay,
+    locale,
+    original,
+    draft,
+    setSaving,
+    discard,
+    requireRecovery,
+    clearRecovery,
+    refetch,
+    t,
+  ]);
 
   const handleReorder = useCallback(
     (next: PlanPlace[]) => {
-      reorder(next);
+      if (!saveLock.current) reorder(next);
     },
     [reorder],
   );
 
   const handleDelete = useCallback(
     (id: string) => {
-      removePlace(id);
+      if (!saveLock.current) removePlace(id);
     },
     [removePlace],
   );
@@ -102,7 +166,7 @@ export default function PlanDetailPage() {
   // selectedOrder가 엉뚱한 장소를 가리켜 지도가 튄다.
   const handleToggleSelect = useCallback(
     (order: number) => {
-      if (isEditing) return;
+      if (isEditing || saveLock.current) return;
       setSelectedOrder((prev) => (prev === order ? null : order));
     },
     [isEditing],
@@ -119,26 +183,34 @@ export default function PlanDetailPage() {
   }, []);
 
   const handleAddPlace = useCallback(() => {
+    if (saveLock.current) return;
     router.push(`/${locale}/plan/${planId}/search?day=${activeDay}`);
   }, [router, locale, planId, activeDay]);
 
   return (
     <div className="flex h-dvh flex-col">
-      <PlanHeader title={data?.name ?? ""} />
+      <PlanHeader title={data?.name ?? ""} disabled={saving} />
       <KakaoMapsScript />
       <AnimatePresence mode="wait" initial={false}>
-        {isError ? (
+        {isError || recovering ? (
           <motion.div
             key="error"
             {...fadeSwap}
             className="flex flex-1 flex-col items-center justify-center gap-3"
           >
             <p className="text-[13px] font-medium text-subtext">
-              {t("loadError")}
+              {saveError ??
+                (recovering ? t("recoveryLoadError") : t("loadError"))}
             </p>
             <button
               type="button"
-              onClick={() => refetch()}
+              onClick={async () => {
+                const result = await refetch();
+                if (!result.isError) {
+                  clearRecovery(planId, activeDay);
+                  setSaveError(null);
+                }
+              }}
               className="rounded-full bg-dark px-4 py-2 text-[12px] font-semibold text-white transition duration-150 motion-safe:active:scale-[0.96]"
             >
               {t("retry")}
@@ -158,7 +230,7 @@ export default function PlanDetailPage() {
               days={data.days}
               activeDay={activeDay}
               onSelect={handleSelectDay}
-              disabled={isEditing}
+              disabled={isEditing || saving}
             />
             {/* 여백은 스크롤 컨테이너 안쪽에 둔다 — 바깥에 두면 드래그로 1.02배 커진 행의
                 왼쪽 끝(번호 원)과 첫 행의 위쪽 테두리·그림자가 overflow에 잘린다.
@@ -180,7 +252,7 @@ export default function PlanDetailPage() {
                       <CourseHeader
                         count={places.length}
                         isEditing={isEditing}
-                        saving={isSaving}
+                        saving={saving}
                         onEdit={handleEdit}
                         onEditDone={handleEditDone}
                       />
@@ -197,6 +269,7 @@ export default function PlanDetailPage() {
                       <PlaceList
                         places={places}
                         isEditing={isEditing}
+                        saving={saving}
                         selectedOrder={selectedOrder}
                         onReorder={handleReorder}
                         onDelete={handleDelete}

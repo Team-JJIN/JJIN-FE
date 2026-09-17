@@ -1,83 +1,76 @@
-/**
- * @module api/plans
- * 일정(여행 플랜) 상세 API 모듈. 3층 구조:
- *   [DTO 타입: 서버 응답 그대로] → [mapper: 도메인 변환] → [fetch 함수: 훅이 호출]
- * `fetchPlans`(목록 GET)만 실연결, 상세는 목록 응답에서 파생, `savePlanDay`·`searchPlaces`는 mock.
- * 나머지는 가정 계약. 연결 현황: docs/plan_api_connect.md. 규칙: docs/API-RULE.md
- */
+/** 일정 API: DTO → mapper → fetch. docs/API-RULE.md */
+import { apiDelete, apiGet, apiPatch, apiPost, ApiError } from "./client";
 
-import { apiGet, ApiError } from "./client";
-import {
-  delay,
-  mockFindPlanDetail,
-  mockSavePlanDay,
-  mockSearchPlaces,
-} from "./mock/plans.mock";
-
-// ───────────── DTO (가정 계약, 백엔드 명세 미확정) ─────────────
-
-export interface TravelPlanSummaryDto {
+export type PlanApiLocale = "KO" | "EN" | "JA";
+export type OpenStatus = "OPEN" | "BREAK" | "CLOSED" | "UNKNOWN";
+export type PlaceCategory =
+  | "TOURIST_ATTRACTION"
+  | "RESTAURANT"
+  | "CULTURAL_FACILITY"
+  | "FESTIVAL_EVENT"
+  | "LEISURE_SPORTS"
+  | "SHOPPING"
+  | "LODGING"
+  | "TRAVEL_COURSE";
+interface TravelPlanSummaryDto {
   travelPlanId: number;
   name: string;
   startDate: string;
   endDate: string;
   days: number;
-} // GET /api/travel-plans 실제 필드 부분집합
-
-export interface TravelPlanListDto {
+}
+interface TravelPlanListDto {
   totalCount: number;
   travelPlans: TravelPlanSummaryDto[];
 }
-
-export interface TravelPlanPlaceDto {
-  planPlaceId: number;
+interface CourseStopDto {
+  stopId: number;
+  visitOrder: number;
   placeId: number;
-  order: number;
   name: string;
-  address: string;
-  category: string | null;
-  isOpen: boolean | null;
-  openTime: string | null;
-  closeTime: string | null;
+  category: PlaceCategory;
+  address: string | null;
   latitude: number;
   longitude: number;
+  openTime: string | null;
+  closeTime: string | null;
+  openStatus: OpenStatus;
+  distanceFromPreviousMeters: number | null;
 }
-
-export interface TravelPlanDayDto {
-  dayIndex: number;
-  date: string | null;
-  places: TravelPlanPlaceDto[];
+interface CourseDto {
+  planId: number;
+  planName: string;
+  dayNumber: number;
+  totalDays: number;
+  date: string;
+  stopCount: number;
+  stops: CourseStopDto[];
 }
-
-// TravelPlanSummaryDto의 days(number, 총 일수)와 이름이 겹치되 타입이 다르므로 Omit으로 제외 후 배열로 재정의한다.
-export interface TravelPlanDetailDto extends Omit<
-  TravelPlanSummaryDto,
-  "days"
-> {
-  days: TravelPlanDayDto[];
-}
-
-export interface SavePlanDayRequestDto {
-  places: { placeId: number; order: number }[];
-}
-
-export type PlaceSortDto = "RECENT" | "DISTANCE" | "RATING";
-
-export interface PlaceSearchResultDto {
+interface PlaceSearchResultDto {
   placeId: number;
+  category: PlaceCategory;
   name: string;
-  address: string;
+  address: string | null;
+  latitude: number;
+  longitude: number;
+  representativeImageUrl: string | null;
+  openTime: string | null;
+  closeTime: string | null;
+  openStatus: OpenStatus;
   distanceMeters: number | null;
-  isOpen: boolean | null;
-  openTime: string | null;
-  closeTime: string | null;
-  thumbnailUrl: string | null;
-  rating: number | null;
-  latitude: number;
-  longitude: number;
+  alreadyAdded: boolean;
 }
-
-// ───────────── 도메인 타입 (훅/컴포넌트가 보는 형태) ─────────────
+interface PlaceSearchPageDto {
+  totalCount: number;
+  page: number;
+  size: number;
+  places: PlaceSearchResultDto[];
+}
+interface AddedStopDto {
+  stopId: number;
+  dayNumber: number;
+  visitOrder: number;
+}
 
 export interface Plan {
   id: string;
@@ -86,68 +79,61 @@ export interface Plan {
   endDate: string;
   dayCount: number;
 }
-
-/** "09:00" */
 export interface OpenHours {
   start: string;
   end: string;
 }
-
 export interface PlanPlace {
+  /** 코스 관계 stopId. 새 draft 항목은 tmp- 접두를 쓴다. */
   id: string;
   placeId: string;
   order: number;
   name: string;
-  address: string;
-  category: string | null;
-  isOpen: boolean | null;
+  address: string | null;
+  category: PlaceCategory | null;
+  openStatus: OpenStatus;
   openHours: OpenHours | null;
+  openTime: string | null;
+  closeTime: string | null;
   lat: number;
   lng: number;
+  distanceFromPreviousMeters: number | null;
 }
-
 export interface PlanDay {
   dayIndex: number;
   date: string | null;
   places: PlanPlace[];
 }
-
 export interface PlanDetail extends Plan {
   days: PlanDay[];
 }
-
 export interface PlaceSearchResult {
   id: string;
   name: string;
-  address: string;
+  address: string | null;
+  category: PlaceCategory;
   distanceMeters: number | null;
-  isOpen: boolean | null;
+  openStatus: OpenStatus;
   openHours: OpenHours | null;
+  openTime: string | null;
+  closeTime: string | null;
   thumbnailUrl: string | null;
-  rating: number | null;
   lat: number;
   lng: number;
+  alreadyAdded: boolean;
+}
+export interface PlaceSearchPage {
+  items: PlaceSearchResult[];
+  totalCount: number;
+  nextPage: number | null;
 }
 
-export type PlaceSort = "recent" | "distance" | "rating";
-
-// ───────────── mapper ─────────────
-
-export const PLACE_SORT_TO_DTO: Record<PlaceSort, PlaceSortDto> = {
-  recent: "RECENT",
-  distance: "DISTANCE",
-  rating: "RATING",
-};
-
-/** openTime·closeTime 둘 다 있을 때만 OpenHours, 아니면 null. toPlanPlace·toPlaceSearchResult가 공유 */
 function toOpenHours(
-  openTime: string | null,
-  closeTime: string | null,
+  start: string | null,
+  end: string | null,
 ): OpenHours | null {
-  if (!openTime || !closeTime) return null;
-  return { start: openTime, end: closeTime };
+  return start && end ? { start, end } : null;
 }
-
 export function toPlan(dto: TravelPlanSummaryDto): Plan {
   return {
     id: String(dto.travelPlanId),
@@ -157,42 +143,30 @@ export function toPlan(dto: TravelPlanSummaryDto): Plan {
     dayCount: dto.days,
   };
 }
-
-export function toPlanPlace(dto: TravelPlanPlaceDto): PlanPlace {
+export function toPlanPlace(dto: CourseStopDto): PlanPlace {
   return {
-    id: String(dto.planPlaceId),
+    id: String(dto.stopId),
     placeId: String(dto.placeId),
-    order: dto.order,
+    order: dto.visitOrder,
     name: dto.name,
     address: dto.address,
     category: dto.category,
-    isOpen: dto.isOpen,
+    openStatus: dto.openStatus,
     openHours: toOpenHours(dto.openTime, dto.closeTime),
+    openTime: dto.openTime,
+    closeTime: dto.closeTime,
     lat: dto.latitude,
     lng: dto.longitude,
+    distanceFromPreviousMeters: dto.distanceFromPreviousMeters,
   };
 }
-
-export function toPlanDay(dto: TravelPlanDayDto): PlanDay {
+export function toPlanDay(dto: CourseDto): PlanDay {
   return {
-    dayIndex: dto.dayIndex,
+    dayIndex: dto.dayNumber - 1,
     date: dto.date,
-    places: dto.places.map(toPlanPlace),
+    places: dto.stops.map(toPlanPlace),
   };
 }
-
-/** 상세 GET 연결 시 사용 — 지금은 상세 엔드포인트가 없어 fetchPlanDetail이 쓰지 않는다. */
-export function toPlanDetail(dto: TravelPlanDetailDto): PlanDetail {
-  return {
-    id: String(dto.travelPlanId),
-    name: dto.name,
-    startDate: dto.startDate,
-    endDate: dto.endDate,
-    dayCount: dto.days.length,
-    days: dto.days.map(toPlanDay),
-  };
-}
-
 export function toPlaceSearchResult(
   dto: PlaceSearchResultDto,
 ): PlaceSearchResult {
@@ -200,94 +174,172 @@ export function toPlaceSearchResult(
     id: String(dto.placeId),
     name: dto.name,
     address: dto.address,
+    category: dto.category,
     distanceMeters: dto.distanceMeters,
-    isOpen: dto.isOpen,
+    openStatus: dto.openStatus,
     openHours: toOpenHours(dto.openTime, dto.closeTime),
-    thumbnailUrl: dto.thumbnailUrl,
-    rating: dto.rating,
+    openTime: dto.openTime,
+    closeTime: dto.closeTime,
+    thumbnailUrl: dto.representativeImageUrl,
     lat: dto.latitude,
     lng: dto.longitude,
+    alreadyAdded: dto.alreadyAdded,
   };
 }
-
-export function savePlaceToDto(p: PlanPlace): {
-  placeId: number;
-  order: number;
-} {
-  return { placeId: Number(p.placeId), order: p.order };
+export function toPlanApiLocale(locale: string): PlanApiLocale {
+  return locale === "ko" ? "KO" : locale === "ja" ? "JA" : "EN";
 }
-
-// ───────────── fetch 함수 ─────────────
-
 export async function fetchPlans(): Promise<Plan[]> {
   const data = (await apiGet<TravelPlanListDto>("/api/travel-plans")).data;
   return (data?.travelPlans ?? []).map(toPlan);
 }
-
-// 상세 엔드포인트가 없어 목록을 다시 조회해 해당 요약을 찾고, 일차 배열을 붙여 만든다 (docs/plan_api_connect.md 5).
-export async function fetchPlanDetail(planId: string): Promise<PlanDetail> {
-  const data = (await apiGet<TravelPlanListDto>("/api/travel-plans")).data;
-  const summary = (data?.travelPlans ?? []).find(
-    (p) => p.travelPlanId === Number(planId),
-  );
+export async function fetchPlanCourse(
+  planId: string,
+  dayIndex: number,
+  locale: PlanApiLocale,
+): Promise<PlanDay> {
+  const dto = (
+    await apiGet<CourseDto>(`/api/travel-plans/${Number(planId)}/course`, {
+      dayNumber: dayIndex + 1,
+      locale,
+    })
+  ).data;
+  return toPlanDay(dto);
+}
+export async function fetchPlanDetail(
+  planId: string,
+  dayIndex: number,
+  locale: PlanApiLocale,
+): Promise<PlanDetail> {
+  const [plans, day] = await Promise.all([
+    fetchPlans(),
+    fetchPlanCourse(planId, dayIndex, locale),
+  ]);
+  const summary = plans.find((p) => p.id === planId);
   if (!summary) throw new ApiError(404, "일정을 찾을 수 없어요");
-
-  // `|| 1`은 0·undefined·NaN을 한 번에 걷어낸다(필드 누락 시 Array.from이 빈 배열이 되는 것도 여기서 막힌다).
-  const dayCount = Math.max(1, summary.days || 1);
-  const mockDays = mockFindPlanDetail(Number(planId))?.days ?? [];
-
+  return { ...summary, dayCount: Math.max(1, summary.dayCount), days: [day] };
+}
+export const PLACE_SEARCH_SIZE = 10;
+export async function searchPlaces(input: {
+  keyword: string;
+  locale: PlanApiLocale;
+  planId: string;
+  page: number;
+}): Promise<PlaceSearchPage> {
+  const dto = (
+    await apiGet<PlaceSearchPageDto>("/api/places/search", {
+      keyword: input.keyword,
+      locale: input.locale,
+      planId: Number(input.planId),
+      page: input.page,
+      size: PLACE_SEARCH_SIZE,
+    })
+  ).data;
   return {
-    ...toPlan(summary),
-    // dayCount는 toPlan이 넣은 원본 summary.days를 클램프한 값으로 덮는다 — 일차 칩은 days 배열이
-    // 아니라 dayCount로 그리므로(DayChips), 둘이 어긋나면 클램프가 화면에 닿지 않는다.
-    dayCount,
-    // 일차는 배열 위치가 아니라 dayIndex로 찾는다 — mock 일차 배열의 정렬은 우연한 성질이고,
-    // 화면(PlanDetailPage)과 저장(mockSavePlanDay)도 dayIndex로 일차를 지목한다.
-    // date는 mock 값이 있어도 버리고 항상 null로 둔다: 날짜의 출처는 서버 요약의 startDate
-    // 하나뿐이어야 하는데, DayChips는 date가 있으면 그것을 우선하므로 mock 날짜를 살리면
-    // 서버 startDate와 어긋난 날짜가 화면에 뜬다.
-    days: Array.from({ length: dayCount }, (_, i) =>
-      toPlanDay({
-        dayIndex: i,
-        date: null,
-        places: mockDays.find((d) => d.dayIndex === i)?.places ?? [],
-      }),
-    ),
+    items: dto.places.map(toPlaceSearchResult),
+    totalCount: dto.totalCount,
+    nextPage: dto.page * dto.size < dto.totalCount ? dto.page + 1 : null,
   };
 }
 
+export function calculateDayChanges(original: PlanPlace[], draft: PlanPlace[]) {
+  const originalIds = new Set(original.map((p) => p.id));
+  const draftIds = new Set(draft.map((p) => p.id));
+  const removed = original.filter((p) => !draftIds.has(p.id));
+  const added = draft.filter((p) => !originalIds.has(p.id));
+  const changed =
+    removed.length > 0 ||
+    added.length > 0 ||
+    draft.some((p, i) => original[i]?.id !== p.id);
+  return { removed, added, changed };
+}
+export async function deletePlanStop(
+  planId: string,
+  stopId: string,
+): Promise<void> {
+  await apiDelete(
+    `/api/travel-plans/${Number(planId)}/course/stops/${Number(stopId)}`,
+  );
+}
+export async function addPlanStop(
+  planId: string,
+  dayIndex: number,
+  placeId: string,
+): Promise<string> {
+  const dto = (
+    await apiPost<AddedStopDto>(
+      `/api/travel-plans/${Number(planId)}/course/stops`,
+      {
+        placeId: Number(placeId),
+        dayNumber: dayIndex + 1,
+      },
+    )
+  ).data;
+  return String(dto.stopId);
+}
+export async function reorderPlanStops(
+  planId: string,
+  stops: PlanPlace[],
+): Promise<void> {
+  await apiPatch(`/api/travel-plans/${Number(planId)}/course/stops/order`, {
+    orders: stops.map((p, i) => ({ stopId: Number(p.id), visitOrder: i + 1 })),
+  });
+}
+export class PlanSaveError extends Error {
+  constructor(
+    public readonly causeError: unknown,
+    public readonly writesStarted: boolean,
+  ) {
+    super("Plan save failed");
+  }
+}
 export interface SavePlanDayInput {
   planId: string;
   dayIndex: number;
-  places: PlanPlace[];
+  locale: PlanApiLocale;
+  original: PlanPlace[];
+  draft: PlanPlace[];
 }
-
+/** 삭제 → 추가 → 전체 순서 → 재조회. 실패 후 후속 쓰기는 보내지 않는다. */
 export async function savePlanDay(input: SavePlanDayInput): Promise<PlanDay> {
-  // 추후: apiPost<TravelPlanDayDto>(`/api/travel-plans/${input.planId}/days/${input.dayIndex}/places`, body)
-  // — PUT이면 client.ts에 apiPut 추가 필요
-  // mock은 travelPlanId 1만 알기 때문에 실 planId(fetchPlanDetail로 받은)에서는 저장이 404로 실패한다.
-  await delay();
-  const body: SavePlanDayRequestDto = {
-    places: input.places.map(savePlaceToDto),
-  };
-  const day = mockSavePlanDay(Number(input.planId), input.dayIndex, body);
-  // date는 파생 상세와 같은 규칙으로 버린다 — 저장 응답이 캐시의 그 일차를 통째로 교체하므로
-  // (useSavePlanDay), mock 날짜를 흘리면 무효화 재조회 전까지 서버 startDate와 다른 날짜가 뜬다.
-  // 상세/저장 엔드포인트가 붙으면 이 한 줄만 지우고 toPlanDay(day)를 그대로 반환한다.
-  return { ...toPlanDay(day), date: null };
-}
-
-export interface SearchPlacesInput {
-  keyword: string;
-  sort: PlaceSort;
-}
-
-export async function searchPlaces(
-  input: SearchPlacesInput,
-): Promise<PlaceSearchResult[]> {
-  // 추후: apiGet<{ places: PlaceSearchResultDto[] }>("/api/places/search", { keyword: input.keyword, sort: PLACE_SORT_TO_DTO[input.sort] })
-  await delay();
-  return mockSearchPlaces(input.keyword, PLACE_SORT_TO_DTO[input.sort]).map(
-    toPlaceSearchResult,
-  );
+  const changes = calculateDayChanges(input.original, input.draft);
+  if (!changes.changed)
+    return fetchPlanCourse(input.planId, input.dayIndex, input.locale);
+  let writesStarted = false;
+  try {
+    for (const place of changes.removed) {
+      writesStarted = true;
+      await deletePlanStop(input.planId, place.id);
+    }
+    const finalStops = [...input.draft];
+    for (const place of changes.added) {
+      writesStarted = true;
+      const stopId = await addPlanStop(
+        input.planId,
+        input.dayIndex,
+        place.placeId,
+      );
+      const index = finalStops.findIndex((p) => p.id === place.id);
+      finalStops[index] = { ...place, id: stopId };
+    }
+    if (finalStops.length) {
+      writesStarted = true;
+      await reorderPlanStops(input.planId, finalStops);
+    }
+    const reloaded = await fetchPlanCourse(
+      input.planId,
+      input.dayIndex,
+      input.locale,
+    );
+    const expected = finalStops.map((p) => p.id);
+    if (
+      reloaded.places.length !== expected.length ||
+      reloaded.places.some((p, i) => p.id !== expected[i])
+    ) {
+      throw new ApiError(409, "저장 결과가 서버 코스와 다릅니다.");
+    }
+    return reloaded;
+  } catch (err) {
+    throw new PlanSaveError(err, writesStarted);
+  }
 }

@@ -15,9 +15,13 @@ import { usePlanEditStore } from "../../_store/usePlanEditStore";
 
 interface PlanHeaderProps {
   title: string;
+  disabled?: boolean;
 }
 
-export default function PlanHeader({ title }: PlanHeaderProps) {
+export default function PlanHeader({
+  title,
+  disabled = false,
+}: PlanHeaderProps) {
   const t = useTranslations("plan");
   const locale = useLocale();
   const backOrReplace = useBackOrReplace();
@@ -25,6 +29,7 @@ export default function PlanHeader({ title }: PlanHeaderProps) {
   const discard = usePlanEditStore((s) => s.discard);
 
   const handleClose = () => {
+    if (disabled || usePlanEditStore.getState().saving) return;
     if (mode === "edit") discard();
     backOrReplace(`/${locale}/mission`);
   };
@@ -34,6 +39,7 @@ export default function PlanHeader({ title }: PlanHeaderProps) {
       <TopBarClose
         title={title}
         onClose={handleClose}
+        disabled={disabled}
         closeLabel={t("close")}
         titleClassName="text-[19px] font-semibold leading-[1.4] text-[#171717]"
       />

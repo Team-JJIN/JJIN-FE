@@ -1,11 +1,12 @@
 /**
  * @component PlaceSearchPanel
  * 장소 검색 공유 패널(인터셉트 슬라이드 패널·직접 진입 페이지가 공용). 인풋 + 상태 분기(대기/에러/결과)를 그린다.
- * 검색은 mock(searchPlaces) — 실제 API 확정 시 fetch 함수만 교체. 최근 검색은 localStorage(계정 무관).
+ * 검색은 서버 1-based 페이지를 10개씩 가져온다. 최근 검색은 localStorage(계정 무관).
  */
 "use client";
 
 import { useCallback, useState } from "react";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import InputText from "@/app/_components/ui/InputText";
@@ -14,23 +15,32 @@ import { fadeSwap } from "@/app/_components/motion/tokens";
 import { usePlaceSearch } from "../_hooks/usePlanQueries";
 import { useRecentPlaceSearches } from "../_hooks/useRecentPlaceSearches";
 import { usePlanEditStore } from "../_store/usePlanEditStore";
-import { DEFAULT_PLACE_SORT, SEARCH_DEBOUNCE_MS } from "../_constants";
+import { SEARCH_DEBOUNCE_MS } from "../_constants";
 import { useDebouncedValue } from "@/app/_components/hooks/useDebouncedValue";
 import PlaceSearchResultCard from "./PlaceSearchResultCard";
 import RecentSearchChips from "./RecentSearchChips";
-import PlaceSortPopover from "./PlaceSortPopover";
-import type { PlaceSearchResult, PlaceSort } from "../_types";
+import type { PlaceSearchResult } from "../_types";
 
 export default function PlaceSearchPanel() {
   const t = useTranslations("plan");
+  const { planId } = useParams<{ planId: string }>();
 
   const [keyword, setKeyword] = useState("");
   const debounced = useDebouncedValue(keyword, SEARCH_DEBOUNCE_MS);
-  const [sort, setSort] = useState<PlaceSort>(DEFAULT_PLACE_SORT);
-
-  const { data, isPending, isError, refetch } = usePlaceSearch(debounced, sort);
+  const {
+    data,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = usePlaceSearch(planId, debounced);
+  const results = data?.pages.flatMap((page) => page.items) ?? [];
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
   const { recent, addRecent } = useRecentPlaceSearches();
   const draft = usePlanEditStore((s) => s.draft);
+  const original = usePlanEditStore((s) => s.original);
   const toggleFromSearch = usePlanEditStore((s) => s.toggleFromSearch);
 
   const isAdded = useCallback(
@@ -40,13 +50,14 @@ export default function PlaceSearchPanel() {
 
   const handleToggle = useCallback(
     (r: PlaceSearchResult) => {
+      if (r.alreadyAdded && !original.some((p) => p.placeId === r.id)) return;
       const alreadyAdded = draft.some((p) => p.placeId === r.id);
       toggleFromSearch(r);
       if (!alreadyAdded && debounced.trim() !== "") {
         addRecent(debounced);
       }
     },
-    [draft, toggleFromSearch, debounced, addRecent],
+    [draft, original, toggleFromSearch, debounced, addRecent],
   );
 
   const handleRecentSelect = useCallback(
@@ -140,12 +151,11 @@ export default function PlaceSearchPanel() {
               <div className="flex h-[15px] items-end justify-between px-4 mt-[20px]">
                 <p className="text-[12px] font-medium leading-[1.6] text-subtext">
                   {t("search.resultCount")}{" "}
-                  <span className="text-ink">{data?.length ?? 0}</span>
+                  <span className="text-ink">{totalCount}</span>
                 </p>
-                <PlaceSortPopover sort={sort} onChange={setSort} />
               </div>
 
-              {!isPending && data && data.length === 0 && (
+              {!isPending && data && results.length === 0 && (
                 <div className="flex flex-1 flex-col items-center justify-center px-4 text-center">
                   <p className="text-[15px] font-medium leading-[1.7] text-subtext">
                     {t("search.emptyLine1")}
@@ -155,18 +165,32 @@ export default function PlaceSearchPanel() {
                 </div>
               )}
 
-              {!isPending && data && data.length > 0 && (
+              {!isPending && data && results.length > 0 && (
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-[17px] pb-6">
                   <div className="flex flex-col gap-[14px]">
-                    {data.map((r, i) => (
+                    {results.map((r, i) => (
                       <PlaceSearchResultCard
                         key={r.id}
                         result={r}
                         added={isAdded(r)}
+                        unavailable={
+                          r.alreadyAdded &&
+                          !original.some((p) => p.placeId === r.id)
+                        }
                         onToggle={() => handleToggle(r)}
                         index={i}
                       />
                     ))}
+                    {hasNextPage && (
+                      <button
+                        type="button"
+                        disabled={isFetchingNextPage}
+                        onClick={() => fetchNextPage()}
+                        className="self-center rounded-full bg-dark px-5 py-2 text-[12px] font-semibold text-white disabled:opacity-50"
+                      >
+                        {t("search.loadMore")}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

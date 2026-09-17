@@ -261,6 +261,23 @@
     "courseSelect": "选择路线",
     "open": "营业中",
     "closed": "未营业",
+    "openStatus": {
+      "OPEN": "营业中",
+      "BREAK": "休息中",
+      "CLOSED": "已打烊"
+    },
+    "category": {
+      "TOURIST_ATTRACTION": "景点",
+      "RESTAURANT": "餐厅",
+      "CULTURAL_FACILITY": "文化设施",
+      "FESTIVAL_EVENT": "节庆活动",
+      "LEISURE_SPORTS": "休闲运动",
+      "SHOPPING": "购物",
+      "LODGING": "住宿",
+      "TRAVEL_COURSE": "旅行路线"
+    },
+    "partialSaveError": "部分更改可能已保存。已重新加载当前路线。",
+    "recoveryLoadError": "部分更改可能已保存。请重新加载路线确认。",
     "tabSchedule": "行程",
     "tabMission": "任务",
     "missionEmpty": "行程任务正在准备中",
@@ -276,6 +293,8 @@
       "emptyLine2": "搜索一下吧",
       "resultCount": "搜索结果",
       "add": "添加",
+      "alreadyAdded": "已添加到其他日期",
+      "loadMore": "加载更多",
       "error": "搜索失败",
       "sortLabel": "排序",
       "sort": {

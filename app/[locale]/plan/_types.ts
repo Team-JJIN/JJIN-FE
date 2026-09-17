@@ -7,7 +7,6 @@ export type {
   PlanDay,
   PlanDetail,
   PlaceSearchResult,
-  PlaceSort,
   OpenHours,
 } from "@/app/_api/plans";
 

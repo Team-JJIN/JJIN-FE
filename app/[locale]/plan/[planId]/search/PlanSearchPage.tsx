@@ -24,21 +24,45 @@ export default function PlanSearchPage() {
   const t = useTranslations("plan");
   const router = useRouter();
 
-  const { data } = usePlanDetail(planId);
+  const { data, isError, refetch } = usePlanDetail(planId, dayIndex);
   const mode = usePlanEditStore((s) => s.mode);
   const storePlanId = usePlanEditStore((s) => s.planId);
   const storeDayIndex = usePlanEditStore((s) => s.dayIndex);
   const beginEdit = usePlanEditStore((s) => s.beginEdit);
+  const recovering = usePlanEditStore(
+    (s) =>
+      s.recoveryRequired &&
+      s.recoveryPlanId === planId &&
+      s.recoveryDayIndex === dayIndex,
+  );
+  const clearRecovery = usePlanEditStore((s) => s.clearRecovery);
 
   useEffect(() => {
-    if (!data) return;
+    if (!recovering) return;
+    void refetch().then((result) => {
+      if (!result.isError) clearRecovery(planId, dayIndex);
+    });
+  }, [recovering, refetch, clearRecovery, planId, dayIndex]);
+
+  useEffect(() => {
+    if (!data || isError || recovering) return;
     // 같은 planId라도 다른 일차를 편집 중이면(예: day=0 편집 중 ?day=1로 직접 진입) beginEdit을
     // 다시 돌려 draft를 해당 일차로 재구성한다(review-1 m8).
     if (mode === "edit" && storePlanId === planId && storeDayIndex === dayIndex)
       return;
     const places = data.days.find((d) => d.dayIndex === dayIndex)?.places ?? [];
     beginEdit(planId, dayIndex, places);
-  }, [data, mode, storePlanId, storeDayIndex, planId, dayIndex, beginEdit]);
+  }, [
+    data,
+    isError,
+    recovering,
+    mode,
+    storePlanId,
+    storeDayIndex,
+    planId,
+    dayIndex,
+    beginEdit,
+  ]);
 
   // 이 전체 페이지는 하드 로드(딥링크·새로고침)에서만 렌더되므로 이전 히스토리 항목은 항상 다른
   // 문서다 — back()은 풀 리로드가 되어 스토어 draft가 사라진다. 닫기는 소프트 replace로 상세에 진입해
@@ -60,7 +84,22 @@ export default function PlanSearchPage() {
           titleClassName="text-[19px] font-semibold leading-[1.4] text-[#171717]"
         />
       </div>
-      <PlaceSearchPanel />
+      {isError || recovering ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3">
+          <p className="text-[13px] text-subtext">{t("loadError")}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="rounded-full bg-dark px-4 py-2 text-[12px] text-white"
+          >
+            {t("retry")}
+          </button>
+        </div>
+      ) : data ? (
+        <PlaceSearchPanel />
+      ) : (
+        <div className="flex-1" />
+      )}
     </div>
   );
 }
