@@ -70,8 +70,8 @@ export default function SplashPage() {
           ))}
         </div>
 
-        {/* 시작하기 버튼 — 언어 마지막에서 21px, 하단에서 43px */}
-        <div className="mt-[21px] mb-[43px]">
+        {/* 시작하기 버튼 — 언어 마지막에서 21px, 하단 여백은 화면이 작으면 축소(기본 24px, 700px↑ 43px) */}
+        <div className="mt-[21px] mb-[24px] [@media(min-height:700px)]:mb-[43px]">
           <BigButton fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
             {text.start}
           </BigButton>

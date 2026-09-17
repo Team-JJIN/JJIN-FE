@@ -1,6 +1,6 @@
 /**
  * @component CodeBox
- * 6자리 인증코드 입력. 값 있을 때 lime 배경+네온 보더. 자동 포커스 이동.
+ * 6자리 인증코드 입력. 칸 배경 #F4FFD6 + 테두리 #CCFF00, 에러 시 빨간 테두리. 자동 포커스 이동.
  * ref로 focusFirst() 호출 가능.
  */
 "use client";
@@ -70,10 +70,8 @@ const CodeBox = forwardRef<CodeBoxHandle, CodeBoxProps>(({ length = 6, value, on
           onPaste={handlePaste}
           className={`h-[60px] w-full rounded-[12px] text-center text-[18px] font-semibold border-2 transition-colors duration-150 focus:outline-none ${
             error
-              ? "border-red-400 bg-red-50"
-              : value[i]
-                ? "bg-[#EEFFAA] border-[#CCFF00]"
-                : "bg-[#F7F7F7] border-transparent focus:border-[#CCFF00] focus:bg-[#EEFFAA]"
+              ? "border-error bg-lime-pale"
+              : "bg-lime-pale border-lime-vivid"
           }`}
         />
       ))}

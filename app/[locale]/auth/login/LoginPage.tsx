@@ -99,7 +99,7 @@ export default function LoginPage() {
           />
 
           {loginError && (
-            <p className="text-[12px] text-red-500 text-center">{loginError}</p>
+            <p className="text-[12px] text-error text-center">{loginError}</p>
           )}
 
           <BigButton
