@@ -23,7 +23,6 @@ const LOADING_TEXT: Record<string, string> = {
   ko: "로그인 중...",
   en: "Logging in...",
   ja: "ログイン中...",
-  zh: "登录中...",
 };
 
 const loadingText = (locale: string) => LOADING_TEXT[locale] ?? LOADING_TEXT.en;
