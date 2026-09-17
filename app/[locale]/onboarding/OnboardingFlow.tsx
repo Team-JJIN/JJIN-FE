@@ -3,11 +3,13 @@
 import { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
 import { getApiErrorMessage, ApiError } from "@/app/_api/client";
 import { submitOnboarding, buildOnboardingRequest } from "@/app/_api/onboarding";
+import { planKeys } from "@/app/[locale]/plan/_hooks/usePlanQueries";
 
 import { SUB_CATEGORIES } from "./_constants";
 import type { OnboardingData, Category } from "./_types";
@@ -25,6 +27,7 @@ export default function OnboardingFlow() {
   const t = useTranslations("onboarding");
   const router = useRouter();
   const locale = useLocale();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState(1);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -100,6 +103,8 @@ export default function OnboardingFlow() {
         console.log("[travel-plans] POST /api/travel-plans body:", JSON.stringify(body, null, 2));
       }
       await submitOnboarding(body);
+      // 새로 생성한 일정이 홈 목록에 즉시 반영되도록 목록 캐시를 무효화한다.
+      await queryClient.invalidateQueries({ queryKey: planKeys.list() });
       goHome();
     } catch (err) {
       setIsCompleting(false);
@@ -112,7 +117,7 @@ export default function OnboardingFlow() {
       }
       alert(getApiErrorMessage(err, t("errorSubmitFailed")));
     }
-  }, [isCompleting, data, minuteStart, minuteEnd, goHome, t]);
+  }, [isCompleting, data, minuteStart, minuteEnd, goHome, queryClient, t]);
 
   const handleNext = useCallback(async () => {
     if (step < 4) {
