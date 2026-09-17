@@ -287,7 +287,7 @@
       "loading3": "Selecting course candidates...",
       "loading4": "Assembling the course...",
       "error": "Failed to generate the course.",
-      "errorHint": "Go back and add a new travel plan.",
+      "errorHint": "You must select a region when creating a trip to use AI generation!",
       "errorHintRetry": "Please try again.",
       "errorInsufficient": "Not enough preference info to generate an AI recommendation.",
       "failedTitle": "Course generation failed",
