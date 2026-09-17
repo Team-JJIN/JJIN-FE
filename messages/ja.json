@@ -287,6 +287,7 @@
       "loading4": "コースを組み立て中...",
       "error": "コースの生成に失敗しました。",
       "errorHint": "前に戻って新しい旅行プランを追加してください。",
+      "errorHintRetry": "もう一度お試しください。",
       "errorInsufficient": "好みの情報が不足しAI提案を生成できませんでした。",
       "failedTitle": "コース生成失敗",
       "doneTitle": "コース生成完了",
