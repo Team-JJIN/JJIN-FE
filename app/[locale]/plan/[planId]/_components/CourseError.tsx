@@ -21,7 +21,11 @@ interface CourseErrorProps {
 export default function CourseError({ errorKind, onBack }: CourseErrorProps) {
   const t = useTranslations("plan.aiCourse");
   const tPlan = useTranslations("plan");
-  const message = errorKind === "insufficient" ? t("errorInsufficient") : t("error");
+  const isInsufficient = errorKind === "insufficient";
+  // 422(취향 정보 부족): 재시도해도 소용없으니 새 일정 추가를 안내.
+  // 그 외(500 등 일시적 서버 오류): 재시도를 안내.
+  const message = isInsufficient ? t("errorInsufficient") : t("error");
+  const hint = isInsufficient ? t("errorHint") : t("errorHintRetry");
 
   return (
     <div className="relative flex h-dvh flex-col bg-white">
@@ -49,7 +53,7 @@ export default function CourseError({ errorKind, onBack }: CourseErrorProps) {
         </p>
       </div>
 
-      <CourseToast message={message} hint={t("errorHint")} />
+      <CourseToast message={message} hint={hint} />
     </div>
   );
 }

@@ -288,6 +288,7 @@
       "loading4": "Assembling the course...",
       "error": "Failed to generate the course.",
       "errorHint": "Go back and add a new travel plan.",
+      "errorHintRetry": "Please try again.",
       "errorInsufficient": "Not enough preference info to generate an AI recommendation.",
       "failedTitle": "Course generation failed",
       "doneTitle": "Course ready",

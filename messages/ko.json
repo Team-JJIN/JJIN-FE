@@ -274,6 +274,7 @@
       "loading4": "코스 조립하는 중...",
       "error": "코스 생성에 실패했어요.",
       "errorHint": "이전으로 돌아가 새로운 여행계획은 추가하세요.",
+      "errorHintRetry": "다시 시도해보세요.",
       "errorInsufficient": "선택한 취향 정보가 부족해 AI 추천을 생성하지 못했어요.",
       "failedTitle": "코스 생성 실패",
       "doneTitle": "코스 생성 완료",
