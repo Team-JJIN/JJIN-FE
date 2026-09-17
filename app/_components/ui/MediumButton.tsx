@@ -19,7 +19,7 @@ export default function MediumButton({ label, locale, selected, onSelect }: Lang
       type="button"
       onClick={() => onSelect(locale)}
       className={cn(
-        "w-full h-[48px] rounded-xl text-[14px] font-medium leading-[160%] transition-colors duration-150",
+        "w-full h-[48px] rounded-xl text-[14px] font-medium leading-[160%] transition-colors duration-150 focus:outline-none",
         selected ? "bg-lime text-dark" : "bg-surface text-dark"
       )}
     >

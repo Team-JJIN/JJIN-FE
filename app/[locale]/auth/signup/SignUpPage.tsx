@@ -156,7 +156,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={handleRequestVerification}
-              className="h-[44px] w-[88px] shrink-0 rounded-[14px] border-[1.5px] border-[#CCFF00] bg-[#F4FFD6] text-[12px] font-normal text-dark"
+              className="h-[44px] w-[88px] shrink-0 rounded-[14px] border-[1.5px] border-lime-vivid bg-lime-pale text-[12px] font-normal text-dark focus:outline-none"
             >
               {t("requestVerification")}
             </button>
@@ -204,7 +204,7 @@ export default function SignUpPage() {
 
       <div className="pb-[43px]">
         {submitError && (
-          <p className="mb-[10px] text-center text-[12px] text-red-500">{submitError}</p>
+          <p className="mb-[10px] text-center text-[12px] text-error">{submitError}</p>
         )}
         <BigButton fullWidth disabled={!isFormValid} onClick={handleSubmit}>
           {t("sendVerificationEmail")}
