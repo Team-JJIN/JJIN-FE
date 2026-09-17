@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
 import { useLocale } from "@/app/_components/hooks/useLocale";
+import { sectionEnter } from "@/app/_components/motion/tokens";
 import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
@@ -59,7 +61,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <div className="flex flex-[2] flex-col items-center justify-center">
+      <motion.div {...sectionEnter(0)} className="flex flex-[2] flex-col items-center justify-center">
         <Image
           src="/image/JJIN.png"
           alt="JJIN"
@@ -71,9 +73,9 @@ export default function LoginPage() {
         <p className="mt-[6px] text-[15px] font-normal text-[#C4C4C4]">
           Living life for real
         </p>
-      </div>
+      </motion.div>
 
-      <div className="flex flex-[3] flex-col">
+      <motion.div {...sectionEnter(1)} className="flex flex-[3] flex-col">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[16px]">
           <InputText
             type="text"
@@ -143,7 +145,7 @@ export default function LoginPage() {
         </button>
 
         <div className="h-[60px]" />
-      </div>
+      </motion.div>
     </div>
   );
 }
