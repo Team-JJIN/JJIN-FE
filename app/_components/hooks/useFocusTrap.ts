@@ -12,18 +12,22 @@ import { useEffect, useRef } from "react";
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-export function useFocusTrap(active: boolean) {
+export function useFocusTrap(active: boolean, restoreFocus = true) {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const restoreFocusRef = useRef(restoreFocus);
+  restoreFocusRef.current = restoreFocus;
 
   useEffect(() => {
     if (!active) return;
 
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    if (!previousFocusRef.current)
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
     // preventScroll 필수: 슬라이드업 모션 중(패널이 아직 화면 아래 y:100%)에 포커스가 이동하면
     // 브라우저가 패널을 보이게 하려고 조상 스크롤러를 강제 스크롤해
     // 배경 페이지가 튀고 등장 모션이 깨져 보인다.
-    panelRef.current?.focus({ preventScroll: true });
+    if (!panelRef.current?.contains(document.activeElement))
+      panelRef.current?.focus({ preventScroll: true });
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== "Tab") return;
@@ -69,7 +73,10 @@ export function useFocusTrap(active: boolean) {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      previousFocusRef.current?.focus({ preventScroll: true });
+      if (restoreFocusRef.current) {
+        previousFocusRef.current?.focus({ preventScroll: true });
+        previousFocusRef.current = null;
+      }
     };
   }, [active]);
 

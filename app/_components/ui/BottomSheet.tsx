@@ -39,6 +39,8 @@ interface BottomSheetProps {
   titleClassName?: string;
   /** 푸터 상단 그림자(구분선 느낌) 표시 여부. 기본 true. 시트별로 끌 수 있다. */
   footerShadow?: boolean;
+  /** A child dialog owns keyboard interaction while this sheet stays visible. */
+  interactionEnabled?: boolean;
 }
 
 const SCROLL_CONTENT_CLASS =
@@ -62,6 +64,7 @@ export default function BottomSheet({
   headerVariant = "default",
   titleClassName,
   footerShadow = true,
+  interactionEnabled = true,
 }: BottomSheetProps) {
   const contentClass =
     contentMode === "fill" ? FILL_CONTENT_CLASS : SCROLL_CONTENT_CLASS;
@@ -89,7 +92,7 @@ export default function BottomSheet({
     </div>
   );
 
-  const panelRef = useFocusTrap(open);
+  const panelRef = useFocusTrap(open && interactionEnabled, !open);
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -98,11 +101,11 @@ export default function BottomSheet({
   );
 
   useEffect(() => {
-    if (open) {
+    if (open && interactionEnabled) {
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
-  }, [open, handleKeyDown]);
+  }, [open, interactionEnabled, handleKeyDown]);
 
   if (animated) {
     return (
