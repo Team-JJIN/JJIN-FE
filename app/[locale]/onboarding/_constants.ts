@@ -1,13 +1,12 @@
 import type { Transport, Category, Level } from "./_types";
 
 // 인기 여행지 (검색어가 없을 때 노출). name은 지역 검색 displayName과 동일한 한국어 표시명,
-// id는 백엔드 REGION enum의 고정 regionId (서울=1 ~ 춘천=12).
+// id는 백엔드 REGION enum의 고정 regionId.
 export const POPULAR_REGIONS: { name: string; id: number }[] = [
   { name: "서울", id: 1 },
   { name: "부산", id: 2 },
   { name: "인천", id: 3 },
   { name: "제주", id: 4 },
-  { name: "전주", id: 5 },
   { name: "경주", id: 6 },
   { name: "강릉", id: 7 },
   { name: "속초", id: 8 },
@@ -15,6 +14,7 @@ export const POPULAR_REGIONS: { name: string; id: number }[] = [
   { name: "광주", id: 10 },
   { name: "여수", id: 11 },
   { name: "춘천", id: 12 },
+  { name: "대전", id: 16 },
 ];
 
 // 이동 수단
