@@ -1,4 +1,4 @@
-import { apiPost, apiGet } from "./client";
+import { apiPost, apiGet, resetAuthExpiredFlag } from "./client";
 import { clearTokens, saveTokens } from "./token";
 
 export type Role = "ONBOARDING" | "MEMBER" | "ADMIN";
@@ -83,5 +83,7 @@ export function handleAuthSuccess(
   navigate: (path: string) => void
 ): void {
   saveTokens(tokens.accessToken, tokens.refreshToken);
+  // 이전 세션에서 auth:expired가 dispatch됐을 수 있으므로 플래그를 초기화한다
+  resetAuthExpiredFlag();
   navigate(authDestination(tokens.role, locale));
 }
