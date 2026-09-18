@@ -31,6 +31,7 @@ import type {
   Paginated,
 } from "@/app/_api/missions";
 import type { SearchFilterState } from "../_types";
+import { planMissionKeys } from "@/app/[locale]/plan/_hooks/planMissionKeys";
 
 // --- 쿼리 키 팩토리 ---
 export const missionKeys = {
@@ -227,13 +228,19 @@ export function useUpdateMissionPlans() {
       }
     },
     onSettled: (_data, _error, { missionId }) => {
-      queryClient.invalidateQueries({
-        queryKey: missionKeys.detail(missionId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: missionKeys.planLikes(missionId),
-      });
-      queryClient.invalidateQueries({ queryKey: missionKeys.all });
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: missionKeys.detail(missionId),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: missionKeys.planLikes(missionId),
+        }),
+        queryClient.invalidateQueries({ queryKey: missionKeys.all }),
+        queryClient.invalidateQueries({ queryKey: planMissionKeys.all }),
+        queryClient.invalidateQueries({
+          queryKey: planMissionKeys.recommendationsAll,
+        }),
+      ]);
     },
   });
 }
