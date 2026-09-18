@@ -171,7 +171,7 @@ export default function MissionFeedPage() {
       <motion.div
         {...sectionEnter(2, true)}
         ref={scrollContainerRef}
-        className="mt-[15px] flex-1 overflow-y-auto pb-6"
+        className="mt-[15px] flex-1 overflow-y-auto pb-[96px]"
       >
         <AnimatePresence mode="wait" initial={false}>
           {isError ? (

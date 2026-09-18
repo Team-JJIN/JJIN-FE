@@ -256,7 +256,7 @@
         "weeklyHot": "今週の話題",
         "completed": "完了ミッション"
       },
-      "weeklyClear": "今週{count}人がクリア",
+      "weeklyClear": "今週<highlight>{count}人</highlight>がクリア",
       "likeCount": "いいね{count}件",
       "commentButton": "コメント{count}件を見る",
       "comments": {

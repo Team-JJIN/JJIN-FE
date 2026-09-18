@@ -9,7 +9,12 @@
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { HeartIcon, CommentIcon, SparkleIcon } from "@/app/_components/icons";
+import {
+  HeartIcon,
+  HeartOutlineIcon,
+  CommentIcon,
+  SparkleIcon,
+} from "@/app/_components/icons";
 import Avatar from "@/app/_components/ui/Avatar";
 import { heartPop, TAP } from "@/app/_components/motion/tokens";
 import DifficultyStars from "./DifficultyStars";
@@ -45,16 +50,19 @@ export default function FeedCard({
 
   return (
     <div className="flex w-full flex-col items-center gap-[10px] border-b border-surface pt-[8px] pb-[20px] last:border-b-0">
-      <div className="flex w-full items-center gap-[9px] px-[20px]">
+      <div className="flex w-full items-center gap-[9px] px-[13px]">
         {/* 닉네임이 바로 옆에 텍스트로 있으므로 아바타는 장식 */}
         <Avatar src={post.author.avatarUrl} alt="" size={40} />
         <div className="flex flex-col gap-px">
-          <span className="text-[15px] font-semibold tracking-[-0.045px] text-ink">
+          <span className="text-[15px] font-semibold leading-[1.4] tracking-[-0.045px] text-ink">
             {post.author.nickname}
           </span>
-          <span className="text-[12px] font-medium text-muted">
-            {t("feed.weeklyClear", {
+          <span className="text-[12px] font-medium leading-[1.6] text-muted">
+            {t.rich("feed.weeklyClear", {
               count: post.mission.weeklyCompletedCount,
+              highlight: (chunks) => (
+                <span className="text-subtext">{chunks}</span>
+              ),
             })}
           </span>
         </div>
@@ -76,7 +84,7 @@ export default function FeedCard({
             aria-pressed={post.likedByMe}
             aria-label={t("feed.likeCount", { count: post.likeCount })}
             whileTap={TAP.icon}
-            className={`flex transition-colors ${post.likedByMe ? "text-error" : "text-ink"}`}
+            className={`flex transition-colors ${post.likedByMe ? "text-error" : "text-[#9B9B9B]"}`}
           >
             <motion.span
               variants={heartPop}
@@ -84,9 +92,11 @@ export default function FeedCard({
               animate={post.likedByMe ? "liked" : "idle"}
               className="flex"
             >
-              {/* 레이아웃 박스는 24px 유지, 시각 크기만 26px(×1.0833)로 살짝 확대.
-                  motion.span의 heartPop이 transform을 덮어쓰므로 SVG에만 적용 */}
-              <HeartIcon size={24} className="scale-[1.0833]" />
+              {post.likedByMe ? (
+                <HeartIcon size={24} />
+              ) : (
+                <HeartOutlineIcon size={24} />
+              )}
             </motion.span>
           </motion.button>
           <motion.button
@@ -95,14 +105,14 @@ export default function FeedCard({
             aria-haspopup="dialog"
             aria-label={t("feed.commentButton", { count: post.commentCount })}
             whileTap={TAP.icon}
-            className="flex text-ink"
+            className="flex text-[#9B9B9B]"
           >
             <CommentIcon size={24} />
           </motion.button>
         </div>
 
         <div className="flex w-full flex-col items-start gap-[5px]">
-          <p className="text-[15px] font-semibold tracking-[-0.045px] text-ink">
+          <p className="text-[15px] font-semibold leading-[1.4] tracking-[-0.045px] text-ink">
             {t("feed.likeCount", { count: post.likeCount })}
           </p>
           <p className="text-[14px] font-medium leading-[1.6] text-muted">
@@ -112,12 +122,10 @@ export default function FeedCard({
           {/* 하단 미션 요약 카드 */}
           <div className="mt-1 flex w-full items-center justify-between gap-3 rounded-[16px] bg-white px-[21px] py-[11px] shadow-[0px_5px_9px_0px_rgba(23,23,23,0.08)]">
             <div className="flex min-w-0 items-center gap-[24px]">
-              {/* 서버 피드 mission 요약에 imageUrl이 없어(BE 확인 필요, plan §6-5) 항상 플레이스홀더를 그린다 */}
-              <div className="flex size-[35px] shrink-0 items-center justify-center rounded-full bg-lime-pale">
-                <SparkleIcon size={20} className="text-lime-vivid" />
-              </div>
-              <div className="flex min-w-0 flex-col gap-[2px]">
-                <h3 className="line-clamp-2 text-[15px] font-semibold tracking-[-0.045px] text-ink">
+              {/* 피그마 mission/box/small 고정 아이콘 — 배경 없는 35px 별 */}
+              <SparkleIcon size={35} className="shrink-0 text-lime-vivid" />
+              <div className="flex min-w-0 max-w-[147px] flex-col">
+                <h3 className="line-clamp-2 text-[15px] font-semibold leading-[1.4] tracking-[-0.045px] text-ink">
                   {post.mission.title}
                 </h3>
                 <DifficultyStars difficulty={post.mission.difficulty} />
