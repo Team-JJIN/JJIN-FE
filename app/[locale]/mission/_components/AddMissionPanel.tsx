@@ -139,12 +139,10 @@ export default function AddMissionPanel({
               className="size-[35px] shrink-0 rounded-full object-cover"
             />
           ) : (
-            <div className="flex size-[35px] shrink-0 items-center justify-center rounded-full bg-lime-pale">
-              <SparkleIcon size={20} className="text-lime-vivid" />
-            </div>
+            <SparkleIcon size={35} className="shrink-0 text-lime-vivid" />
           )}
-          <div className="flex min-w-0 flex-col gap-[2px]">
-            <h3 className="line-clamp-2 text-[15px] font-semibold tracking-[-0.045px] text-ink">
+          <div className="flex min-w-0 flex-col">
+            <h3 className="line-clamp-2 text-[15px] font-semibold leading-[1.4] tracking-[-0.045px] text-ink">
               {preview.title}
             </h3>
             <DifficultyStars difficulty={preview.difficulty} />

@@ -176,7 +176,7 @@
     "categories": {
       "TOURIST_ATTRACTION": "관광지",
       "CULTURAL_FACILITY": "문화시설",
-      "FESTIVAL_EVENT": "축제·공연·행사",
+      "FESTIVAL_EVENT": "축제/공연/행사",
       "TRAVEL_COURSE": "여행코스",
       "LEISURE_SPORTS": "레포츠",
       "LODGING": "숙박",
@@ -243,7 +243,7 @@
         "weeklyHot": "이번 주 핫",
         "completed": "완료 미션"
       },
-      "weeklyClear": "이번주 {count}명이 클리어",
+      "weeklyClear": "이번주 <highlight>{count}명</highlight>이 클리어",
       "likeCount": "좋아요 {count}개",
       "commentButton": "댓글 {count}개 보기",
       "comments": {

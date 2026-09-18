@@ -257,7 +257,7 @@
         "weeklyHot": "This Week's Hot",
         "completed": "Completed"
       },
-      "weeklyClear": "{count} people cleared this week",
+      "weeklyClear": "<highlight>{count} people</highlight> cleared this week",
       "likeCount": "{count} likes",
       "commentButton": "View {count} comments",
       "comments": {
