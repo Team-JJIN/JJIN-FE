@@ -37,6 +37,7 @@ interface MissionSheetState {
   missionId: string | null;
   /** 상세 응답 도착 전까지 헤더/요약에 쓰는 미리보기. close() 후에도 유지 */
   preview: MissionPreview | null;
+  planId: string | null;
   /** 열 때마다 +1. MissionSheet가 key에 섞어 오픈 단위로 콘텐츠를 리마운트한다 */
   openSeq: number;
   /** 현재 보여줄 화면 */
@@ -44,7 +45,11 @@ interface MissionSheetState {
   /** 이번에 처음 연 화면 (detail로 들어왔을 때만 add에서 ← 노출) */
   entry: MissionSheetStep;
   /** 카드 이미지 탭 → 상세부터 시작 */
-  openDetail: (missionId: string, preview: MissionPreview) => void;
+  openDetail: (
+    missionId: string,
+    preview: MissionPreview,
+    planId?: string,
+  ) => void;
   /** 카드 + 탭 / 미션 생성 직후 → 추가 화면부터 시작 (← 없음) */
   openAdd: (missionId: string, preview: MissionPreview) => void;
   /** 상세 안의 '+ 추가' → 오른쪽에서 추가 화면 슬라이드 인 */
@@ -58,20 +63,23 @@ interface MissionSheetState {
    * 다음에 열 때 openDetail/openAdd가 전부 다시 지정한다.
    */
   close: () => void;
+  closeIfSeq: (openSeq: number, resetPlanContext?: boolean) => void;
 }
 
 export const useMissionSheetStore = create<MissionSheetState>((set) => ({
   open: false,
   missionId: null,
   preview: null,
+  planId: null,
   openSeq: 0,
   step: "detail",
   entry: "detail",
-  openDetail: (missionId, preview) =>
+  openDetail: (missionId, preview, planId) =>
     set((s) => ({
       open: true,
       missionId,
       preview,
+      planId: planId ?? null,
       step: "detail",
       entry: "detail",
       openSeq: s.openSeq + 1,
@@ -81,6 +89,7 @@ export const useMissionSheetStore = create<MissionSheetState>((set) => ({
       open: true,
       missionId,
       preview,
+      planId: null,
       step: "add",
       entry: "add",
       openSeq: s.openSeq + 1,
@@ -88,4 +97,10 @@ export const useMissionSheetStore = create<MissionSheetState>((set) => ({
   goToAdd: () => set({ step: "add" }),
   goBackToDetail: () => set({ step: "detail" }),
   close: () => set({ open: false }),
+  closeIfSeq: (openSeq, resetPlanContext = false) =>
+    set((s) =>
+      s.openSeq === openSeq
+        ? { open: false, planId: resetPlanContext ? null : s.planId }
+        : s,
+    ),
 }));
