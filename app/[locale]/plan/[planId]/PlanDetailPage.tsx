@@ -30,6 +30,31 @@ import type { PlanPlace } from "../_types";
 
 const EMPTY: PlanPlace[] = [];
 
+function ScheduleSkeleton() {
+  return (
+    <div
+      aria-label="Loading schedule"
+      className="flex min-h-0 flex-1 flex-col gap-4 px-4"
+    >
+      <div className="h-[27px] w-full animate-pulse rounded-full bg-surface motion-reduce:animate-none" />
+      <div className="flex min-h-0 flex-1 flex-col gap-[21px]">
+        <div className="h-[196px] w-full shrink-0 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />
+        <div className="flex min-h-0 flex-1 flex-col gap-[10px]">
+          <div className="h-[21px] w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
+          <div className="flex min-h-0 flex-1 flex-col gap-[19px] overflow-hidden pt-1">
+            {["w-full", "w-[92%]", "w-[84%]"].map((width) => (
+              <div
+                key={width}
+                className={`${width} h-[86px] shrink-0 animate-pulse rounded-[14px] bg-surface motion-reduce:animate-none`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function PlanDetailPage() {
   const { planId } = useParams<{ planId: string }>();
   const locale = useLocale();
@@ -220,7 +245,13 @@ export default function PlanDetailPage() {
             </button>
           </motion.div>
         ) : isPending || !data ? (
-          <motion.div key="loading" {...fadeSwap} className="flex-1" />
+          <motion.div
+            key="loading"
+            {...fadeSwap}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <ScheduleSkeleton />
+          </motion.div>
         ) : (
           <motion.div
             key="ready"

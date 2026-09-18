@@ -18,11 +18,13 @@ import type { MissionDetail } from "@/app/_api/missions";
 interface MissionDetailPanelProps {
   detail: MissionDetail;
   onAddClick: () => void;
+  action?: React.ReactNode;
 }
 
 export default function MissionDetailPanel({
   detail,
   onAddClick,
+  action,
 }: MissionDetailPanelProps) {
   return (
     <div className="h-full overflow-y-auto overscroll-contain scrollbar-hide px-[20px] pb-8">
@@ -44,7 +46,9 @@ export default function MissionDetailPanel({
       {/* 난이도(좌) | 추가(우) — 제목은 시트 헤더로 올라갔으므로 본문의 첫 행은 메타 정보다 */}
       <div className="mt-[17px] flex items-center justify-between gap-2">
         <DifficultyStars difficulty={detail.difficulty} />
-        <AddToggleButton isAdded={detail.isAdded} onClick={onAddClick} />
+        {action ?? (
+          <AddToggleButton isAdded={detail.isAdded} onClick={onAddClick} />
+        )}
       </div>
 
       <p className="mt-[21px] whitespace-pre-line text-[12px] font-medium leading-[1.6] text-subtext">

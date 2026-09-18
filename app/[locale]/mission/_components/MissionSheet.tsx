@@ -27,10 +27,25 @@
  */
 "use client";
 
-import { useCallback, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useIsPresent } from "framer-motion";
 import BottomSheet from "@/app/_components/ui/BottomSheet";
+import Dialog from "@/app/_components/ui/Dialog";
+import { CheckIcon, PlusIcon } from "@/app/_components/icons";
+import { getApiErrorMessage } from "@/app/_api/client";
+import {
+  useAddPlanMission,
+  usePlanMissions,
+  useRemovePlanMission,
+} from "@/app/[locale]/plan/_hooks/usePlanMissionQueries";
 import { slideStep } from "@/app/_components/motion/tokens";
 import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import {
@@ -110,12 +125,20 @@ function MissionDetailErrorState({ onRetry }: { onRetry: () => void }) {
 function MissionDetailStep({
   detail,
   onAddClick,
+  action,
 }: {
   detail: UseQueryResult<MissionDetail>;
   onAddClick: () => void;
+  action?: React.ReactNode;
 }) {
   if (detail.data) {
-    return <MissionDetailPanel detail={detail.data} onAddClick={onAddClick} />;
+    return (
+      <MissionDetailPanel
+        detail={detail.data}
+        onAddClick={onAddClick}
+        action={action}
+      />
+    );
   }
   if (detail.isError) {
     return <MissionDetailErrorState onRetry={() => detail.refetch()} />;
@@ -125,16 +148,34 @@ function MissionDetailStep({
 
 export default function MissionSheet() {
   const t = useTranslations("mission");
+  const pt = useTranslations("plan.missions");
+  const pathname = usePathname();
 
   const open = useMissionSheetStore((s) => s.open);
   const missionId = useMissionSheetStore((s) => s.missionId);
   const preview = useMissionSheetStore((s) => s.preview);
+  const planId = useMissionSheetStore((s) => s.planId);
   const openSeq = useMissionSheetStore((s) => s.openSeq);
   const step = useMissionSheetStore((s) => s.step);
   const entry = useMissionSheetStore((s) => s.entry);
   const goToAdd = useMissionSheetStore((s) => s.goToAdd);
   const goBackToDetail = useMissionSheetStore((s) => s.goBackToDetail);
-  const close = useMissionSheetStore((s) => s.close);
+  const closeIfSeq = useMissionSheetStore((s) => s.closeIfSeq);
+  const planList = usePlanMissions(planId, "ALL");
+  const addPlanMission = useAddPlanMission();
+  const removePlanMission = useRemovePlanMission();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const routeMatches = planId
+    ? pathname.endsWith(`/plan/${planId}/mission`)
+    : /^\/[^/]+\/mission(?:\/|$)/.test(pathname);
+  useEffect(() => {
+    if (open && !routeMatches) closeIfSeq(openSeq, true);
+  }, [open, routeMatches, openSeq, closeIfSeq]);
+  useEffect(() => {
+    setConfirmDelete(false);
+    setActionError("");
+  }, [openSeq]);
 
   const detail = useMissionDetail(missionId, open);
   // 일정 추가 화면에서 쓸 찜 목록을 시트가 열릴 때 함께 프리페치한다.
@@ -156,52 +197,133 @@ export default function MissionSheet() {
     paneRef.current?.focus({ preventScroll: true });
   }, [step, openSeq]);
 
+  const membership = planList.data?.missions.find(
+    (item) => item.missionId === missionId,
+  );
+  const busy = addPlanMission.isPending || removePlanMission.isPending;
+  const handlePlanAction = async () => {
+    if (!planId || !missionId || busy) return;
+    if (membership) {
+      setConfirmDelete(true);
+      return;
+    }
+    setActionError("");
+    try {
+      await addPlanMission.mutateAsync({ planId, missionId });
+    } catch (error) {
+      if (useMissionSheetStore.getState().openSeq === openSeq)
+        setActionError(getApiErrorMessage(error, pt("actionError")));
+    }
+  };
+  const handleRemove = async () => {
+    if (!planId || !membership || busy) return;
+    setActionError("");
+    try {
+      await removePlanMission.mutateAsync({
+        planId,
+        userMissionId: membership.userMissionId,
+      });
+      if (useMissionSheetStore.getState().openSeq === openSeq) {
+        setConfirmDelete(false);
+        closeIfSeq(openSeq);
+      }
+    } catch (error) {
+      if (useMissionSheetStore.getState().openSeq === openSeq)
+        setActionError(getApiErrorMessage(error, pt("actionError")));
+    }
+  };
+
   if (!missionId || !preview) return null;
 
-  const showBack = entry === "detail" && step === "add";
+  const showBack = !planId && entry === "detail" && step === "add";
   // 스텝이 둘뿐이라 "어디로 가는가"만으로 방향이 결정된다 (add=앞으로, detail=뒤로)
   const direction: 1 | -1 = step === "add" ? 1 : -1;
 
-  return (
-    <BottomSheet
-      open={open}
-      // 상세 스텝의 헤더 제목은 미션 제목 자체다 (디자인 685:2251). 상세 응답 도착 전에도
-      // preview.title로 즉시 그린다. 본문에는 제목을 다시 쓰지 않는다.
-      title={step === "detail" ? preview.title : t("add.title")}
-      onClose={close}
-      closeLabel={t("close")}
-      onBack={showBack ? goBackToDetail : undefined}
-      backLabel={t("back")}
-      animated
-      contentMode="fill"
+  const planAction = planId ? (
+    <button
+      type="button"
+      onClick={handlePlanAction}
+      disabled={busy || planList.isPending || planList.isError}
+      aria-haspopup={membership ? "dialog" : undefined}
+      className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-[5px] text-[12px] font-bold disabled:opacity-50 ${membership ? "bg-lime-vivid text-dark" : "bg-dark text-white"}`}
     >
-      <div key={`${missionId}:${openSeq}`} className="relative h-full">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={step}
-            custom={direction}
-            variants={slideStep}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            className="absolute inset-0 flex flex-col"
-          >
-            <StepPane paneRef={setPaneRef}>
-              {step === "detail" ? (
-                <MissionDetailStep detail={detail} onAddClick={goToAdd} />
-              ) : (
-                <AddMissionPanel
-                  missionId={missionId}
-                  preview={preview}
-                  active={open}
-                  onDone={close}
-                  onCancel={close}
-                />
-              )}
-            </StepPane>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </BottomSheet>
+      {membership ? <CheckIcon size={20} /> : <PlusIcon size={20} />}
+      {pt("add")}
+    </button>
+  ) : undefined;
+  return (
+    <>
+      <BottomSheet
+        open={open && routeMatches}
+        interactionEnabled={!confirmDelete}
+        // 상세 스텝의 헤더 제목은 미션 제목 자체다 (디자인 685:2251). 상세 응답 도착 전에도
+        // preview.title로 즉시 그린다. 본문에는 제목을 다시 쓰지 않는다.
+        title={step === "detail" ? preview.title : t("add.title")}
+        onClose={() => {
+          if (!busy) {
+            setActionError("");
+            closeIfSeq(openSeq);
+          }
+        }}
+        closeLabel={t("close")}
+        onBack={showBack ? goBackToDetail : undefined}
+        backLabel={t("back")}
+        animated
+        contentMode="fill"
+      >
+        <div key={`${missionId}:${openSeq}`} className="relative h-full">
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={slideStep}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="absolute inset-0 flex flex-col"
+            >
+              <StepPane paneRef={setPaneRef}>
+                {step === "detail" ? (
+                  <MissionDetailStep
+                    detail={detail}
+                    onAddClick={goToAdd}
+                    action={planAction}
+                  />
+                ) : (
+                  <AddMissionPanel
+                    missionId={missionId}
+                    preview={preview}
+                    active={open}
+                    onDone={() => closeIfSeq(openSeq)}
+                    onCancel={() => closeIfSeq(openSeq)}
+                  />
+                )}
+              </StepPane>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </BottomSheet>
+      {actionError && open && (
+        <p
+          role="alert"
+          className="absolute bottom-4 inset-x-4 z-[70] rounded-xl bg-white p-3 text-center text-sm text-red-600 shadow-lg"
+        >
+          {actionError}
+        </p>
+      )}
+      <Dialog
+        open={confirmDelete && open && routeMatches}
+        title={`“${preview.title}”`}
+        description={pt("removeConfirm")}
+        cancelLabel={pt("cancel")}
+        confirmLabel={pt("remove")}
+        confirmLoading={removePlanMission.isPending}
+        loadingLabel={pt("removing")}
+        onCancel={() => {
+          if (!busy) setConfirmDelete(false);
+        }}
+        onConfirm={handleRemove}
+      />
+    </>
   );
 }

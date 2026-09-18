@@ -38,6 +38,11 @@ export default function MissionFeedPage() {
   const openComments = useCommentSheetStore((s) => s.openComments);
 
   const [tab, setTab] = useState<FeedTab>("latest");
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (requested && FEED_TABS.some((item) => item === requested))
+      setTab(requested as FeedTab);
+  }, []);
 
   const {
     data,

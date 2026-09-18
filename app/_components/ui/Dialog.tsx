@@ -9,6 +9,7 @@ import { useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useFocusTrap } from "@/app/_components/hooks/useFocusTrap";
 import { dimFade, centerPanel } from "@/app/_components/motion/tokens";
+import Spinner from "@/app/_components/ui/Spinner";
 
 interface DialogProps {
   open: boolean;
@@ -19,6 +20,8 @@ interface DialogProps {
   onCancel: () => void;
   onConfirm: () => void;
   onExitComplete?: () => void;
+  confirmLoading?: boolean;
+  loadingLabel?: string;
 }
 
 export default function Dialog({
@@ -30,6 +33,8 @@ export default function Dialog({
   onCancel,
   onConfirm,
   onExitComplete,
+  confirmLoading = false,
+  loadingLabel = confirmLabel,
 }: DialogProps) {
   const panelRef = useFocusTrap(open);
   const handleKeyDown = useCallback(
@@ -52,7 +57,9 @@ export default function Dialog({
         <div className="absolute inset-0 z-[60] flex items-center justify-center">
           <motion.div
             className="absolute inset-0 bg-black/30"
-            onClick={onCancel}
+            onClick={() => {
+              if (!confirmLoading) onCancel();
+            }}
             aria-hidden="true"
             {...dimFade}
           />
@@ -70,6 +77,7 @@ export default function Dialog({
             <button
               type="button"
               onClick={onCancel}
+              disabled={confirmLoading}
               aria-label={cancelLabel}
               className="absolute right-[16px] top-[16px] text-[18px] text-neutral-400 leading-none transition duration-150 motion-safe:active:scale-90"
             >
@@ -96,9 +104,12 @@ export default function Dialog({
               <button
                 type="button"
                 onClick={onConfirm}
-                className="h-[48px] flex-1 rounded-[16px] bg-dark text-[15px] font-semibold text-lime-vivid transition duration-150 motion-safe:active:scale-[0.98]"
+                disabled={confirmLoading}
+                aria-busy={confirmLoading}
+                className="flex h-[48px] flex-1 items-center justify-center gap-2 rounded-[16px] bg-dark text-[15px] font-semibold text-lime-vivid transition duration-150 disabled:cursor-wait disabled:opacity-70 motion-safe:active:scale-[0.98]"
               >
-                {confirmLabel}
+                {confirmLoading && <Spinner />}
+                {confirmLoading ? loadingLabel : confirmLabel}
               </button>
             </div>
           </motion.div>
