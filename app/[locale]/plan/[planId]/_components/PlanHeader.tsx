@@ -7,10 +7,10 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { sectionEnter } from "@/app/_components/motion/tokens";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import TopBarClose from "@/app/_components/ui/TopBarClose";
-import { useBackOrReplace } from "../../_hooks/useBackOrReplace";
 import { usePlanEditStore } from "../../_store/usePlanEditStore";
 
 interface PlanHeaderProps {
@@ -24,14 +24,14 @@ export default function PlanHeader({
 }: PlanHeaderProps) {
   const t = useTranslations("plan");
   const locale = useLocale();
-  const backOrReplace = useBackOrReplace();
+  const router = useRouter();
   const mode = usePlanEditStore((s) => s.mode);
   const discard = usePlanEditStore((s) => s.discard);
 
   const handleClose = () => {
     if (disabled || usePlanEditStore.getState().saving) return;
     if (mode === "edit") discard();
-    backOrReplace(`/${locale}/mission`);
+    router.replace(`/${locale}/home`);
   };
 
   return (
