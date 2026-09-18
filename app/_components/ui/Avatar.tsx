@@ -1,7 +1,7 @@
 /**
  * @component Avatar
- * 원형 프로필 이미지. src가 없으면 bg-surface 원 + 회색 실루엣(머리+어깨) 플레이스홀더 (디자인 icon/profile).
- * 실루엣은 40px 기준 디자인(머리 지름 16, 어깨 지름 30, 어깨 하단 -8)을 %로 환산해 size에 따라 함께 스케일된다.
+ * 원형 프로필 이미지. src가 없으면 피그마 icon/profile(376:3010)을 그대로 옮긴 인라인 SVG
+ * 플레이스홀더(연회색 원 + 머리·몸통 실루엣)를 40×40 viewBox 기준으로 그린다.
  * 닉네임 텍스트가 옆에 있는 자리에서는 alt=""로 장식 처리한다.
  */
 
@@ -32,13 +32,23 @@ export default function Avatar({
   }
 
   return (
-    <div
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
       aria-hidden="true"
-      style={style}
-      className={`relative shrink-0 overflow-hidden rounded-full bg-surface ${className}`}
+      className={`shrink-0 ${className}`}
     >
-      <div className="absolute left-1/2 top-[30%] size-[40%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted" />
-      <div className="absolute -bottom-[20%] left-1/2 size-[75%] -translate-x-1/2 rounded-full bg-muted" />
-    </div>
+      <path
+        d="M5 20C5 11.7157 11.7157 5 20 5C28.2843 5 35 11.7157 35 20C35 28.2843 28.2843 35 20 35C11.7157 35 5 28.2843 5 20Z"
+        className="fill-surface"
+      />
+      <circle cx="19.6667" cy="16.6667" r="6.66667" className="fill-muted" />
+      <path
+        d="M20 25C24.5633 25 28.5143 27.246 30.4317 30.5183C30.4886 30.6154 30.4709 30.7385 30.3897 30.8165C27.694 33.4066 24.0335 35 20 35C15.9669 35 12.3068 33.407 9.61116 30.8175C9.52999 30.7395 9.51229 30.6164 9.56919 30.5193C11.4863 27.2467 15.4365 25.0001 20 25Z"
+        className="fill-muted"
+      />
+    </svg>
   );
 }
