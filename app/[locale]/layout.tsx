@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import QueryProvider from "@/app/_components/providers/QueryProvider";
 import MotionProvider from "@/app/_components/providers/MotionProvider";
+import AuthGuard from "@/app/_components/providers/AuthGuard";
 import { MOBILE_FRAME_CLASS } from "@/lib/utils";
 import "@/app/globals.css";
 
@@ -50,7 +51,9 @@ export default async function LocaleLayout({ children, params }: Props) {
         <div className={MOBILE_FRAME_CLASS}>
           <NextIntlClientProvider messages={messages}>
             <MotionProvider>
-              <QueryProvider>{children}</QueryProvider>
+              <QueryProvider>
+                <AuthGuard>{children}</AuthGuard>
+              </QueryProvider>
             </MotionProvider>
           </NextIntlClientProvider>
         </div>

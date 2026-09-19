@@ -238,8 +238,10 @@ export async function generateCourse(
 ): Promise<CourseGenerationResult> {
   const path = `/api/travel-plans/${Number(planId)}/course/generate${buildQuery({ locale })}`;
   // AI 코스 생성은 추천 파이프라인(TourAPI·카카오맵·동선 최적화)을 돌려 수십 초~수 분 걸린다.
-  // 기본 10초 타임아웃으로는 중간에 abort되므로 이 요청만 넉넉히 3분(180초)을 준다.
-  const dto = (await apiPost<CourseGenerationResultDto>(path, undefined, { timeoutMs: 180_000 })).data;
+  // 서버/인프라 레벨 게이트웨이 타임아웃(504)이 발생할 수 있으므로 프론트 타임아웃을 5분으로 설정한다.
+  // 504 자체는 인프라 타임아웃이라 프론트에서 완전히 막을 수 없으며,
+  // useCourseGeneration에서 재시도 로직으로 보완한다.
+  const dto = (await apiPost<CourseGenerationResultDto>(path, undefined, { timeoutMs: 300_000 })).data;
   // 응답 본문 구조가 스펙과 달라도(예: days 누락) 파싱 에러로 실패 처리되지 않도록 방어적으로 매핑한다.
   // 실제 방문지 목록은 이후 fetchPlanCourse로 조회하므로, 여기서는 생성 성공 자체가 중요하다.
   return {
