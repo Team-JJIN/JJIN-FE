@@ -216,11 +216,11 @@ export default function PlanMap({
   return (
     <motion.div
       {...sectionEnter(2, true)}
-      className="relative h-[196px] w-full shrink-0 overflow-hidden rounded-2xl bg-surface"
+      className="relative z-20 h-[196px] w-full shrink-0 rounded-2xl bg-surface"
     >
       <div
         ref={containerRef}
-        className="absolute inset-0"
+        className="absolute inset-0 overflow-hidden rounded-2xl"
         role="group"
         aria-label={t("mapLabel")}
       />
