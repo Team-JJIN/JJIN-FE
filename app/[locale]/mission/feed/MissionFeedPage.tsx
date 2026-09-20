@@ -10,7 +10,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
@@ -28,11 +27,12 @@ import { useInfiniteScroll } from "../_hooks/useInfiniteScroll";
 import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import { useCommentSheetStore } from "../_store/useCommentSheetStore";
 import FeedCard from "../_components/FeedCard";
+import NavigationLink from "@/app/_components/navigation/NavigationLink";
+import { MissionFeedSkeleton } from "@/app/_components/loading/PageSkeletons";
 import type { FeedPost, FeedTab, FeedMissionSummary } from "@/app/_api/feed";
 
 export default function MissionFeedPage() {
   const t = useTranslations("mission");
-  const router = useRouter();
   const locale = useLocale();
   const openAddMission = useMissionSheetStore((s) => s.openAdd);
   const openComments = useCommentSheetStore((s) => s.openComments);
@@ -82,10 +82,6 @@ export default function MissionFeedPage() {
     rootRef: scrollContainerRef,
   });
 
-  const goToSearch = useCallback(() => {
-    router.push(`/${locale}/mission/search`);
-  }, [router, locale]);
-
   const handleTabChange = useCallback((next: FeedTab) => {
     setTab(next);
   }, []);
@@ -124,14 +120,13 @@ export default function MissionFeedPage() {
         <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">
           {t("feedTitle")}
         </h1>
-        <button
-          type="button"
-          onClick={goToSearch}
+        <NavigationLink
+          href={`/${locale}/mission/search`}
           aria-label={t("searchPlaceholder")}
           className="transition duration-150 motion-safe:active:scale-90"
         >
           <SearchIcon />
-        </button>
+        </NavigationLink>
       </motion.div>
 
       <motion.div
@@ -171,9 +166,9 @@ export default function MissionFeedPage() {
       <motion.div
         {...sectionEnter(2, true)}
         ref={scrollContainerRef}
-        className="mt-[15px] flex-1 overflow-y-auto pb-[96px]"
+        className="relative mt-[15px] flex-1 overflow-y-auto pb-[96px]"
       >
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           {isError ? (
             <motion.div
               key="error"
@@ -192,15 +187,8 @@ export default function MissionFeedPage() {
               </button>
             </motion.div>
           ) : isPending ? (
-            <motion.div
-              key="pending"
-              {...fadeSwap}
-              className="flex items-center justify-center py-20"
-            >
-              <div
-                aria-hidden="true"
-                className="size-8 animate-spin rounded-full border-[3px] border-surface border-t-dark"
-              />
+            <motion.div key="pending" {...fadeSwap}>
+              <MissionFeedSkeleton contentOnly />
             </motion.div>
           ) : posts.length === 0 ? (
             <motion.div

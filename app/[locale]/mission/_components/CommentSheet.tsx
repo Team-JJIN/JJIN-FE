@@ -201,9 +201,9 @@ function CommentSheetBody({ postId, active }: CommentSheetBodyProps) {
     <div className="flex h-full flex-col">
       <div
         ref={listRef}
-        className="flex-1 overflow-y-auto overscroll-contain p-[16px]"
+        className="relative flex-1 overflow-y-auto overscroll-contain p-[16px]"
       >
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           {isError ? (
             <motion.div
               key="error"

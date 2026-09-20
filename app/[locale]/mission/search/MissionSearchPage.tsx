@@ -227,10 +227,10 @@ export default function MissionSearchPage() {
 
       <motion.div
         ref={scrollContainerRef}
-        className="mt-[15px] flex-1 overflow-y-auto pb-6"
+        className="relative mt-[15px] flex-1 overflow-y-auto pb-6"
         {...sectionEnter(3, true)}
       >
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           {isError ? (
             <motion.div
               key="error"

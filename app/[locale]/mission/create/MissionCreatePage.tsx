@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
@@ -17,6 +17,8 @@ import MissionCreateForm from "../_components/MissionCreateForm";
 import type { CreatedMissionResult } from "../_components/MissionCreateForm";
 import { useMissionSheetStore } from "../_store/useMissionSheetStore";
 import { sectionEnter } from "@/app/_components/motion/tokens";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
+import Spinner from "@/app/_components/ui/Spinner";
 
 export default function MissionCreatePage() {
   const router = useRouter();
@@ -24,27 +26,41 @@ export default function MissionCreatePage() {
   const t = useTranslations("mission.create");
   const tMission = useTranslations("mission");
   const openAddMission = useMissionSheetStore((s) => s.openAdd);
+  const [isPending, startTransition] = useTransition();
+  const missionHref = `/${locale}/mission`;
+
+  useRoutePrefetch(missionHref);
 
   const handleClose = useCallback(() => {
-    router.push(`/${locale}/mission`);
-  }, [router, locale]);
+    startTransition(() => router.push(missionHref));
+  }, [router, missionHref, startTransition]);
 
   const handleDone = useCallback(
     (created?: CreatedMissionResult) => {
       if (created) openAddMission(created.id, created.preview);
-      router.push(`/${locale}/mission`);
+      startTransition(() => router.push(missionHref));
     },
-    [openAddMission, router, locale],
+    [openAddMission, router, missionHref, startTransition],
   );
 
   return (
     <div className="flex h-dvh flex-col overflow-y-auto bg-white px-[20px] pb-[40px] pt-[32px]">
-      <motion.div {...sectionEnter(0)}>
+      <motion.div {...sectionEnter(0)} className="relative">
         <TopBarClose
           title={t("title")}
           onClose={handleClose}
           closeLabel={tMission("close")}
+          disabled={isPending}
         />
+        {isPending && (
+          <span
+            role="status"
+            className="absolute right-0 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center bg-white text-muted"
+          >
+            <Spinner />
+            <span className="sr-only">{tMission("close")}</span>
+          </span>
+        )}
       </motion.div>
       <motion.div {...sectionEnter(1)} className="mt-6">
         <MissionCreateForm onDone={handleDone} />
