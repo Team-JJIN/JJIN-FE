@@ -104,6 +104,7 @@ export default function MissionHomePage() {
         </h1>
         <NavigationLink
           href={`/${locale}/mission/create`}
+          scroll={false}
           aria-label={t("create.title")}
           className="transition duration-150 motion-safe:active:scale-90"
         >
