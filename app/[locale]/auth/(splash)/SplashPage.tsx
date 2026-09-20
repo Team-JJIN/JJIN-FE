@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import Image from "next/image";
-import BigButton from "@/app/_components/ui/BigButton";
 import MediumButton from "@/app/_components/ui/MediumButton";
 import { restoreSession } from "@/app/_api/client";
+import NavigationLink from "@/app/_components/navigation/NavigationLink";
 
 const LANGUAGES = [
   { locale: "ko", label: "한국어" },
@@ -94,7 +94,9 @@ export default function SplashPage() {
 
       {/* 하단 영역 */}
       <div className="flex flex-col">
-        <p className="text-[15px] font-semibold text-muted mb-[21px]">{text.languageSelect}</p>
+        <p className="text-[15px] font-semibold text-muted mb-[21px]">
+          {text.languageSelect}
+        </p>
 
         <div className="flex flex-col gap-[13px]">
           {LANGUAGES.map(({ locale, label }) => (
@@ -110,9 +112,12 @@ export default function SplashPage() {
 
         {/* 시작하기 버튼 — 하단 여백은 화면이 작으면 24px, 700px↑이면 43px */}
         <div className="mt-[21px] mb-[24px] [@media(min-height:700px)]:mb-[43px]">
-          <BigButton fullWidth onClick={() => router.push(`/${selectedLocale}/auth/login`)}>
+          <NavigationLink
+            href={`/${selectedLocale}/auth/login`}
+            className="flex h-[48px] w-full items-center justify-center rounded-[16px] bg-dark text-[15px] font-semibold leading-[140%] tracking-[-0.3%] text-lime transition duration-150 motion-safe:active:scale-[0.98]"
+          >
             {text.start}
-          </BigButton>
+          </NavigationLink>
         </div>
       </div>
     </div>

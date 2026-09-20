@@ -7,6 +7,7 @@ import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import CodeBox from "@/app/_components/ui/CodeBox";
 import { sendVerificationCode, verifyCode } from "@/app/_api/auth";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
 
 const OTP_LENGTH = 6;
 const RESEND_COOLDOWN = 300;
@@ -25,6 +26,9 @@ export default function EmailVerifyPage() {
 
   const isComplete = otp.every((v) => v !== "");
   const sentRef = useRef(false);
+  const signupHref = `/${locale}/auth/signup?verified=true&email=${encodeURIComponent(email)}`;
+
+  useRoutePrefetch(signupHref, isComplete && !isSubmitting);
 
   // 페이지 진입 시 인증코드 자동 발송 (1회만)
   useEffect(() => {
@@ -60,7 +64,7 @@ export default function EmailVerifyPage() {
 
     try {
       await verifyCode(email, otp.join(""));
-      router.push(`/${locale}/auth/signup?verified=true&email=${encodeURIComponent(email)}`);
+      router.push(signupHref);
     } catch {
       setError(true);
       setOtp(Array(OTP_LENGTH).fill(""));
@@ -78,7 +82,12 @@ export default function EmailVerifyPage() {
       </p>
 
       <div className="mt-[12px]">
-        <CodeBox length={OTP_LENGTH} value={otp} onChange={handleOtpChange} error={error} />
+        <CodeBox
+          length={OTP_LENGTH}
+          value={otp}
+          onChange={handleOtpChange}
+          error={error}
+        />
       </div>
 
       <div className="mt-[12px] flex items-center justify-between">
@@ -97,7 +106,13 @@ export default function EmailVerifyPage() {
       <div className="flex-1" />
 
       <div className="pb-[43px]">
-        <BigButton fullWidth disabled={!isComplete} isLoading={isSubmitting} onClick={handleConfirm}>
+        <BigButton
+          fullWidth
+          disabled={!isComplete}
+          isLoading={isSubmitting}
+          onClick={handleConfirm}
+          aria-label={t("confirm")}
+        >
           {t("confirm")}
         </BigButton>
       </div>

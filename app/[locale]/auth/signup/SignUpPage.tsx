@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useTransition } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,8 +11,15 @@ import BigButton from "@/app/_components/ui/BigButton";
 import InputText from "@/app/_components/ui/InputText";
 import CheckBox from "@/app/_components/ui/CheckBox";
 import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
-import { signUp, getTerms, handleAuthSuccess, type TermsItem } from "@/app/_api/auth";
+import {
+  signUp,
+  getTerms,
+  handleAuthSuccess,
+  type TermsItem,
+} from "@/app/_api/auth";
 import { getApiErrorMessage } from "@/app/_api/client";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
+import Spinner from "@/app/_components/ui/Spinner";
 
 type SignUpForm = {
   nickname: string;
@@ -23,8 +30,10 @@ type SignUpForm = {
 
 // 약관 type별 상세 페이지(노션) 링크. 라벨 클릭 시 새 탭으로 이동한다.
 const TERM_LINKS: Record<string, string> = {
-  SERVICE: "https://picayune-neon-796.notion.site/3dcd0ccedfad806a9ae8f1bb6ebeced2",
-  MARKETING: "https://picayune-neon-796.notion.site/3dcd0ccedfad80669620fca20ed5db98",
+  SERVICE:
+    "https://picayune-neon-796.notion.site/3dcd0ccedfad806a9ae8f1bb6ebeced2",
+  MARKETING:
+    "https://picayune-neon-796.notion.site/3dcd0ccedfad80669620fca20ed5db98",
 };
 
 export default function SignUpPage() {
@@ -41,6 +50,8 @@ export default function SignUpPage() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [verificationPending, startVerificationTransition] = useTransition();
 
   // 약관 상태
   const [terms, setTerms] = useState<TermsItem[]>([]);
@@ -49,7 +60,7 @@ export default function SignUpPage() {
   // 필수 약관을 위로 정렬 (required=true 우선)
   const sortedTerms = useMemo(
     () => [...terms].sort((a, b) => Number(b.required) - Number(a.required)),
-    [terms]
+    [terms],
   );
 
   const { register, watch } = useForm<SignUpForm>({
@@ -68,16 +79,29 @@ export default function SignUpPage() {
 
   const isNameValid = nickname.trim().length > 0;
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isPasswordValid = password.length >= 8 && /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
-  const isConfirmMatch = password === confirmPassword && confirmPassword.length > 0;
+  const isPasswordValid =
+    password.length >= 8 && /^(?=.*[A-Za-z])(?=.*\d)/.test(password);
+  const isConfirmMatch =
+    password === confirmPassword && confirmPassword.length > 0;
   const allRequiredTermsAgreed = terms
     .filter((term) => term.required)
     .every((term) => agreedTermIds.has(term.id));
-  const isFormValid = isNameValid && isEmailValid && isVerified && isPasswordValid && isConfirmMatch && allRequiredTermsAgreed;
+  const isFormValid =
+    isNameValid &&
+    isEmailValid &&
+    isVerified &&
+    isPasswordValid &&
+    isConfirmMatch &&
+    allRequiredTermsAgreed;
+  const verificationRoute = `/${locale}/auth/signup/verify`;
+
+  useRoutePrefetch(verificationRoute, !isVerified && isEmailValid);
 
   // 약관 목록 조회
   useEffect(() => {
-    getTerms().then(setTerms).catch(() => {});
+    getTerms()
+      .then(setTerms)
+      .catch(() => {});
   }, []);
 
   const toggleTerm = (id: number) => {
@@ -95,31 +119,42 @@ export default function SignUpPage() {
       return;
     }
     setEmailError("");
-    router.push(`/${locale}/auth/signup/verify?email=${encodeURIComponent(email)}`);
+    startVerificationTransition(() =>
+      router.push(`${verificationRoute}?email=${encodeURIComponent(email)}`),
+    );
   };
 
   const handlePasswordBlur = () => {
-    if (password && !isPasswordValid) setPasswordError(t("errorPasswordInvalid"));
+    if (password && !isPasswordValid)
+      setPasswordError(t("errorPasswordInvalid"));
     else setPasswordError("");
   };
 
   const handleConfirmBlur = () => {
-    if (confirmPassword && !isConfirmMatch) setConfirmError(t("errorPasswordMismatch"));
+    if (confirmPassword && !isConfirmMatch)
+      setConfirmError(t("errorPasswordMismatch"));
     else setConfirmError("");
   };
 
   const handleSubmit = async () => {
-    if (!isFormValid) return;
+    if (!isFormValid || isSigningUp) return;
     setSubmitError("");
+    setIsSigningUp(true);
     try {
       const termsAgreements = terms.map((term) => ({
         type: term.type,
         agreed: agreedTermIds.has(term.id),
       }));
-      const tokens = await signUp(email, nickname.trim(), password, termsAgreements);
+      const tokens = await signUp(
+        email,
+        nickname.trim(),
+        password,
+        termsAgreements,
+      );
       handleAuthSuccess(tokens, locale, (path) => router.push(path));
     } catch (err: unknown) {
       setSubmitError(getApiErrorMessage(err, t("errorSignUpFailed")));
+      setIsSigningUp(false);
     }
   };
 
@@ -127,10 +162,15 @@ export default function SignUpPage() {
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       <motion.div {...sectionEnter(0)} className="pt-[7vh]">
         <h1 className="text-[22px] font-semibold text-ink">{t("title")}</h1>
-        <p className="mt-[7px] text-[12px] font-medium text-subtext">{t("subtitle")}</p>
+        <p className="mt-[7px] text-[12px] font-medium text-subtext">
+          {t("subtitle")}
+        </p>
       </motion.div>
 
-      <motion.div {...sectionEnter(1)} className="mt-[11px] flex flex-col gap-[16px]">
+      <motion.div
+        {...sectionEnter(1)}
+        className="mt-[11px] flex flex-col gap-[16px]"
+      >
         {/* 이름 */}
         <InputText
           type="text"
@@ -147,7 +187,10 @@ export default function SignUpPage() {
               error={emailError}
               disabled={isVerified}
               {...register("email")}
-              onChange={(e) => { register("email").onChange(e); setEmailError(""); }}
+              onChange={(e) => {
+                register("email").onChange(e);
+                setEmailError("");
+              }}
             />
           </div>
           {isVerified ? (
@@ -158,9 +201,16 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={handleRequestVerification}
+              disabled={verificationPending}
+              aria-busy={verificationPending}
+              aria-label={t("requestVerification")}
               className="h-[44px] w-[88px] shrink-0 rounded-[14px] border-[1.5px] border-lime-vivid bg-lime-pale text-[12px] font-normal text-dark focus:outline-none"
             >
-              {t("requestVerification")}
+              {verificationPending ? (
+                <Spinner className="mx-auto" />
+              ) : (
+                t("requestVerification")
+              )}
             </button>
           )}
         </div>
@@ -173,7 +223,11 @@ export default function SignUpPage() {
           {...register("password")}
           onBlur={handlePasswordBlur}
           rightElement={
-            <button type="button" onClick={() => setShowPassword((p) => !p)} className="text-muted">
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="text-muted"
+            >
               {showPassword ? <EyeIcon /> : <EyeOffIcon />}
             </button>
           }
@@ -206,9 +260,17 @@ export default function SignUpPage() {
 
       <div className="pb-[43px]">
         {submitError && (
-          <p className="mb-[10px] text-center text-[12px] text-error">{submitError}</p>
+          <p className="mb-[10px] text-center text-[12px] text-error">
+            {submitError}
+          </p>
         )}
-        <BigButton fullWidth disabled={!isFormValid} onClick={handleSubmit}>
+        <BigButton
+          fullWidth
+          disabled={!isFormValid || isSigningUp}
+          isLoading={isSigningUp}
+          aria-label={t("sendVerificationEmail")}
+          onClick={handleSubmit}
+        >
           {t("sendVerificationEmail")}
         </BigButton>
       </div>

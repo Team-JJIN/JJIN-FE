@@ -14,6 +14,7 @@ import { EyeIcon, EyeOffIcon } from "@/app/_components/icons";
 import { buildGoogleOAuthUrl } from "@/app/_api/google-oauth";
 import { loginWithEmail, handleAuthSuccess } from "@/app/_api/auth";
 import { ApiError, getApiErrorMessage } from "@/app/_api/client";
+import NavigationLink from "@/app/_components/navigation/NavigationLink";
 
 type LoginForm = { email: string; password: string };
 
@@ -61,7 +62,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <motion.div {...sectionEnter(0)} className="flex flex-[2] flex-col items-center justify-center">
+      <motion.div
+        {...sectionEnter(0)}
+        className="flex flex-[2] flex-col items-center justify-center"
+      >
         <Image
           src="/image/JJIN.png"
           alt="JJIN"
@@ -76,7 +80,10 @@ export default function LoginPage() {
       </motion.div>
 
       <motion.div {...sectionEnter(1)} className="flex flex-[3] flex-col">
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-[16px]">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-[16px]"
+        >
           <InputText
             type="text"
             placeholder={t("email")}
@@ -119,13 +126,12 @@ export default function LoginPage() {
           <button type="button" className="text-[13px] text-neutral-500">
             {t("forgotPassword")}
           </button>
-          <button
-            type="button"
-            onClick={() => router.push(`/${locale}/auth/signup`)}
+          <NavigationLink
+            href={`/${locale}/auth/signup`}
             className="text-[13px] font-semibold text-neutral-700"
           >
             {t("signUp")}
-          </button>
+          </NavigationLink>
         </div>
 
         <div className="flex items-center gap-3 mt-[11px]">
@@ -140,7 +146,12 @@ export default function LoginPage() {
           disabled={isLoggingIn}
           className="mt-[16px] flex h-[48px] w-full items-center justify-center gap-[10px] rounded-2xl border border-[#EAEBEC] bg-white text-[14px] font-medium text-dark disabled:opacity-50"
         >
-          <img src="/image/google-icon.svg" alt="Google" width={18} height={18} />
+          <img
+            src="/image/google-icon.svg"
+            alt="Google"
+            width={18}
+            height={18}
+          />
           Sign in with Google
         </button>
 
