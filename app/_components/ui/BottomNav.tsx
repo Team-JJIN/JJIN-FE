@@ -6,8 +6,9 @@
  */
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "@/app/_components/hooks/useLocale";
@@ -24,10 +25,34 @@ type Tab = {
 };
 
 const TABS: Tab[] = [
-  { key: "home", iconOff: "/image/nav-home-off.png", iconOn: "/image/nav-home-on.png", width: 20, path: "/home" },
-  { key: "recommend", iconOff: "/image/nav-search-off.png", iconOn: "/image/nav-search-on.png", width: 20, path: "/mission" },
-  { key: "feed", iconOff: "/image/nav-feed-off.png", iconOn: "/image/nav-feed-on.png", width: 20, path: "/mission/feed" },
-  { key: "mypage", iconOff: "/image/nav-mypage-off.png", iconOn: null, width: 20, path: null },
+  {
+    key: "home",
+    iconOff: "/image/nav-home-off.png",
+    iconOn: "/image/nav-home-on.png",
+    width: 20,
+    path: "/home",
+  },
+  {
+    key: "recommend",
+    iconOff: "/image/nav-search-off.png",
+    iconOn: "/image/nav-search-on.png",
+    width: 20,
+    path: "/mission",
+  },
+  {
+    key: "feed",
+    iconOff: "/image/nav-feed-off.png",
+    iconOn: "/image/nav-feed-on.png",
+    width: 20,
+    path: "/mission/feed",
+  },
+  {
+    key: "mypage",
+    iconOff: "/image/nav-mypage-off.png",
+    iconOn: null,
+    width: 20,
+    path: null,
+  },
 ];
 
 const NAV_HEIGHT = 80;
@@ -35,10 +60,14 @@ const ICON_BOX = 24; // 아이콘 세로 영역
 
 export default function BottomNav() {
   const t = useTranslations("nav");
+  const tNavigation = useTranslations("navigation");
   const router = useRouter();
   const locale = useLocale();
   const pathname = usePathname();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutPending, setLogoutPending] = useState(false);
+  const [navigationPending, startNavigationTransition] = useTransition();
+  const isLogoutPending = logoutPending || navigationPending;
 
   // locale prefix를 제거한 경로 (예: /ko/mission/feed -> /mission/feed)
   const relativePath = pathname?.replace(new RegExp(`^/${locale}`), "") || "/";
@@ -46,28 +75,27 @@ export default function BottomNav() {
   const isActive = (path: string | null) => {
     if (!path) return false;
     // 미션 추천(/mission)은 정확히 일치할 때만 활성 (하위 경로 /mission/feed 등은 각자 탭이 처리)
-    return path === "/mission" ? relativePath === "/mission" : relativePath.startsWith(path);
-  };
-
-  const handleTab = (tab: Tab) => {
-    if (tab.path === null) {
-      setLogoutOpen(true);
-      return;
-    }
-    router.push(`/${locale}${tab.path}`);
+    return path === "/mission"
+      ? relativePath === "/mission"
+      : relativePath.startsWith(path);
   };
 
   const handleLogout = async () => {
-    setLogoutOpen(false);
+    if (isLogoutPending) return;
+    setLogoutPending(true);
     try {
       await logout();
     } catch (err) {
       if (process.env.NODE_ENV !== "production") {
-        console.error("[nav] 로그아웃 실패:", getApiErrorMessage(err, "logout failed"));
+        console.error(
+          "[nav] 로그아웃 실패:",
+          getApiErrorMessage(err, "logout failed"),
+        );
       }
     } finally {
       // 로그아웃 후 첫 페이지(스플래시/언어 선택)로 이동
-      router.push(`/${locale}`);
+      setLogoutPending(false);
+      startNavigationTransition(() => router.push(`/${locale}`));
     }
   };
 
@@ -81,16 +109,12 @@ export default function BottomNav() {
           const active = isActive(tab.path);
           // 활성 탭만 on 아이콘, 나머지는 off. (mypage처럼 on이 없으면 항상 off)
           const src = active && tab.iconOn ? tab.iconOn : tab.iconOff;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => handleTab(tab)}
-              aria-label={t(tab.key)}
-              aria-current={active ? "page" : undefined}
-              className="flex flex-1 flex-col items-center justify-center gap-[6px]"
-            >
-              <span className="flex items-center justify-center" style={{ height: ICON_BOX }}>
+          const content = (
+            <>
+              <span
+                className="flex items-center justify-center"
+                style={{ height: ICON_BOX }}
+              >
                 <Image
                   src={src}
                   alt=""
@@ -101,10 +125,36 @@ export default function BottomNav() {
                   style={{ width: tab.width }}
                 />
               </span>
-              <span className={`text-[10px] font-normal ${active ? "text-ink" : "text-muted"}`}>
+              <span
+                className={`text-[10px] font-normal ${active ? "text-ink" : "text-muted"}`}
+              >
                 {t(tab.key)}
               </span>
+            </>
+          );
+
+          return tab.path === null ? (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setLogoutOpen(true)}
+              disabled={isLogoutPending}
+              aria-busy={isLogoutPending}
+              aria-label={t(tab.key)}
+              className="flex flex-1 flex-col items-center justify-center gap-[6px]"
+            >
+              {content}
             </button>
+          ) : (
+            <Link
+              key={tab.key}
+              href={`/${locale}${tab.path}`}
+              aria-label={t(tab.key)}
+              aria-current={active ? "page" : undefined}
+              className="flex flex-1 flex-col items-center justify-center gap-[6px]"
+            >
+              {content}
+            </Link>
           );
         })}
       </nav>
@@ -115,8 +165,12 @@ export default function BottomNav() {
         description={t("logoutDescription")}
         cancelLabel={t("cancel")}
         confirmLabel={t("confirm")}
-        onCancel={() => setLogoutOpen(false)}
+        onCancel={() => {
+          if (!isLogoutPending) setLogoutOpen(false);
+        }}
         onConfirm={handleLogout}
+        confirmLoading={isLogoutPending}
+        loadingLabel={tNavigation("pending")}
       />
     </>
   );

@@ -1,0 +1,10 @@
+{
+  "navigation": {
+    "loading": "正在准备页面",
+    "pending": "正在跳转"
+  },
+  "home": {
+    "errorLoad": "无法加载行程",
+    "retry": "重试"
+  }
+}

@@ -11,6 +11,7 @@
 import { useState, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { restoreSession } from "@/app/_api/client";
+import ScreenPreparation from "@/app/_components/loading/ScreenPreparation";
 
 export default function QueryProvider({
   children,
@@ -44,7 +45,7 @@ export default function QueryProvider({
 
   return (
     <QueryClientProvider client={queryClient}>
-      {sessionReady ? children : <div className="h-dvh bg-white" />}
+      {sessionReady ? children : <ScreenPreparation className="h-dvh" />}
     </QueryClientProvider>
   );
 }

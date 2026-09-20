@@ -9,6 +9,10 @@
     "cancel": "キャンセル",
     "confirm": "確認"
   },
+  "navigation": {
+    "loading": "画面を準備しています",
+    "pending": "移動しています"
+  },
   "home": {
     "title": "旅程",
     "emptyTitle": "作成された旅程がありません",
@@ -21,6 +25,8 @@
     "deleteCancel": "キャンセル",
     "deleteConfirm": "削除する",
     "errorDeleteFailed": "旅程の削除に失敗しました。もう一度お試しください",
+    "errorLoad": "旅程を読み込めませんでした",
+    "retry": "もう一度試す",
     "contentTypes": {
       "RESTAURANT": "グルメ",
       "TOURIST_ATTRACTION": "体験観光",
