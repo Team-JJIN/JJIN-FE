@@ -1,10 +1,11 @@
 /**
  * @component PageTransition
- * 페이지 전환 애니메이션 래퍼. fade + 슬라이드.
+ * 페이지 전환 래퍼. 새 화면과 loading UI를 첫 프레임부터 숨김없이 표시한다.
  */
 "use client";
 
 import { motion } from "framer-motion";
+import { DUR, EASE } from "@/app/_components/motion/tokens";
 
 interface PageTransitionProps {
   children: React.ReactNode;
@@ -13,9 +14,9 @@ interface PageTransitionProps {
 export default function PageTransition({ children }: PageTransitionProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={false}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: DUR.md, ease: EASE.page }}
       className="h-full"
     >
       {children}

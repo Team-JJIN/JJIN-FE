@@ -12,6 +12,7 @@
 
 import { memo, Suspense } from "react";
 import { useAuthExpired } from "@/app/_components/hooks/useAuthExpired";
+import ScreenPreparation from "@/app/_components/loading/ScreenPreparation";
 
 function AuthGuardInner({ children }: { children: React.ReactNode }) {
   useAuthExpired();
@@ -19,9 +20,13 @@ function AuthGuardInner({ children }: { children: React.ReactNode }) {
 }
 
 // children이 바뀌지 않는 한 리렌더하지 않도록 memo 적용
-const AuthGuard = memo(function AuthGuard({ children }: { children: React.ReactNode }) {
+const AuthGuard = memo(function AuthGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ScreenPreparation className="h-dvh" />}>
       <AuthGuardInner>{children}</AuthGuardInner>
     </Suspense>
   );

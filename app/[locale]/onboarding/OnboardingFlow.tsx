@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useTransition } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -10,8 +10,12 @@ import { useLocale } from "@/app/_components/hooks/useLocale";
 import BigButton from "@/app/_components/ui/BigButton";
 import TopBarBack from "@/app/_components/ui/TopBarBack";
 import { getApiErrorMessage, ApiError } from "@/app/_api/client";
-import { submitOnboarding, buildOnboardingRequest } from "@/app/_api/onboarding";
+import {
+  submitOnboarding,
+  buildOnboardingRequest,
+} from "@/app/_api/onboarding";
 import { planKeys } from "@/app/[locale]/plan/_hooks/usePlanQueries";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
 
 import { SUB_CATEGORIES } from "./_constants";
 import type { OnboardingData, Category } from "./_types";
@@ -36,6 +40,7 @@ export default function OnboardingFlow() {
 
   const [step, setStep] = useState(1);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isNavigating, startNavigationTransition] = useTransition();
   // 앱 내부 알림(시스템 alert 대체). 제출 실패 등의 사유를 화면 안에 잠깐 띄운다.
   const [toast, setToast] = useState<string | null>(null);
   const [data, setData] = useState<OnboardingData>({
@@ -81,12 +86,18 @@ export default function OnboardingFlow() {
   const canProceed = useMemo(() => {
     switch (step) {
       case 1:
-        return !!(data.dateStart && data.dateEnd) && !!(data.region || data.regionUndecided) && data.transport.length > 0;
+        return (
+          !!(data.dateStart && data.dateEnd) &&
+          !!(data.region || data.regionUndecided) &&
+          data.transport.length > 0
+        );
       case 2:
         return data.categories.length >= 2 && data.categories.length <= 4;
       case 3:
         return data.categories.every((cat) =>
-          (SUB_CATEGORIES[cat] ?? []).some((sub) => data.subCategories.includes(sub))
+          (SUB_CATEGORIES[cat] ?? []).some((sub) =>
+            data.subCategories.includes(sub),
+          ),
         );
       case 4:
         return data.level !== "";
@@ -97,7 +108,13 @@ export default function OnboardingFlow() {
 
   // 홈으로 이동(일정 생성 완료 / 건너뛰기 공통). 이 화면은 여행 일정 생성 화면이라
   // 토큰/역할 갱신 없이 홈으로 돌아간다.
-  const goHome = useCallback(() => router.push(`/${locale}/home`), [router, locale]);
+  const homeHref = `/${locale}/home`;
+  useRoutePrefetch(homeHref, step === 1 || isCompleting);
+
+  const goHome = useCallback(
+    () => startNavigationTransition(() => router.push(homeHref)),
+    [router, homeHref, startNavigationTransition],
+  );
 
   // 앱 내부 알림을 띄우고 3초 뒤 자동으로 닫는다.
   const showToast = useCallback((message: string) => {
@@ -127,7 +144,16 @@ export default function OnboardingFlow() {
       }
       showToast(getApiErrorMessage(err, t("errorSubmitFailed")));
     }
-  }, [isCompleting, data, minuteStart, minuteEnd, goHome, queryClient, t, showToast]);
+  }, [
+    isCompleting,
+    data,
+    minuteStart,
+    minuteEnd,
+    goHome,
+    queryClient,
+    t,
+    showToast,
+  ]);
 
   const handleNext = useCallback(async () => {
     if (step < 4) {
@@ -139,8 +165,8 @@ export default function OnboardingFlow() {
 
   const handlePrev = useCallback(() => {
     if (step > 1) setStep((s) => s - 1);
-    else router.push(`/${locale}/home`);
-  }, [step, router, locale]);
+    else goHome();
+  }, [step, goHome]);
 
   const toggleCategory = useCallback((cat: Category) => {
     setData((d) => {
@@ -149,7 +175,9 @@ export default function OnboardingFlow() {
         return {
           ...d,
           categories: d.categories.filter((c) => c !== cat),
-          subCategories: d.subCategories.filter((s) => !subsToRemove.includes(s)),
+          subCategories: d.subCategories.filter(
+            (s) => !subsToRemove.includes(s),
+          ),
         };
       }
       if (d.categories.length >= 4) return d;
@@ -161,7 +189,10 @@ export default function OnboardingFlow() {
     setData((d) => {
       const isRemoving = d.subCategories.includes(sub);
       if (isRemoving) {
-        return { ...d, subCategories: d.subCategories.filter((c) => c !== sub) };
+        return {
+          ...d,
+          subCategories: d.subCategories.filter((c) => c !== sub),
+        };
       }
       // "다 좋아요"(allFood, LIKE_ALL_FOOD)는 다른 음식점 세부 취향과 함께 선택할 수 없다(서버 제약).
       // 상호배타로 처리: allFood 선택 시 다른 음식 취향 해제, 다른 음식 취향 선택 시 allFood 해제.
@@ -176,28 +207,34 @@ export default function OnboardingFlow() {
   }, []);
 
   // "2025-07-22" → "07.22.(수)" 형식. 요일은 locale별 weekdays i18n 사용.
-  const formatDate = useCallback((d: string | null) => {
-    if (!d) return "";
-    const [, month, day] = d.split("-");
-    const weekday = t("weekdays").split(",")[new Date(d).getDay()];
-    return `${month}.${day}.(${weekday})`;
-  }, [t]);
+  const formatDate = useCallback(
+    (d: string | null) => {
+      if (!d) return "";
+      const [, month, day] = d.split("-");
+      const weekday = t("weekdays").split(",")[new Date(d).getDay()];
+      return `${month}.${day}.(${weekday})`;
+    },
+    [t],
+  );
 
-  const handleDayClick = useCallback((d: string) => {
-    if (dateSelecting === "start") {
-      setTempDateStart(d);
-      setTempDateEnd(null);
-      setDateSelecting("end");
-    } else {
-      if (tempDateStart && d <= tempDateStart) {
+  const handleDayClick = useCallback(
+    (d: string) => {
+      if (dateSelecting === "start") {
         setTempDateStart(d);
         setTempDateEnd(null);
+        setDateSelecting("end");
       } else {
-        setTempDateEnd(d);
-        setDateSelecting("start");
+        if (tempDateStart && d <= tempDateStart) {
+          setTempDateStart(d);
+          setTempDateEnd(null);
+        } else {
+          setTempDateEnd(d);
+          setDateSelecting("start");
+        }
       }
-    }
-  }, [dateSelecting, tempDateStart]);
+    },
+    [dateSelecting, tempDateStart],
+  );
 
   const openRegionSheet = useCallback(() => {
     if (!data.regionUndecided) {
@@ -247,7 +284,11 @@ export default function OnboardingFlow() {
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
-      <TopBarBack onBack={handlePrev} />
+      <TopBarBack
+        onBack={handlePrev}
+        pending={step === 1 && isNavigating}
+        backLabel={t("prev")}
+      />
 
       {/* 프로그레스 */}
       <div className="relative mt-2 mb-[24px] h-[6px] rounded-full bg-neutral-200 overflow-hidden">
@@ -261,36 +302,34 @@ export default function OnboardingFlow() {
       <div className="flex-1 overflow-y-auto pb-4">
         <AnimatePresence mode="wait">
           <motion.div key={step} {...sectionEnter(0)}>
-        {step === 1 && (
-          <Step1Content
-            data={data}
-            setData={setData}
-            formatDate={formatDate}
-            openRegionSheet={openRegionSheet}
-            openDateSheet={openDateSheet}
-            openTimeSheetStart={openTimeSheetStart}
-            openTimeSheetEnd={openTimeSheetEnd}
-            minuteStart={minuteStart}
-            minuteEnd={minuteEnd}
-            timeSheet={timeSheet}
-          />
-        )}
+            {step === 1 && (
+              <Step1Content
+                data={data}
+                setData={setData}
+                formatDate={formatDate}
+                openRegionSheet={openRegionSheet}
+                openDateSheet={openDateSheet}
+                openTimeSheetStart={openTimeSheetStart}
+                openTimeSheetEnd={openTimeSheetEnd}
+                minuteStart={minuteStart}
+                minuteEnd={minuteEnd}
+                timeSheet={timeSheet}
+              />
+            )}
 
-        {step === 2 && (
-          <Step2Content data={data} toggleCategory={toggleCategory} />
-        )}
+            {step === 2 && (
+              <Step2Content data={data} toggleCategory={toggleCategory} />
+            )}
 
-        {step === 3 && (
-          <Step3Content
-            categories={data.categories}
-            subCategories={data.subCategories}
-            toggleSubCategory={toggleSubCategory}
-          />
-        )}
+            {step === 3 && (
+              <Step3Content
+                categories={data.categories}
+                subCategories={data.subCategories}
+                toggleSubCategory={toggleSubCategory}
+              />
+            )}
 
-        {step === 4 && (
-          <Step4Content data={data} setData={setData} />
-        )}
+            {step === 4 && <Step4Content data={data} setData={setData} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -310,7 +349,8 @@ export default function OnboardingFlow() {
           <button
             type="button"
             onClick={handlePrev}
-            disabled={isCompleting}
+            disabled={isCompleting || isNavigating}
+            aria-busy={step === 1 && isNavigating}
             className="h-[48px] flex-1 rounded-[16px] bg-[#F7F7F7] text-[15px] font-semibold text-dark disabled:opacity-50"
           >
             {t("prev")}
@@ -319,9 +359,10 @@ export default function OnboardingFlow() {
         <div className="flex-1">
           <BigButton
             fullWidth
-            disabled={!canProceed || isCompleting}
-            isLoading={step === 4 && isCompleting}
+            disabled={!canProceed || isCompleting || isNavigating}
+            isLoading={step === 4 && (isCompleting || isNavigating)}
             onClick={handleNext}
+            aria-label={step === 4 ? t("start") : t("next")}
           >
             {step === 4 ? t("start") : t("next")}
           </BigButton>

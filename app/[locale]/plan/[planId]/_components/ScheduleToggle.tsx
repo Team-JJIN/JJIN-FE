@@ -5,12 +5,14 @@
  */
 "use client";
 
+import { useEffect, useState, useTransition } from "react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { tabIndicator } from "@/app/_components/motion/tokens";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import { usePlanEditStore } from "../../_store/usePlanEditStore";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
 
 export default function ScheduleToggle() {
   const t = useTranslations("plan");
@@ -19,21 +21,35 @@ export default function ScheduleToggle() {
   const locale = useLocale();
   const router = useRouter();
   const saving = usePlanEditStore((s) => s.saving);
+  const [isPending, startTransition] = useTransition();
+  const [pendingTab, setPendingTab] = useState<"schedule" | "mission" | null>(
+    null,
+  );
 
   // 검색 인터셉트(/search)와 AI 코스 결과(/course)에서는 하단 일정|미션 토글을 숨긴다.
-  if (pathname.endsWith("/search") || pathname.endsWith("/course")) return null;
+  const hidden = pathname.endsWith("/search") || pathname.endsWith("/course");
 
   const active: "schedule" | "mission" = pathname.endsWith("/mission")
     ? "mission"
     : "schedule";
+  const scheduleHref = `/${locale}/plan/${planId}`;
+  const missionHref = `/${locale}/plan/${planId}/mission`;
+
+  useRoutePrefetch(scheduleHref, !hidden && !saving && active !== "schedule");
+  useRoutePrefetch(missionHref, !hidden && !saving && active !== "mission");
+
+  useEffect(() => {
+    if (!isPending) setPendingTab(null);
+  }, [isPending]);
+
+  if (hidden) return null;
 
   const goTo = (tab: "schedule" | "mission") => {
     if (tab === active || usePlanEditStore.getState().saving) return;
-    router.push(
-      tab === "schedule"
-        ? `/${locale}/plan/${planId}`
-        : `/${locale}/plan/${planId}/mission`,
-    );
+    setPendingTab(tab);
+    startTransition(() => {
+      router.push(tab === "schedule" ? scheduleHref : missionHref);
+    });
   };
 
   return (
@@ -49,7 +65,8 @@ export default function ScheduleToggle() {
               key={tab}
               type="button"
               onClick={() => goTo(tab)}
-              disabled={saving}
+              disabled={saving || (isPending && pendingTab === tab)}
+              aria-busy={isPending && pendingTab === tab}
               aria-current={isActive ? "page" : undefined}
               className={`relative flex-1 rounded-full text-[15px] font-semibold leading-[1.4] transition-colors ${
                 isActive ? "text-white" : "text-subtext"
@@ -63,7 +80,7 @@ export default function ScheduleToggle() {
                   className="absolute inset-0 rounded-full bg-dark"
                 />
               )}
-              <span className="relative z-10">
+              <span className="relative z-10 flex items-center justify-center gap-2">
                 {tab === "schedule" ? t("tabSchedule") : t("tabMission")}
               </span>
             </button>

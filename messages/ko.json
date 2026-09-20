@@ -9,6 +9,10 @@
     "cancel": "취소",
     "confirm": "확인"
   },
+  "navigation": {
+    "loading": "화면을 준비하고 있어요",
+    "pending": "이동 중이에요"
+  },
   "home": {
     "title": "일정",
     "emptyTitle": "생성된 일정이 없어요",
@@ -21,6 +25,8 @@
     "deleteCancel": "취소",
     "deleteConfirm": "삭제하기",
     "errorDeleteFailed": "일정 삭제에 실패했습니다. 다시 시도해주세요",
+    "errorLoad": "일정을 불러오지 못했어요",
+    "retry": "다시 시도",
     "contentTypes": {
       "RESTAURANT": "음식",
       "TOURIST_ATTRACTION": "체험관광",

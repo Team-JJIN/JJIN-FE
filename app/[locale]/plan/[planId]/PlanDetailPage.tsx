@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
@@ -27,33 +27,10 @@ import KakaoMapsScript from "./_components/KakaoMapsScript";
 import AiCourseButton from "./_components/AiCourseButton";
 import AiCourseSheet from "./_components/AiCourseSheet";
 import type { PlanPlace } from "../_types";
+import { ScheduleSkeleton } from "@/app/_components/loading/PageSkeletons";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
 
 const EMPTY: PlanPlace[] = [];
-
-function ScheduleSkeleton() {
-  return (
-    <div
-      aria-label="Loading schedule"
-      className="flex min-h-0 flex-1 flex-col gap-4 px-4"
-    >
-      <div className="h-[27px] w-full animate-pulse rounded-full bg-surface motion-reduce:animate-none" />
-      <div className="flex min-h-0 flex-1 flex-col gap-[21px]">
-        <div className="h-[196px] w-full shrink-0 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />
-        <div className="flex min-h-0 flex-1 flex-col gap-[10px]">
-          <div className="h-[21px] w-full animate-pulse rounded bg-surface motion-reduce:animate-none" />
-          <div className="flex min-h-0 flex-1 flex-col gap-[19px] overflow-hidden pt-1">
-            {["w-full", "w-[92%]", "w-[84%]"].map((width) => (
-              <div
-                key={width}
-                className={`${width} h-[86px] shrink-0 animate-pulse rounded-[14px] bg-surface motion-reduce:animate-none`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function PlanDetailPage() {
   const { planId } = useParams<{ planId: string }>();
@@ -100,10 +77,19 @@ export default function PlanDetailPage() {
   const [selectedOrder, setSelectedOrder] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [aiSheetOpen, setAiSheetOpen] = useState(false);
+  const [addPlacePending, startAddPlaceTransition] = useTransition();
+  const [coursePending, startCourseTransition] = useTransition();
 
   const isEditing = usePlanEditStore(selectIsEditing(planId, activeDay));
   const day = data?.days.find((d) => d.dayIndex === activeDay);
   const places = isEditing ? draft : (day?.places ?? EMPTY);
+  const searchHref = `/${locale}/plan/${planId}/search?day=${activeDay}`;
+  const courseHref = `/${locale}/plan/${planId}/course`;
+  const addPlaceVisible =
+    !!data && !isError && !recovering && (isEditing || places.length === 0);
+
+  useRoutePrefetch(searchHref, addPlaceVisible && !saving);
+  useRoutePrefetch(courseHref, aiSheetOpen);
 
   const handleSelectDay = useCallback(
     (i: number) => {
@@ -212,14 +198,14 @@ export default function PlanDetailPage() {
 
   const handleAddPlace = useCallback(() => {
     if (saveLock.current) return;
-    router.push(`/${locale}/plan/${planId}/search?day=${activeDay}`);
-  }, [router, locale, planId, activeDay]);
+    startAddPlaceTransition(() => router.push(searchHref));
+  }, [router, searchHref, startAddPlaceTransition]);
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="relative flex h-dvh flex-col">
       <PlanHeader title={data?.name ?? ""} disabled={saving} />
       <KakaoMapsScript />
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="popLayout" initial={false}>
         {isError || recovering ? (
           <motion.div
             key="error"
@@ -250,7 +236,7 @@ export default function PlanDetailPage() {
             {...fadeSwap}
             className="flex min-h-0 flex-1 flex-col"
           >
-            <ScheduleSkeleton />
+            <ScheduleSkeleton contentOnly />
           </motion.div>
         ) : (
           <motion.div
@@ -310,6 +296,7 @@ export default function PlanDetailPage() {
                         onDirections={handleDirections}
                         onToggleSelect={handleToggleSelect}
                         onAddPlace={handleAddPlace}
+                        addPlacePending={addPlacePending}
                       />
                       {saveError && (
                         <p
@@ -331,14 +318,18 @@ export default function PlanDetailPage() {
       {/* AI 코스 생성 버튼: 읽기 상태 + 해당 일차 코스가 비어 있을 때만 노출한다
           (AI 자동 생성은 빈 일정을 처음 채우는 흐름이라, 이미 코스가 있으면 진입점을 숨긴다). */}
       {!isEditing && !isError && !recovering && data && places.length === 0 && (
-        <AiCourseButton onClick={() => setAiSheetOpen(true)} />
+        <AiCourseButton
+          onClick={() => setAiSheetOpen(true)}
+          pending={coursePending}
+        />
       )}
       <AiCourseSheet
         open={aiSheetOpen}
         onClose={() => setAiSheetOpen(false)}
+        pending={coursePending}
         onConfirm={() => {
           setAiSheetOpen(false);
-          router.push(`/${locale}/plan/${planId}/course`);
+          startCourseTransition(() => router.push(courseHref));
         }}
       />
     </div>

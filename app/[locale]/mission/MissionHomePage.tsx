@@ -5,7 +5,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale } from "@/app/_components/hooks/useLocale";
@@ -22,11 +21,12 @@ import { useMissionList } from "./_hooks/useMissionQueries";
 import { useInfiniteScroll } from "./_hooks/useInfiniteScroll";
 import { useMissionSheetStore } from "./_store/useMissionSheetStore";
 import MissionCardBig from "./_components/MissionCardBig";
+import NavigationLink from "@/app/_components/navigation/NavigationLink";
+import { MissionHomeSkeleton } from "@/app/_components/loading/PageSkeletons";
 import type { Mission, MissionFilter } from "@/app/_api/missions";
 
 export default function MissionHomePage() {
   const t = useTranslations("mission");
-  const router = useRouter();
   const locale = useLocale();
   const openAddMission = useMissionSheetStore((s) => s.openAdd);
   const openDetail = useMissionSheetStore((s) => s.openDetail);
@@ -89,14 +89,6 @@ export default function MissionHomePage() {
     rootRef: scrollContainerRef,
   });
 
-  const goToCreate = useCallback(() => {
-    router.push(`/${locale}/mission/create`);
-  }, [router, locale]);
-
-  const goToSearch = useCallback(() => {
-    router.push(`/${locale}/mission/search`);
-  }, [router, locale]);
-
   const handleFilterChange = useCallback((f: MissionFilter) => {
     setFilter(f);
   }, []);
@@ -110,30 +102,26 @@ export default function MissionHomePage() {
         <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">
           {t("title")}
         </h1>
-        <button
-          type="button"
-          onClick={goToCreate}
+        <NavigationLink
+          href={`/${locale}/mission/create`}
           aria-label={t("create.title")}
           className="transition duration-150 motion-safe:active:scale-90"
         >
           <PlusIcon />
-        </button>
+        </NavigationLink>
       </motion.div>
 
-      {/* input을 button으로 감싸면 유효하지 않은 HTML 중첩이 되므로 div + onClick으로 처리 */}
-      <motion.div
-        {...sectionEnter(1)}
-        onClick={goToSearch}
-        whileTap={TAP.card}
-        className="flex h-[44px] cursor-pointer items-center rounded-[14px] bg-[#F0F0F0] px-3"
-      >
-        <input
-          readOnly
-          placeholder={t("searchPlaceholder")}
+      <motion.div {...sectionEnter(1)} whileTap={TAP.card}>
+        <NavigationLink
+          href={`/${locale}/mission/search`}
           aria-label={t("searchPlaceholder")}
-          className="flex-1 bg-transparent text-[14px] font-medium outline-none placeholder:text-muted"
-        />
-        <SearchIcon className="text-muted" />
+          className="flex h-[44px] cursor-pointer items-center rounded-[14px] bg-[#F0F0F0] px-3"
+        >
+          <span className="flex-1 text-[14px] font-medium text-muted">
+            {t("searchPlaceholder")}
+          </span>
+          <SearchIcon className="text-muted" />
+        </NavigationLink>
       </motion.div>
 
       <motion.div
@@ -163,9 +151,9 @@ export default function MissionHomePage() {
       <motion.div
         {...sectionEnter(3, true)}
         ref={scrollContainerRef}
-        className="-mx-[20px] flex-1 overflow-y-auto px-[20px] pt-[15px] pb-[96px]"
+        className="relative -mx-[20px] flex-1 overflow-y-auto px-[20px] pt-[15px] pb-[96px]"
       >
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode="popLayout" initial={false}>
           {isError ? (
             <motion.div
               key="error"
@@ -184,15 +172,8 @@ export default function MissionHomePage() {
               </button>
             </motion.div>
           ) : isPending ? (
-            <motion.div
-              key="pending"
-              {...fadeSwap}
-              className="flex items-center justify-center py-20"
-            >
-              <div
-                aria-hidden="true"
-                className="size-8 animate-spin rounded-full border-[3px] border-surface border-t-dark"
-              />
+            <motion.div key="pending" {...fadeSwap}>
+              <MissionHomeSkeleton contentOnly />
             </motion.div>
           ) : missions.length === 0 ? (
             <motion.div

@@ -5,6 +5,7 @@
  */
 "use client";
 
+import { useTransition } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,8 @@ import { sectionEnter } from "@/app/_components/motion/tokens";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import TopBarClose from "@/app/_components/ui/TopBarClose";
 import { usePlanEditStore } from "../../_store/usePlanEditStore";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
+import Spinner from "@/app/_components/ui/Spinner";
 
 interface PlanHeaderProps {
   title: string;
@@ -27,22 +30,35 @@ export default function PlanHeader({
   const router = useRouter();
   const mode = usePlanEditStore((s) => s.mode);
   const discard = usePlanEditStore((s) => s.discard);
+  const [isPending, startTransition] = useTransition();
+  const homeHref = `/${locale}/home`;
+
+  useRoutePrefetch(homeHref, !disabled);
 
   const handleClose = () => {
     if (disabled || usePlanEditStore.getState().saving) return;
     if (mode === "edit") discard();
-    router.replace(`/${locale}/home`);
+    startTransition(() => router.replace(homeHref));
   };
 
   return (
-    <motion.div {...sectionEnter(0)} className="px-4 py-3">
+    <motion.div {...sectionEnter(0)} className="relative px-4 py-3">
       <TopBarClose
         title={title}
         onClose={handleClose}
-        disabled={disabled}
+        disabled={disabled || isPending}
         closeLabel={t("close")}
         titleClassName="text-[19px] font-semibold leading-[1.4] text-[#171717]"
       />
+      {isPending && (
+        <span
+          role="status"
+          className="absolute right-4 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center bg-white text-muted"
+        >
+          <Spinner />
+          <span className="sr-only">{t("close")}</span>
+        </span>
+      )}
     </motion.div>
   );
 }

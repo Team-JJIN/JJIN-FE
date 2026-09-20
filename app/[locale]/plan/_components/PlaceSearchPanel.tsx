@@ -105,8 +105,8 @@ export default function PlaceSearchPanel() {
         />
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        <AnimatePresence mode="wait" initial={false}>
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <AnimatePresence mode="popLayout" initial={false}>
           {branch === "idle" && (
             <motion.div
               key="idle"

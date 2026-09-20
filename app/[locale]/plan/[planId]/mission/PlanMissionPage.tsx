@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -44,6 +44,12 @@ import {
   canPublishAfterRefresh,
   isCompletedAfterRefresh,
 } from "./publishReadiness";
+import NavigationLink from "@/app/_components/navigation/NavigationLink";
+import {
+  MissionListSkeleton,
+  PlanMissionSkeleton,
+  RecommendationSkeleton,
+} from "@/app/_components/loading/PageSkeletons";
 
 type ProofFlow = {
   mission: PlanMission;
@@ -57,91 +63,6 @@ const FILTERS: PlanMissionFilter[] = [
   "UPLOAD_PENDING",
   "COMPLETED",
 ];
-
-function SkeletonBlock({ className }: { className: string }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={`${className} animate-pulse bg-surface motion-reduce:animate-none`}
-    />
-  );
-}
-
-function RecommendationSkeleton() {
-  return (
-    <div className="flex gap-[19px] overflow-hidden px-4 pb-1">
-      {["recommendation-a", "recommendation-b"].map((key) => (
-        <div
-          key={key}
-          className="w-[220px] shrink-0 overflow-hidden rounded-[14px] bg-surface"
-        >
-          <SkeletonBlock className="h-[122px] w-full" />
-          <div className="flex h-[136px] flex-col px-3 pb-3 pt-2">
-            <SkeletonBlock className="h-4 w-3/4 rounded" />
-            <SkeletonBlock className="mt-2 h-3 w-full rounded" />
-            <SkeletonBlock className="mt-1 h-3 w-2/3 rounded" />
-            <div className="mt-auto flex items-center justify-between">
-              <SkeletonBlock className="h-3 w-16 rounded" />
-              <SkeletonBlock className="size-8 rounded-full" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function MissionListSkeleton() {
-  return (
-    <div className="flex flex-col gap-7 px-4 pt-4">
-      {["mission-a", "mission-b"].map((key) => (
-        <div
-          key={key}
-          className="rounded-[14px] bg-white p-[14px] shadow-[0_2px_6px_rgba(23,23,23,0.06)]"
-        >
-          <div className="flex items-start gap-[11px]">
-            <SkeletonBlock className="size-[65px] shrink-0 rounded-[10px]" />
-            <div className="min-w-0 flex-1 pt-1">
-              <SkeletonBlock className="h-4 w-3/4 rounded" />
-              <SkeletonBlock className="mt-2 h-3 w-full rounded" />
-              <SkeletonBlock className="mt-1 h-3 w-2/3 rounded" />
-              <SkeletonBlock className="mt-2 h-3 w-16 rounded" />
-            </div>
-          </div>
-          <SkeletonBlock className="mt-[14px] h-[42px] w-full rounded-[16px]" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PlanMissionSkeleton() {
-  return (
-    <div aria-label="Loading missions" className="pb-[108px]">
-      <section className="pb-6 pt-5">
-        <div className="mb-4 flex items-center justify-between px-4">
-          <SkeletonBlock className="h-5 w-28 rounded" />
-          <SkeletonBlock className="size-6 rounded-full" />
-        </div>
-        <RecommendationSkeleton />
-      </section>
-      <div className="h-[6px] bg-surface" />
-      <section className="px-4 pt-5">
-        <div className="flex items-end justify-between">
-          <SkeletonBlock className="h-10 w-24 rounded" />
-          <SkeletonBlock className="h-4 w-16 rounded" />
-        </div>
-        <SkeletonBlock className="mt-4 h-2 w-full rounded-full" />
-      </section>
-      <div className="mt-6 flex gap-[13px] overflow-hidden px-4 pb-2">
-        {["filter-a", "filter-b", "filter-c", "filter-d"].map((key) => (
-          <SkeletonBlock key={key} className="h-6 w-16 shrink-0 rounded-full" />
-        ))}
-      </div>
-      <MissionListSkeleton />
-    </div>
-  );
-}
 
 function Photo({
   url,
@@ -166,7 +87,6 @@ function Photo({
 function PlanMissionContent({ planId }: { planId: string }) {
   const t = useTranslations("plan.missions");
   const locale = useLocale();
-  const router = useRouter();
   const openDetail = useMissionSheetStore((s) => s.openDetail);
   const [filter, setFilter] = useState<PlanMissionFilter>("ALL");
   const all = usePlanMissions(planId, "ALL");
@@ -410,9 +330,9 @@ function PlanMissionContent({ planId }: { planId: string }) {
       <main className="min-h-0 flex-1 overflow-y-auto pb-[108px] scrollbar-hide">
         {all.isPending ? (
           <motion.div key="loading" {...fadeSwap} className="min-h-full">
-            <PlanMissionSkeleton />
+            <PlanMissionSkeleton contentOnly />
           </motion.div>
-        ) : all.isError ? (
+        ) : all.isError && !all.data ? (
           <motion.div
             key="error"
             {...fadeSwap}
@@ -421,36 +341,40 @@ function PlanMissionContent({ planId }: { planId: string }) {
             <p className="text-sm text-subtext">
               {isMissingPlan ? t("noPlan") : t("loadError")}
             </p>
-            <button
-              type="button"
-              onClick={() =>
-                isMissingPlan
-                  ? router.push(`/${locale}/onboarding`)
-                  : all.refetch()
-              }
-              className="mt-4 rounded-full bg-dark px-5 py-2 text-xs font-semibold text-white"
-            >
-              {isMissingPlan ? t("createPlan") : t("retry")}
-            </button>
+            {isMissingPlan ? (
+              <NavigationLink
+                href={`/${locale}/onboarding`}
+                className="mt-4 inline-flex rounded-full bg-dark px-5 py-2 text-xs font-semibold text-white"
+              >
+                {t("createPlan")}
+              </NavigationLink>
+            ) : (
+              <button
+                type="button"
+                onClick={() => all.refetch()}
+                className="mt-4 rounded-full bg-dark px-5 py-2 text-xs font-semibold text-white"
+              >
+                {t("retry")}
+              </button>
+            )}
           </motion.div>
         ) : (
-          <motion.div key="ready" {...fadeSwap}>
+          <motion.div key="ready" {...fadeSwap} className="relative">
             <motion.section {...sectionEnter(1)} className="pb-6 pt-5">
               <div className="mb-4 flex items-center justify-between px-4">
                 <h2 className="text-[15px] font-semibold text-dark">
                   {t("recommendations")}
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/${locale}/mission`)}
+                <NavigationLink
+                  href={`/${locale}/mission`}
                   aria-label={t("explore")}
                 >
                   <ArrowForwardIcon size={24} />
-                </button>
+                </NavigationLink>
               </div>
               {recommendations.isPending ? (
                 <RecommendationSkeleton />
-              ) : recommendations.isError ? (
+              ) : recommendations.isError && !recommendations.data ? (
                 <div className="px-4 text-xs text-subtext">
                   {t("recommendationError")}{" "}
                   <button
@@ -466,13 +390,12 @@ function PlanMissionContent({ planId }: { planId: string }) {
                   <p className="whitespace-pre-line text-sm text-subtext">
                     {t("noCourse")}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${locale}/plan/${planId}`)}
+                  <NavigationLink
+                    href={`/${locale}/plan/${planId}`}
                     className="mt-4 rounded-xl bg-lime-vivid px-5 py-2 text-xs font-semibold"
                   >
                     {t("createPlan")}
-                  </button>
+                  </NavigationLink>
                 </div>
               ) : recommendations.data.missions.length === 0 ? (
                 <p className="px-4 text-xs text-subtext">
@@ -627,7 +550,7 @@ function PlanMissionContent({ planId }: { planId: string }) {
                 </motion.button>
               ))}
             </motion.div>
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence mode="popLayout" initial={false}>
               {list.isPending ? (
                 <motion.div
                   key={`loading-${filter}`}
@@ -636,7 +559,7 @@ function PlanMissionContent({ planId }: { planId: string }) {
                 >
                   <MissionListSkeleton />
                 </motion.div>
-              ) : list.isError ? (
+              ) : list.isError && !list.data ? (
                 <motion.div
                   key={`error-${filter}`}
                   {...fadeSwap}
@@ -652,22 +575,21 @@ function PlanMissionContent({ planId }: { planId: string }) {
                   </button>
                 </motion.div>
               ) : list.data?.missions.length === 0 ? (
-                <motion.button
-                  type="button"
-                  key={`empty-${filter}`}
-                  {...fadeSwap}
-                  onClick={() => router.push(`/${locale}/mission`)}
-                  className="mx-4 mt-4 flex min-h-[111px] w-[calc(100%-2rem)] flex-col items-center justify-center rounded-[14px] bg-white px-[75px] py-[34px] text-center shadow-[0_2px_6px_rgba(23,23,23,0.06)] transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dark focus-visible:ring-offset-2"
-                >
-                  <p className="text-[15px] font-semibold leading-[1.4] tracking-[-0.3px] text-dark">
-                    {filter === "ALL"
-                      ? t("noMissions")
-                      : t("noFilteredMissions")}
-                  </p>
-                  <p className="mt-[3px] text-[12px] font-medium leading-[1.6] text-muted">
-                    {filter === "ALL" ? t("browse") : t("explore")}
-                  </p>
-                </motion.button>
+                <motion.div key={`empty-${filter}`} {...fadeSwap}>
+                  <NavigationLink
+                    href={`/${locale}/mission`}
+                    className="mx-4 mt-4 flex min-h-[111px] w-[calc(100%-2rem)] flex-col items-center justify-center rounded-[14px] bg-white px-[75px] py-[34px] text-center shadow-[0_2px_6px_rgba(23,23,23,0.06)] transition-colors hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dark focus-visible:ring-offset-2"
+                  >
+                    <p className="text-[15px] font-semibold leading-[1.4] tracking-[-0.3px] text-dark">
+                      {filter === "ALL"
+                        ? t("noMissions")
+                        : t("noFilteredMissions")}
+                    </p>
+                    <p className="mt-[3px] text-[12px] font-medium leading-[1.6] text-muted">
+                      {filter === "ALL" ? t("browse") : t("explore")}
+                    </p>
+                  </NavigationLink>
+                </motion.div>
               ) : (
                 <motion.div
                   key={`list-${filter}`}
@@ -702,21 +624,26 @@ function PlanMissionContent({ planId }: { planId: string }) {
                           </div>
                         </div>
                       </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          mission.status === "COMPLETED"
-                            ? router.push(
-                                `/${locale}/mission/feed?tab=completed`,
-                              )
-                            : mission.status === "PROOF_REQUIRED"
+                      {mission.status === "COMPLETED" ? (
+                        <NavigationLink
+                          href={`/${locale}/mission/feed?tab=completed`}
+                          className="mt-[14px] flex h-[42px] w-full items-center justify-center rounded-[16px] bg-surface text-[14px] font-semibold text-subtext"
+                        >
+                          {t(`actions.${mission.status}`)}
+                        </NavigationLink>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            mission.status === "PROOF_REQUIRED"
                               ? openCamera(mission)
                               : startFlow(mission)
-                        }
-                        className={`mt-[14px] h-[42px] w-full rounded-[16px] text-[14px] font-semibold ${mission.status === "PROOF_REQUIRED" ? "bg-lime-vivid text-dark" : mission.status === "UPLOAD_PENDING" ? "bg-dark text-lime-vivid" : "bg-surface text-subtext"}`}
-                      >
-                        {t(`actions.${mission.status}`)}
-                      </button>
+                          }
+                          className={`mt-[14px] h-[42px] w-full rounded-[16px] text-[14px] font-semibold ${mission.status === "PROOF_REQUIRED" ? "bg-lime-vivid text-dark" : "bg-dark text-lime-vivid"}`}
+                        >
+                          {t(`actions.${mission.status}`)}
+                        </button>
+                      )}
                     </motion.article>
                   ))}
                 </motion.div>

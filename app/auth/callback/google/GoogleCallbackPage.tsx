@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginWithGoogle, handleAuthSuccess } from "@/app/_api/auth";
 import { ApiError } from "@/app/_api/client";
@@ -78,13 +79,13 @@ export default function GoogleCallbackPage() {
         <p className="text-[11px] text-neutral-400 mb-[24px]">
           에러 코드: {error.status || "연결 실패"}
         </p>
-        <button
-          type="button"
-          onClick={() => router.replace(`/${locale}/auth/login`)}
+        <Link
+          href={`/${locale}/auth/login`}
+          replace
           className="text-[14px] font-semibold text-dark underline"
         >
           로그인으로 돌아가기
-        </button>
+        </Link>
       </div>
     );
   }

@@ -9,6 +9,10 @@
     "cancel": "Cancel",
     "confirm": "Confirm"
   },
+  "navigation": {
+    "loading": "Preparing the screen",
+    "pending": "Navigating"
+  },
   "home": {
     "title": "Plans",
     "emptyTitle": "No plans yet",
@@ -21,6 +25,8 @@
     "deleteCancel": "Cancel",
     "deleteConfirm": "Delete",
     "errorDeleteFailed": "Failed to delete the plan. Please try again",
+    "errorLoad": "Could not load your plans",
+    "retry": "Try again",
     "contentTypes": {
       "RESTAURANT": "Food",
       "TOURIST_ATTRACTION": "Attractions",

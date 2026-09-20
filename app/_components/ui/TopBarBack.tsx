@@ -5,26 +5,41 @@
 "use client";
 
 import { ArrowBackIcon } from "@/app/_components/icons";
+import Spinner from "@/app/_components/ui/Spinner";
 
 interface TopBarBackProps {
   onBack: () => void;
   rightText?: string;
   onRightClick?: () => void;
+  pending?: boolean;
+  backLabel?: string;
 }
 
-export default function TopBarBack({ onBack, rightText, onRightClick }: TopBarBackProps) {
+export default function TopBarBack({
+  onBack,
+  rightText,
+  onRightClick,
+  pending = false,
+  backLabel = "Go back",
+}: TopBarBackProps) {
   return (
     <div className="flex items-center justify-between pt-[4vh]">
       <button
         type="button"
         onClick={onBack}
+        disabled={pending}
+        aria-busy={pending}
         className="flex h-10 w-10 items-center justify-center -ml-2 text-[#9B9B9B]"
-        aria-label="Go back"
+        aria-label={backLabel}
       >
-        <ArrowBackIcon size={24} />
+        {pending ? <Spinner /> : <ArrowBackIcon size={24} />}
       </button>
       {rightText && (
-        <button type="button" onClick={onRightClick} className="text-[14px] font-medium text-[#737373]">
+        <button
+          type="button"
+          onClick={onRightClick}
+          className="text-[14px] font-medium text-[#737373]"
+        >
           {rightText}
         </button>
       )}
