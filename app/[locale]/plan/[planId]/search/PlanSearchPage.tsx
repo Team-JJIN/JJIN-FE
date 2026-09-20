@@ -6,7 +6,7 @@
  */
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useTransition } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import TopBarClose from "@/app/_components/ui/TopBarClose";
@@ -14,6 +14,8 @@ import { useLocale } from "@/app/_components/hooks/useLocale";
 import { usePlanDetail } from "../../_hooks/usePlanQueries";
 import { usePlanEditStore } from "../../_store/usePlanEditStore";
 import PlaceSearchPanel from "../../_components/PlaceSearchPanel";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
+import Spinner from "@/app/_components/ui/Spinner";
 
 export default function PlanSearchPage() {
   const { planId } = useParams<{ planId: string }>();
@@ -23,6 +25,10 @@ export default function PlanSearchPage() {
   const locale = useLocale();
   const t = useTranslations("plan");
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const detailHref = `/${locale}/plan/${planId}`;
+
+  useRoutePrefetch(detailHref);
 
   const { data, isError, refetch } = usePlanDetail(planId, dayIndex);
   const mode = usePlanEditStore((s) => s.mode);
@@ -68,21 +74,31 @@ export default function PlanSearchPage() {
   // 문서다 — back()은 풀 리로드가 되어 스토어 draft가 사라진다. 닫기는 소프트 replace로 상세에 진입해
   // 편집 draft(추가 장소·일차)를 보존한다(verify-1 항목 15).
   const handleClose = useCallback(() => {
-    router.replace(`/${locale}/plan/${planId}`);
-  }, [router, locale, planId]);
+    startTransition(() => router.replace(detailHref));
+  }, [router, detailHref, startTransition]);
 
   return (
     <div className="flex h-dvh flex-col bg-white">
       {/* PlanHeader.tsx(P2)와 동일한 헤더(px-4 py-3 + titleClassName 19px) — 상세 헤더와 전환 시 크기가
           튀지 않도록 두 화면이 같은 값을 쓴다(review-1 M3 수정). motion은 PageTransition이 담당하므로
           여기서 추가하지 않는다. */}
-      <div className="px-4 py-3">
+      <div className="relative px-4 py-3">
         <TopBarClose
           title={t("search.title")}
           onClose={handleClose}
           closeLabel={t("close")}
           titleClassName="text-[19px] font-semibold leading-[1.4] text-[#171717]"
+          disabled={isPending}
         />
+        {isPending && (
+          <span
+            role="status"
+            className="absolute right-4 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center bg-white text-muted"
+          >
+            <Spinner />
+            <span className="sr-only">{t("close")}</span>
+          </span>
+        )}
       </div>
       {isError || recovering ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3">

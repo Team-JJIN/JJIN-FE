@@ -9,12 +9,13 @@
  */
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useTransition } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import { useCourseGeneration } from "../_hooks/useCourseGeneration";
 import CourseLoading from "../_components/CourseLoading";
 import CourseError from "../_components/CourseError";
+import useRoutePrefetch from "@/app/_components/navigation/useRoutePrefetch";
 
 // 완료 안내를 보여준 뒤 일정 상세로 자동 복귀하기까지의 지연(ms).
 const DONE_AUTO_BACK_MS = 3000;
@@ -23,12 +24,16 @@ export default function CoursePage() {
   const { planId } = useParams<{ planId: string }>();
   const router = useRouter();
   const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
+  const detailHref = `/${locale}/plan/${planId}`;
+
+  useRoutePrefetch(detailHref);
 
   const phase = useCourseGeneration(planId);
 
   const goBack = useCallback(
-    () => router.replace(`/${locale}/plan/${planId}`),
-    [router, locale, planId],
+    () => startTransition(() => router.replace(detailHref)),
+    [router, detailHref, startTransition],
   );
 
   // 생성 완료 → 완료 안내를 3초 노출한 뒤 일정 상세로 자동 복귀.
@@ -39,7 +44,13 @@ export default function CoursePage() {
   }, [phase.status, goBack]);
 
   if (phase.status === "failed") {
-    return <CourseError errorKind={phase.errorKind} onBack={goBack} />;
+    return (
+      <CourseError
+        errorKind={phase.errorKind}
+        onBack={goBack}
+        pending={isPending}
+      />
+    );
   }
 
   // loading / success 모두 로딩 화면을 재사용 (success면 done 모드로 완료 표시)

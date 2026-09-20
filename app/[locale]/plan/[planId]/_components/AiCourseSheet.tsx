@@ -15,9 +15,15 @@ interface AiCourseSheetProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  pending?: boolean;
 }
 
-export default function AiCourseSheet({ open, onClose, onConfirm }: AiCourseSheetProps) {
+export default function AiCourseSheet({
+  open,
+  onClose,
+  onConfirm,
+  pending = false,
+}: AiCourseSheetProps) {
   const t = useTranslations("plan.aiCourse");
   // 현재 옵션이 하나뿐이라 열릴 때 기본 선택 상태로 둔다.
   const [selected, setSelected] = useState(true);
@@ -33,7 +39,13 @@ export default function AiCourseSheet({ open, onClose, onConfirm }: AiCourseShee
       footerShadow={false}
       onClose={onClose}
       footer={
-        <BigButton fullWidth disabled={!selected} onClick={onConfirm}>
+        <BigButton
+          fullWidth
+          disabled={!selected || pending}
+          isLoading={pending}
+          onClick={onConfirm}
+          aria-label={t("confirm")}
+        >
           {t("confirm")}
         </BigButton>
       }
@@ -57,8 +69,12 @@ export default function AiCourseSheet({ open, onClose, onConfirm }: AiCourseShee
             className="h-[45px] w-[45px] shrink-0 object-contain"
           />
           <div className="ml-[17px] flex flex-col justify-center">
-            <p className="text-[15px] font-semibold text-ink">{t("optionTitle")}</p>
-            <p className="mt-[4px] text-[12px] font-medium text-subtext">{t("optionDesc")}</p>
+            <p className="text-[15px] font-semibold text-ink">
+              {t("optionTitle")}
+            </p>
+            <p className="mt-[4px] text-[12px] font-medium text-subtext">
+              {t("optionDesc")}
+            </p>
           </div>
         </div>
       </button>

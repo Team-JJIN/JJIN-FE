@@ -12,13 +12,19 @@ import { ArrowBackIcon } from "@/app/_components/icons";
 import CourseLogo from "./CourseLogo";
 import CourseToast from "./CourseToast";
 import type { CourseErrorKind } from "../../_types";
+import Spinner from "@/app/_components/ui/Spinner";
 
 interface CourseErrorProps {
   errorKind: CourseErrorKind;
   onBack: () => void;
+  pending?: boolean;
 }
 
-export default function CourseError({ errorKind, onBack }: CourseErrorProps) {
+export default function CourseError({
+  errorKind,
+  onBack,
+  pending = false,
+}: CourseErrorProps) {
   const t = useTranslations("plan.aiCourse");
   const tPlan = useTranslations("plan");
   const isInsufficient = errorKind === "insufficient";
@@ -33,10 +39,12 @@ export default function CourseError({ errorKind, onBack }: CourseErrorProps) {
       <button
         type="button"
         onClick={onBack}
+        disabled={pending}
+        aria-busy={pending}
         aria-label={tPlan("close")}
         className="absolute left-4 top-[10px] flex size-[28px] items-center justify-center text-[#9B9B9B] transition duration-150 motion-safe:active:scale-90"
       >
-        <ArrowBackIcon size={24} />
+        {pending ? <Spinner /> : <ArrowBackIcon size={24} />}
       </button>
 
       <div className="flex flex-1 flex-col items-center justify-center px-[20px]">

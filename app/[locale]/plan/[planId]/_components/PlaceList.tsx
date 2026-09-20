@@ -28,6 +28,7 @@ interface PlaceListProps {
   onDirections: (place: PlanPlace) => void;
   onToggleSelect: (order: number) => void;
   onAddPlace: () => void;
+  addPlacePending?: boolean;
 }
 
 export default function PlaceList({
@@ -40,6 +41,7 @@ export default function PlaceList({
   onDirections,
   onToggleSelect,
   onAddPlace,
+  addPlacePending = false,
 }: PlaceListProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
@@ -93,7 +95,7 @@ export default function PlaceList({
             {...fadeSwap}
             className={places.length > 0 ? "ml-[49px]" : undefined}
           >
-            <AddPlaceButton onClick={onAddPlace} />
+            <AddPlaceButton onClick={onAddPlace} pending={addPlacePending} />
           </motion.div>
         )}
       </AnimatePresence>

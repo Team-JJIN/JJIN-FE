@@ -6,18 +6,25 @@
 
 import { useTranslations } from "next-intl";
 import { PlusIcon, ArrowForwardIcon } from "@/app/_components/icons";
+import Spinner from "@/app/_components/ui/Spinner";
 
 interface AddPlaceButtonProps {
   onClick: () => void;
+  pending?: boolean;
 }
 
-export default function AddPlaceButton({ onClick }: AddPlaceButtonProps) {
+export default function AddPlaceButton({
+  onClick,
+  pending = false,
+}: AddPlaceButtonProps) {
   const t = useTranslations("plan");
 
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={pending}
+      aria-busy={pending}
       className="flex w-full items-center justify-between rounded-[14px] border border-dashed border-[#e1e2e4] bg-white px-4 py-[13px] transition motion-safe:active:scale-[0.98]"
     >
       <span className="flex items-center gap-3">
@@ -26,7 +33,11 @@ export default function AddPlaceButton({ onClick }: AddPlaceButtonProps) {
           {t("addPlace")}
         </span>
       </span>
-      <ArrowForwardIcon size={24} className="text-[#9b9b9b]" />
+      {pending ? (
+        <Spinner className="text-[#9b9b9b]" />
+      ) : (
+        <ArrowForwardIcon size={24} className="text-[#9b9b9b]" />
+      )}
     </button>
   );
 }
