@@ -10,14 +10,20 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useLocale } from "@/app/_components/hooks/useLocale";
 import { PlusIcon } from "@/app/_components/icons";
-import { sectionEnter, listItemEnter, TAP } from "@/app/_components/motion/tokens";
+import {
+  sectionEnter,
+  listItemEnter,
+  TAP,
+} from "@/app/_components/motion/tokens";
 import Dialog from "@/app/_components/ui/Dialog";
+import NavigationLink from "@/app/_components/navigation/NavigationLink";
+import { HomeSkeleton } from "@/app/_components/loading/PageSkeletons";
 import { deleteTravelPlan, type Plan } from "@/app/_api/plans";
 import { usePlans, planKeys } from "@/app/[locale]/plan/_hooks/usePlanQueries";
 import { getApiErrorMessage } from "@/app/_api/client";
@@ -30,44 +36,75 @@ function formatDot(date: string) {
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const router = useRouter();
   const locale = useLocale();
   const queryClient = useQueryClient();
 
-  const { data: plans = [], isLoading } = usePlans();
+  const { data: plans = [], isLoading, isError, refetch } = usePlans();
   const [deleteTarget, setDeleteTarget] = useState<Plan | null>(null);
-
-  const goToCreate = () => router.push(`/${locale}/onboarding`);
 
   const deleteMutation = useMutation({
     mutationFn: (planId: string) => deleteTravelPlan(planId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: planKeys.list() }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: planKeys.list() }),
     onError: (err) => alert(getApiErrorMessage(err, t("errorDeleteFailed"))),
     onSettled: () => setDeleteTarget(null),
   });
 
-  const isEmpty = !isLoading && plans.length === 0;
+  const hasPlans = plans.length > 0;
+  const showLoading = isLoading && !hasPlans;
+  const showError = isError && !hasPlans;
+  const isEmpty = !showLoading && !showError && !hasPlans;
 
   return (
     <div className="flex h-dvh flex-col bg-white px-[20px]">
       {/* 헤더: 제목 + 추가 버튼 */}
-      <motion.div {...sectionEnter(0)} className="flex items-center justify-between pt-[32px] pb-4">
-        <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">{t("title")}</h1>
-        <button
-          type="button"
-          onClick={goToCreate}
+      <motion.div
+        {...sectionEnter(0)}
+        className="flex items-center justify-between pt-[32px] pb-4"
+      >
+        <h1 className="text-[19px] font-semibold tracking-[-0.095px] text-dark">
+          {t("title")}
+        </h1>
+        <NavigationLink
+          href={`/${locale}/onboarding`}
           aria-label={t("addPlan")}
           className="transition duration-150 motion-safe:active:scale-90"
         >
           <PlusIcon />
-        </button>
+        </NavigationLink>
       </motion.div>
 
-      {isEmpty ? (
+      {showLoading ? (
+        <HomeSkeleton contentOnly />
+      ) : showError ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 pb-[80px]">
+          <p className="text-[13px] font-medium text-subtext">
+            {t("errorLoad")}
+          </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="rounded-full bg-dark px-4 py-2 text-[12px] font-semibold text-white transition duration-150 motion-safe:active:scale-[0.97]"
+          >
+            {t("retry")}
+          </button>
+        </div>
+      ) : isEmpty ? (
         /* 빈 상태: JJ 로고 + 안내 문구 (화면 중앙) */
-        <motion.div {...sectionEnter(1)} className="flex flex-1 flex-col items-center justify-center pb-[80px]">
-          <Image src="/image/JJ.png" alt="" width={111} height={111} className="h-[111px] w-[111px] object-contain" />
-          <p className="mt-[9px] text-[17px] font-semibold text-ink">{t("emptyTitle")}</p>
+        <motion.div
+          {...sectionEnter(1)}
+          className="flex flex-1 flex-col items-center justify-center pb-[80px]"
+        >
+          <Image
+            src="/image/JJ.png"
+            alt=""
+            width={111}
+            height={111}
+            className="h-[111px] w-[111px] object-contain"
+          />
+          <p className="mt-[9px] text-[17px] font-semibold text-ink">
+            {t("emptyTitle")}
+          </p>
           <p className="mt-[9px] whitespace-pre-line text-center text-[14px] font-medium text-subtext">
             {t("emptyDescription")}
           </p>
@@ -83,10 +120,15 @@ export default function HomePage() {
                 plan={plan}
                 dateRange={`${formatDot(plan.startDate)} – ${formatDot(plan.endDate)}`}
                 transport={t(`transportModes.${plan.transportMode}`)}
-                categories={plan.interestCategories.map((c) => t(`contentTypes.${c}`)).join(" · ")}
-                nightsLabel={t("nights", { nights: plan.nights, days: plan.dayCount })}
+                categories={plan.interestCategories
+                  .map((c) => t(`contentTypes.${c}`))
+                  .join(" · ")}
+                nightsLabel={t("nights", {
+                  nights: plan.nights,
+                  days: plan.dayCount,
+                })}
                 deleteLabel={t("deletePlan")}
-                onOpen={() => router.push(`/${locale}/plan/${plan.id}`)}
+                href={`/${locale}/plan/${plan.id}`}
                 onDelete={() => setDeleteTarget(plan)}
               />
             ))}
@@ -116,7 +158,7 @@ function PlanCard({
   categories,
   nightsLabel,
   deleteLabel,
-  onOpen,
+  href,
   onDelete,
 }: {
   index: number;
@@ -126,7 +168,7 @@ function PlanCard({
   categories: string;
   nightsLabel: string;
   deleteLabel: string;
-  onOpen: () => void;
+  href: string;
   onDelete: () => void;
 }) {
   return (
@@ -134,42 +176,50 @@ function PlanCard({
       {...listItemEnter(index)}
       whileHover={{ scale: 1.01 }}
       whileTap={TAP.card}
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onOpen(); }}
-      className="cursor-pointer rounded-[16px] bg-white py-[14px] shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
+      className="relative rounded-[16px] bg-white shadow-[0px_2px_12px_0px_rgba(23,23,23,0.06)]"
     >
-      {/* 제목 + 삭제 아이콘 */}
-      <div className="flex items-start justify-between px-[15px]">
-        <h2 className="text-[17px] font-semibold text-ink">{plan.name}</h2>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          aria-label={deleteLabel}
-          className="shrink-0 transition duration-150 motion-safe:active:scale-90"
-        >
-          <Image src="/image/TrashIcon.png" alt="" width={16} height={18} className="h-[18px] w-[16px] object-contain" />
-        </button>
-      </div>
+      <Link href={href} className="block cursor-pointer py-[14px]">
+        <div className="flex items-start px-[15px] pr-12">
+          <h2 className="text-[17px] font-semibold text-ink">{plan.name}</h2>
+        </div>
 
-      {/* 날짜 / 이동수단 / 취향 */}
-      <p className="mt-[6px] px-[15px] text-[14px] font-medium text-subtext">{dateRange}</p>
-      <p className="mt-[2px] px-[15px] text-[14px] font-medium text-subtext">{transport}</p>
-      {categories && (
-        <p className="mt-[2px] px-[15px] text-[14px] font-medium text-subtext">{categories}</p>
-      )}
+        <p className="mt-[6px] px-[15px] text-[14px] font-medium text-subtext">
+          {dateRange}
+        </p>
+        <p className="mt-[2px] px-[15px] text-[14px] font-medium text-subtext">
+          {transport}
+        </p>
+        {categories && (
+          <p className="mt-[2px] px-[15px] text-[14px] font-medium text-subtext">
+            {categories}
+          </p>
+        )}
 
-      {/* 구분선 — 취향에서 9px 아래, 박스 내 좌우 15px 공백 */}
-      <div className="mt-[9px] mx-[15px] h-px bg-line" />
+        <div className="mt-[9px] mx-[15px] h-px bg-line" />
 
-      {/* 경험 밀도 뱃지 + 숙박 일수 */}
-      <div className="mt-[14px] flex items-center justify-between px-[15px]">
-        <span className="rounded-full border-[1.5px] border-lime-vivid bg-lime-pale px-3 py-[5px] text-[12px] font-medium text-[#8C8C8C]">
-          {plan.experienceLevel}
-        </span>
-        <span className="text-[12px] font-normal text-[#8C8C8C]">{nightsLabel}</span>
-      </div>
+        <div className="mt-[14px] flex items-center justify-between px-[15px]">
+          <span className="rounded-full border-[1.5px] border-lime-vivid bg-lime-pale px-3 py-[5px] text-[12px] font-medium text-[#8C8C8C]">
+            {plan.experienceLevel}
+          </span>
+          <span className="text-[12px] font-normal text-[#8C8C8C]">
+            {nightsLabel}
+          </span>
+        </div>
+      </Link>
+      <button
+        type="button"
+        onClick={onDelete}
+        aria-label={deleteLabel}
+        className="absolute right-[15px] top-[14px] z-10 shrink-0 transition duration-150 motion-safe:active:scale-90"
+      >
+        <Image
+          src="/image/TrashIcon.png"
+          alt=""
+          width={16}
+          height={18}
+          className="h-[18px] w-[16px] object-contain"
+        />
+      </button>
     </motion.div>
   );
 }
