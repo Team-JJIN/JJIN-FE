@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   useInfiniteQuery,
   useMutation,
@@ -22,8 +23,12 @@ export const planKeys = {
   list: () => [...planKeys.all, "list"] as const,
   detail: (id: string, dayIndex: number, locale: string) =>
     [...planKeys.all, "detail", id, dayIndex, locale] as const,
-  placeSearch: (planId: string, keyword: string, locale: string) =>
-    ["placeSearch", planId, keyword, locale] as const,
+  placeSearch: (
+    planId: string,
+    keyword: string,
+    locale: string,
+    coordinates?: { latitude: number; longitude: number },
+  ) => ["placeSearch", planId, keyword, locale, coordinates] as const,
 };
 
 export function usePlans() {
@@ -72,8 +77,36 @@ export function usePlaceSearch(planId: string, keyword: string) {
   const uiLocale = useLocale();
   const locale = toPlanApiLocale(uiLocale);
   const trimmed = keyword.trim();
+  const [coordinates, setCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  }>();
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    let active = true;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (active) {
+          setCoordinates({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+        }
+      },
+      () => {
+        // 권한 거부·위치 조회 실패 시에도 좌표 없이 검색할 수 있다.
+      },
+      { maximumAge: 60_000, timeout: 10_000 },
+    );
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return useInfiniteQuery({
-    queryKey: planKeys.placeSearch(planId, trimmed, locale),
+    queryKey: planKeys.placeSearch(planId, trimmed, locale, coordinates),
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       searchPlaces({
@@ -81,6 +114,7 @@ export function usePlaceSearch(planId: string, keyword: string) {
         keyword: trimmed,
         locale,
         page: pageParam,
+        coordinates,
       }),
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
     enabled: trimmed.length > 0 && !!planId,

@@ -1,5 +1,12 @@
 /** 일정 API: DTO → mapper → fetch. docs/API-RULE.md */
-import { apiDelete, apiGet, apiPatch, apiPost, ApiError, buildQuery } from "./client";
+import {
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  ApiError,
+  buildQuery,
+} from "./client";
 
 export type PlanApiLocale = "KO" | "EN" | "JA";
 export type OpenStatus = "OPEN" | "BREAK" | "CLOSED" | "UNKNOWN";
@@ -241,7 +248,11 @@ export async function generateCourse(
   // 서버/인프라 레벨 게이트웨이 타임아웃(504)이 발생할 수 있으므로 프론트 타임아웃을 5분으로 설정한다.
   // 504 자체는 인프라 타임아웃이라 프론트에서 완전히 막을 수 없으며,
   // useCourseGeneration에서 재시도 로직으로 보완한다.
-  const dto = (await apiPost<CourseGenerationResultDto>(path, undefined, { timeoutMs: 300_000 })).data;
+  const dto = (
+    await apiPost<CourseGenerationResultDto>(path, undefined, {
+      timeoutMs: 300_000,
+    })
+  ).data;
   // 응답 본문 구조가 스펙과 달라도(예: days 누락) 파싱 에러로 실패 처리되지 않도록 방어적으로 매핑한다.
   // 실제 방문지 목록은 이후 fetchPlanCourse로 조회하므로, 여기서는 생성 성공 자체가 중요하다.
   return {
@@ -249,7 +260,10 @@ export async function generateCourse(
     totalDays: dto?.totalDays ?? 0,
     totalStops: dto?.totalStops ?? 0,
     days: Array.isArray(dto?.days)
-      ? dto.days.map((d) => ({ dayNumber: d.dayNumber, stopCount: d.stopCount }))
+      ? dto.days.map((d) => ({
+          dayNumber: d.dayNumber,
+          stopCount: d.stopCount,
+        }))
       : [],
   };
 }
@@ -286,6 +300,7 @@ export async function searchPlaces(input: {
   locale: PlanApiLocale;
   planId: string;
   page: number;
+  coordinates?: { latitude: number; longitude: number };
 }): Promise<PlaceSearchPage> {
   const dto = (
     await apiGet<PlaceSearchPageDto>("/api/places/search", {
@@ -294,6 +309,8 @@ export async function searchPlaces(input: {
       planId: Number(input.planId),
       page: input.page,
       size: PLACE_SEARCH_SIZE,
+      latitude: input.coordinates?.latitude,
+      longitude: input.coordinates?.longitude,
     })
   ).data;
   return {
