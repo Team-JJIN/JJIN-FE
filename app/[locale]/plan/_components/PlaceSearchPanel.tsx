@@ -101,7 +101,7 @@ export default function PlaceSearchPanel() {
           enterKeyHint="search"
           autoFocus
           aria-label={t("search.placeholder")}
-          className="h-11 rounded-[14px] border-0 bg-surface pl-3 pr-12 text-[14px] font-medium leading-[1.6] placeholder:text-muted focus:ring-2 focus:ring-dark"
+          className="h-11 rounded-[14px] border-0 bg-surface pl-3 pr-12 text-[14px] font-medium leading-[1.6] placeholder:text-muted focus:ring-2 focus:ring-dark [&::-webkit-search-cancel-button]:grayscale [&::-webkit-search-cancel-button]:opacity-50"
         />
       </div>
 

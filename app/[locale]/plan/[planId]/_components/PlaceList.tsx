@@ -87,8 +87,12 @@ export default function PlaceList({
             onToggleSelect={() => onToggleSelect(p.order)}
           />
         ))}
-        {isEditing && (
-          <motion.div key="add" {...fadeSwap} className="ml-[49px]">
+        {(isEditing || places.length === 0) && (
+          <motion.div
+            key="add"
+            {...fadeSwap}
+            className={places.length > 0 ? "ml-[49px]" : undefined}
+          >
             <AddPlaceButton onClick={onAddPlace} />
           </motion.div>
         )}

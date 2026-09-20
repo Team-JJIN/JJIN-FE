@@ -79,7 +79,7 @@ export default function PlaceSearchResultCard({
         disabled={unavailable}
         onClick={onToggle}
         aria-label={unavailable ? t("search.alreadyAdded") : undefined}
-        className={`ml-auto flex shrink-0 items-center gap-1 rounded-[24px] py-[3px] pr-[14px] pl-2 text-[12px] font-bold leading-[1.6] transition-colors motion-safe:active:scale-[0.96] ${
+        className={`ml-auto flex shrink-0 items-center gap-1 rounded-[24px] py-[3px] pr-[14px] pl-2 text-[12px] font-bold leading-[1.6] transition-colors disabled:cursor-not-allowed disabled:bg-[#DCDCDC] disabled:text-subtext motion-safe:enabled:active:scale-[0.96] ${
           added ? "bg-lime-vivid text-[#0f0f0f]" : "bg-dark text-white"
         }`}
       >
