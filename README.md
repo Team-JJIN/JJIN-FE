@@ -1,6 +1,7 @@
 # ✈️ JJIN - K-일상 체험 여행 웹앱
 <div align="center">
-  <img width="512" height="512" alt="image 1" src="https://github.com/user-attachments/assets/27f86478-3d21-4128-b455-247a015de79a" />
+  <img width="500" height="500" alt="image 1" src="https://github.com/user-attachments/assets/d53ecc95-80e0-4a1f-b563-03ed9a8cf474" />
+  <br>
 <a href="https://jjin-wheat.vercel.app/">JJIN 바로가기</a>
 </div>
 <br>
