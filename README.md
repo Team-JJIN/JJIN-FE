@@ -91,8 +91,7 @@
 ### 온보딩 (일정 생성)
 
 <table>
-
-
+  <tr>
     <td align="center"><img width="200" src="https://github.com/user-attachments/assets/b2b500b4-2b5e-4d61-95fb-e0d56cb22bb6" /></td>
     <td align="center"><img width="200" src="https://github.com/user-attachments/assets/1c1abe28-760a-4032-8143-edd1ffdd3bc1" /></td>
     <td align="center"><img width="200" src="https://github.com/user-attachments/assets/c4ca7249-f390-4812-b5cd-105474608bd0" /></td>
@@ -111,7 +110,7 @@
 <table>
   <tr>
     <td align="center"><img width="200" src="https://github.com/user-attachments/assets/9fd36653-1b70-4969-a4bd-02dfec4cc9cf" /></td>
-    <td align="center"><img width="200" src=""https://github.com/user-attachments/assets/1580c36b-2e8f-4bb1-91d2-0611a0503d7a" /></td>
+    <td align="center"><img width="200" src="https://github.com/user-attachments/assets/1580c36b-2e8f-4bb1-91d2-0611a0503d7a" /></td>
     <td align="center"><img width="200" src="https://github.com/user-attachments/assets/54b91105-7fd9-4e7c-a2d0-3fbd18e663a6" /></td>
   </tr>
   <tr>
